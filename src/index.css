@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+/* ── HouseCenter design tokens ───────────────────────────────────────────────
+   Stripe-inspired: near-black sidebar, clean white surfaces, violet accent.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Sidebar */
+  --hc-sidebar-bg:          #0d0d12;
+  --hc-sidebar-border:      rgba(255,255,255,0.06);
+  --hc-sidebar-logo-bg:     #5925DC;
+  --hc-sidebar-item-hover:  rgba(255,255,255,0.06);
+  --hc-sidebar-item-active: rgba(255,255,255,0.10);
+  --hc-sidebar-text:        rgba(255,255,255,0.55);
+  --hc-sidebar-text-active: rgba(255,255,255,0.95);
+  --hc-sidebar-group:       rgba(255,255,255,0.30);
+
+  /* Surface */
+  --hc-surface:             #ffffff;
+  --hc-surface-raised:      #f9f9fb;
+  --hc-surface-border:      #e8e8ed;
+  --hc-body-bg:             #f4f4f8;
+
+  /* Topbar */
+  --hc-topbar-bg:           #ffffff;
+  --hc-topbar-border:       #e8e8ed;
+
+  /* Accent */
+  --hc-accent:              #5925DC;
+  --hc-accent-hover:        #4a1db8;
+  --hc-accent-subtle:       #ede9fe;
+  --hc-accent-text:         #5925DC;
+
+  /* Text */
+  --hc-text-primary:        #111118;
+  --hc-text-secondary:      #6b6b80;
+  --hc-text-tertiary:       #9898a8;
+}
+
+/* Dark mode overrides */
+.dark {
+  --hc-surface:             #18181f;
+  --hc-surface-raised:      #111118;
+  --hc-surface-border:      rgba(255,255,255,0.08);
+  --hc-body-bg:             #0d0d12;
+  --hc-topbar-bg:           #18181f;
+  --hc-topbar-border:       rgba(255,255,255,0.08);
+  --hc-accent-subtle:       rgba(89,37,220,0.15);
+  --hc-text-primary:        #f0f0f6;
+  --hc-text-secondary:      #9898a8;
+  --hc-text-tertiary:       #6b6b80;
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────────
+   Inter or system-ui for that SaaS dashboard feel
+   ──────────────────────────────────────────────────────────────────────────── */
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background: var(--hc-body-bg);
+  color: var(--hc-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────
+   Thin, unobtrusive scrollbars
+   ──────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(0,0,0,0.15); border-radius: 9999px; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+
+/* ── Utility classes used by the shell ──────────────────────────────────────── */
+.hc-sidebar       { background: var(--hc-sidebar-bg); border-right: 1px solid var(--hc-sidebar-border); }
+.hc-topbar        { background: var(--hc-topbar-bg);  border-bottom: 1px solid var(--hc-topbar-border); }
+.hc-surface       { background: var(--hc-surface);    border: 1px solid var(--hc-surface-border); }
+.hc-body          { background: var(--hc-body-bg); }
