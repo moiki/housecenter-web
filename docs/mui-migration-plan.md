@@ -1,6 +1,6 @@
-# Migration Plan — Untitled UI → Material UI v7
+# Migration Plan — Untitled UI → Material UI v9
 
-## Status: `proposed`
+## Status: `in progress` — Phase 0a gate ✅ GO · MUI v9 installed · Phase 1 (theme) next
 ## Branch: `feat/mui-migration` (from `main`)
 
 ---
@@ -8,8 +8,9 @@
 ## Context
 
 `housecenter-web` was built with Untitled UI (Tailwind-based component library).
-Business decision to migrate to **Material UI v6** to align with the design history of
-`house-mui-v1` (the legacy system) and enable faster component availability.
+Business decision to migrate to **Material UI v9** (current stable). Note: the legacy
+`house-mui-v1` used MUI v5, so this is a fresh adoption of the current major, not a
+version match. v7 is now LTS; greenfield work starts on v9.
 
 Key references from legacy (`house-mui-v1/src/components`):
 - `modals/formDialogContainer.component.js` — fullscreen slide-up Dialog for forms
@@ -23,7 +24,7 @@ Key references from legacy (`house-mui-v1/src/components`):
 
 ## Goals
 
-1. Replace all Untitled UI components with MUI v7 equivalents
+1. Replace all Untitled UI components with MUI v9 equivalents
 2. Establish a single MUI theme file with the current brand (violet `#7c3aed`)
 3. Reproduce the 3 dialog patterns from legacy (FormDialog, ViewDialog, ConfirmDialog)
 4. Integrate Froala WYSIWYG editor (`react-froala-wysiwyg`) for rich-text fields
@@ -47,36 +48,39 @@ Key references from legacy (`house-mui-v1/src/components`):
 
 ## Phase 0 — Dependencies
 
-### 0a. GO / NO-GO GATE — Froala on React 19 (do this FIRST)
+### 0a. GO / NO-GO GATE — Froala on React 19 — ✅ RESOLVED: GO
 
-This repo runs **React 19.2.6**. `react-froala-wysiwyg` has historically depended
-on React patterns that React 19 removed (`findDOMNode`, legacy lifecycle). Froala
-is **not on the critical path** (it's only needed in Phase 5), so de-risk it before
-committing to it:
+Spike run on a throwaway branch (`react-froala-wysiwyg@5.2.0` + `froala-editor@5.2.0`)
+under **React 19.2.7**: the editor mounts, `onModelChange` fires, `FroalaEditorView`
+renders saved HTML, and there are **no** `findDOMNode`/lifecycle errors. peerDeps declare
+`react ^19.0.0` and the package contains no `findDOMNode`. **Froala stays for Phase 5** —
+no need for TipTap/Lexical.
 
-1. Spike: install `react-froala-wysiwyg` + `froala-editor` in a throwaway branch and
-   render one `FroalaEditor` + one `FroalaEditorView` under React 19.
-2. Verify: editor mounts, `onModelChange` fires, no `findDOMNode`/lifecycle console
-   errors, view renders saved HTML.
-3. **GO** → proceed with Froala as planned in Phase 5.
-   **NO-GO** → swap Phase 5 to a React-19-native editor (TipTap or Lexical) that
-   renders the same stored HTML. The rest of this plan is unaffected.
+⚠️ **Interop gotcha (carried into Phase 5):** under Vite the default import is the UMD
+module namespace (`{ __esModule: true, default: <class> }`), not the component class, so
+rendering it directly throws *"Element type is invalid … got: object"*. Unwrap `.default`:
+```ts
+import FroalaEditorImport from 'react-froala-wysiwyg'
+const FroalaEditor = (FroalaEditorImport as any).default ?? FroalaEditorImport
+```
 
-Do not install Froala in the main migration branch until this gate passes.
+Open caveat: Froala adds ~212 KB gzip JS + ~45 KB gzip CSS — trim plugins in
+`froala.config.ts` (Phase 5).
 
 ### Install
 ```bash
-pnpm add @mui/material@^7 @mui/icons-material @emotion/react @emotion/styled
-# Froala — only after the 0a gate passes (otherwise install the chosen alternative)
+pnpm add @mui/material@^9 @mui/icons-material @emotion/react @emotion/styled
+# Froala — gate 0a passed (GO); react-froala-wysiwyg@^5 renders under React 19
 pnpm add react-froala-wysiwyg froala-editor
-# MUI date pickers — use the major compatible with core v7 + React 19 (verify at install)
+# MUI date pickers — v9 (9.5.0) peers @mui/material ^9 + React 19; dayjs adapter
 pnpm add @mui/x-date-pickers dayjs
 ```
 
-> Target **MUI v7** (current stable major; the legacy app was MUI v5, so there is no v6
-> to "match"). `<Button loading>` is native in v7 — do **not** add `@mui/lab`
-> (`LoadingButton` is deprecated). Note: `@mui/x-date-pickers` versions independently
-> from core; install the major that lists core v7 + React 19 as peers (verify at install).
+> **Installed (Jun 2026):** `@mui/material` 9.1.1, `@mui/icons-material` 9.1.1,
+> `@mui/x-date-pickers` 9.5.0 (peers `@mui/material ^9` + React 19, verified via npm),
+> `@emotion/*` 11, `dayjs` 1.11, `react-froala-wysiwyg`/`froala-editor` 5.2.0.
+> `<Button loading>` is native — do **not** add `@mui/lab` (`LoadingButton` deprecated).
+> v9 cleaned up long-deprecated APIs, so use `slots`/`slotProps` everywhere (Phase 3).
 
 ### Remove
 The Untitled UI stack is broader than just the icons package — remove all of it:
@@ -325,13 +329,13 @@ const SlideUpTransition = React.forwardRef((props, ref) =>
 )
 ```
 
-> **v7 slots API:** pass the transition via `slots={{ transition: SlideUpTransition }}`
-> and paper overrides via `slotProps={{ paper: { elevation: 0 } }}`. The older
-> `TransitionComponent` / `PaperProps` props still work in v7 but are deprecated — use
-> slots from the start to avoid the deprecation warnings (and the eventual v8 removal).
+> **v9 slots API:** pass the transition via `slots={{ transition: SlideUpTransition }}`
+> and paper overrides via `slotProps={{ paper: { elevation: 0 } }}`. `TransitionComponent` /
+> `PaperProps` were deprecated back in v6 and v9 cleaned up deprecated APIs — use slots,
+> it's the only forward-compatible path.
 
 **Improvement over legacy:** `confirmColor` prop lets caller set warning vs error color.
-`loading` uses `<Button loading>` (native in `@mui/material` v7) for the built-in spinner —
+`loading` uses `<Button loading>` (native in `@mui/material`) for the built-in spinner —
 **not** the deprecated `LoadingButton` from `@mui/lab`. The same `<Button loading>` is used
 in `FormDialog` (Phase 3a).
 
@@ -441,8 +445,12 @@ Also adds TypeScript types.
 
 ### `RichTextEditor.tsx`
 ```tsx
-import FroalaEditor from 'react-froala-wysiwyg'
+// Vite interop: the default import is the UMD namespace, not the class — unwrap .default
+// (proven in the Phase 0a gate). Do the same for FroalaEditorView in RichTextView.tsx.
+import FroalaEditorImport from 'react-froala-wysiwyg'
 import { froalaCompactConfig } from '@/lib/froala.config'
+
+const FroalaEditor = (FroalaEditorImport as any).default ?? FroalaEditorImport
 
 interface Props {
   value: string
@@ -620,7 +628,7 @@ All pages in `src/pages/` use Untitled UI components. Pages with Froala
 
 | Risk | Mitigation |
 |---|---|
-| **`react-froala-wysiwyg` may not render under React 19** (legacy `findDOMNode`/lifecycle reliance) | **Phase 0a go/no-go spike before adopting.** NO-GO → swap to TipTap/Lexical (React-19-native) rendering the same stored HTML. |
+| ~~`react-froala-wysiwyg` may not render under React 19~~ — ✅ **RESOLVED (GO):** v5.2.0 renders under React 19.2.7; needs the `.default` interop unwrap under Vite (see Phase 0a). | — |
 | Froala license key required for production | Use eval mode for dev; obtain license before prod deploy |
 | MUI `<Select>` needs `<InputLabel>` + `<FormControl>` boilerplate | Use `<TextField select>` pattern instead (simpler) |
 | `react-froala-wysiwyg` types may be incomplete | Use `// @ts-ignore` on model/config props if needed |
