@@ -1,9 +1,7 @@
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Box, Button, TextField } from '@mui/material'
 import { clinicSchema, type ClinicFormData } from '@/schemas/clinic.schema'
-import { Input } from '@/components/base/input/input'
-import { TextArea } from '@/components/base/textarea/textarea'
-import { Button } from '@/components/base/buttons/button'
 import type { ClinicResponse } from '@/types/clinic.types'
 
 interface Props {
@@ -12,11 +10,13 @@ interface Props {
   submitLabel: string
 }
 
+// RHF + MUI reference pattern: spread {...field} into TextField (MUI's onChange is an
+// event, which field.onChange accepts directly — no adapter, unlike the React Aria inputs).
 export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<ClinicFormData>({
     resolver: zodResolver(clinicSchema),
     defaultValues: defaultValues
@@ -25,19 +25,22 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <Box
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+    >
       <Controller
         control={control}
         name="name"
-        render={({ field }) => (
-          <Input
+        render={({ field, fieldState }) => (
+          <TextField
+            {...field}
             label="Name"
-            hint={errors.name?.message}
-            isInvalid={!!errors.name}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
             placeholder="e.g. Clinic Central"
+            fullWidth
+            error={!!fieldState.error}
+            helperText={fieldState.error?.message}
           />
         )}
       />
@@ -45,26 +48,23 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
       <Controller
         control={control}
         name="address"
-        render={({ field }) => (
-          <TextArea
+        render={({ field, fieldState }) => (
+          <TextField
+            {...field}
             label="Address"
-            hint={errors.address?.message}
-            isInvalid={!!errors.address}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
             placeholder="Full address"
+            fullWidth
+            multiline
+            rows={3}
+            error={!!fieldState.error}
+            helperText={fieldState.error?.message}
           />
         )}
       />
 
-      <Button
-        type="submit"
-        isDisabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Saving…' : submitLabel}
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+        {submitLabel}
       </Button>
-    </form>
+    </Box>
   )
 }
