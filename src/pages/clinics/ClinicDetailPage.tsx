@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { Alert, Box, Button, Paper, Skeleton, Typography } from '@mui/material'
+import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import { useClinic, useUpdateClinic } from '@/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
-import { Icon } from '@/components/shared/Icon'
 import type { ClinicFormData } from '@/schemas/clinic.schema'
 
 export function ClinicDetailPage() {
@@ -17,53 +18,47 @@ export function ClinicDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-lg space-y-4">
-        <div className="h-8 w-48 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
-        <div className="h-48 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
-      </div>
+      <Box sx={{ maxWidth: 520, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Skeleton variant="rounded" width={200} height={32} />
+        <Skeleton variant="rounded" height={200} />
+      </Box>
     )
   }
 
   if (isError || !clinic) {
     return (
-      <div className="text-center py-16">
-        <p className="text-[var(--hc-text-secondary)] text-sm">Clinic not found.</p>
-        <button onClick={() => navigate('/clinics')} className="mt-3 text-sm text-blue-600 hover:underline">
+      <Box sx={{ textAlign: 'center', py: 8 }}>
+        <Typography color="text.secondary" sx={{ fontSize: 14 }}>
+          Clinic not found.
+        </Typography>
+        <Button onClick={() => navigate('/clinics')} sx={{ mt: 1.5 }}>
           Back to clinics
-        </button>
-      </div>
+        </Button>
+      </Box>
     )
   }
 
   return (
-    <div className="max-w-lg">
+    <Box sx={{ maxWidth: 520 }}>
       <PageHeader
         title={clinic.name}
         description="Edit clinic details"
         action={
-          <button
-            onClick={() => navigate('/clinics')}
-            className="flex items-center gap-1.5 text-sm text-[var(--hc-text-secondary)] hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-          >
-            <Icon name="chevron" className="w-4 h-4 rotate-180" />
+          <Button color="inherit" startIcon={<ArrowBackOutlined />} onClick={() => navigate('/clinics')}>
             Back
-          </button>
+          </Button>
         }
       />
 
       {updateClinic.isSuccess && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-300">
+        <Alert severity="success" sx={{ mb: 2 }}>
           Clinic updated successfully.
-        </div>
+        </Alert>
       )}
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-        <ClinicForm
-          defaultValues={clinic}
-          onSubmit={handleUpdate}
-          submitLabel="Save changes"
-        />
-      </div>
-    </div>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+        <ClinicForm defaultValues={clinic} onSubmit={handleUpdate} submitLabel="Save changes" />
+      </Paper>
+    </Box>
   )
 }
