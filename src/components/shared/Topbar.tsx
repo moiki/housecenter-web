@@ -68,7 +68,7 @@ export function Topbar({ onToggleSidebar }: Props) {
       position="static"
       color="default"
       elevation={0}
-      sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
+      sx={{ bgcolor: 'background.default' }}
     >
       <Toolbar variant="dense" sx={{ gap: 1.5 }}>
         <IconButton edge="start" onClick={onToggleSidebar} aria-label="Toggle sidebar" size="small">

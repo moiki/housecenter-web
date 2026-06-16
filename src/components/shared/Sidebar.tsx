@@ -121,8 +121,8 @@ export function Sidebar({ role, collapsed }: Props) {
           width,
           position: 'relative',
           boxSizing: 'border-box',
-          borderRight: 1,
-          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRight: 0, // override MUI's default docked-Drawer right border
           overflowX: 'hidden',
           transition: (t) =>
             t.transitions.create('width', { duration: t.transitions.duration.shorter }),
@@ -138,8 +138,6 @@ export function Sidebar({ role, collapsed }: Props) {
           height: 56,
           px: collapsed ? 0 : 2,
           justifyContent: collapsed ? 'center' : 'flex-start',
-          borderBottom: 1,
-          borderColor: 'divider',
           flexShrink: 0,
         }}
       >
@@ -167,7 +165,7 @@ export function Sidebar({ role, collapsed }: Props) {
       </List>
 
       {/* Settings pinned */}
-      <Box sx={{ borderTop: 1, borderColor: 'divider', py: 0.5 }}>
+      <Box sx={{ py: 0.5 }}>
         <List disablePadding>
           {renderItem({ label: 'Settings', path: '/settings', roles: [], icon: 'settings' })}
         </List>
