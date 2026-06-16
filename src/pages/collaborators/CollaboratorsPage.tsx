@@ -1,6 +1,28 @@
 import { useState } from 'react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Paper,
+  Skeleton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import AddOutlined from '@mui/icons-material/AddOutlined'
+import EditOutlined from '@mui/icons-material/EditOutlined'
+import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
+import WorkOutlined from '@mui/icons-material/WorkOutlined'
 import { collaboratorSchema, type CollaboratorFormData } from '@/schemas/collaborator.schema'
 import {
   useCollaborators,
@@ -13,11 +35,7 @@ import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { Icon } from '@/components/shared/Icon'
-import { Input } from '@/components/base/input/input'
-import { Button } from '@/components/base/buttons/button'
-import { Select } from '@/components/base/select/select'
-import { Table, TableCard } from '@/components/application/table/table'
+import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { CollaboratorResponse } from '@/types/collaborator.types'
 
 function CollaboratorForm({
@@ -32,7 +50,11 @@ function CollaboratorForm({
   const { data: clinics } = useClinics()
   const { data: routes } = useWorkRoutes()
 
-  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<CollaboratorFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CollaboratorFormData>({
     resolver: zodResolver(collaboratorSchema),
     defaultValues: defaultValues
       ? {
@@ -47,7 +69,7 @@ function CollaboratorForm({
           profilePicture: defaultValues.profilePicture,
           clinicId: defaultValues.clinicId,
           workRouteId: defaultValues.workRouteId,
-          positions: defaultValues.positions.map(p => p.name),
+          positions: defaultValues.positions.map((p) => p.name),
         }
       : {
           firstName: '', lastName: '', email: '', phoneNumber: '',
@@ -59,156 +81,73 @@ function CollaboratorForm({
 
   const { fields, append, remove } = useFieldArray({
     control,
-    // @ts-expect-error positions is string[], useFieldArray expects object[]
+    // @ts-expect-error positions is string[]; useFieldArray expects object[]
     name: 'positions',
   })
 
-  const clinicItems = (clinics ?? []).map(c => ({ id: c.id, label: c.name }))
-  const routeItems = [
-    { id: '__none__', label: 'No route assigned' },
-    ...(routes ?? []).map(r => ({ id: r.id, label: r.routeName })),
+  const clinicOptions = (clinics ?? []).map((c) => ({ value: c.id, label: c.name }))
+  // Empty-string option => Zod transforms '' -> null (replaces the legacy '__none__' sentinel).
+  const routeOptions = [
+    { value: '', label: 'No route assigned' },
+    ...(routes ?? []).map((r) => ({ value: r.id, label: r.routeName })),
   ]
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Controller
-          control={control}
-          name="firstName"
-          render={({ field }) => (
-            <Input label="First name" isInvalid={!!errors.firstName} hint={errors.firstName?.message}
-              value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Jane" />
-          )}
-        />
-        <Controller
-          control={control}
-          name="lastName"
-          render={({ field }) => (
-            <Input label="Last name" isInvalid={!!errors.lastName} hint={errors.lastName?.message}
-              value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Smith" />
-          )}
-        />
-      </div>
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <RHFTextField control={control} name="firstName" label="First name" placeholder="Jane" />
+        <RHFTextField control={control} name="lastName" label="Last name" placeholder="Smith" />
+      </Box>
 
-      <Controller
-        control={control}
-        name="email"
-        render={({ field }) => (
-          <Input label="Email" type="email" isInvalid={!!errors.email} hint={errors.email?.message}
-            value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="jane@example.com" />
-        )}
-      />
+      <RHFTextField control={control} name="email" label="Email" type="email" placeholder="jane@example.com" />
+      <RHFTextField control={control} name="phoneNumber" label="Phone" placeholder="+1 555 0000" />
+      <RHFTextField control={control} name="address" label="Address" placeholder="Full address" />
 
-      <Controller
-        control={control}
-        name="phoneNumber"
-        render={({ field }) => (
-          <Input label="Phone" isInvalid={!!errors.phoneNumber} hint={errors.phoneNumber?.message}
-            value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="+1 555 0000" />
-        )}
-      />
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
+        <RHFTextField control={control} name="country" label="Country" placeholder="US" />
+        <RHFTextField control={control} name="state" label="State" placeholder="CA" />
+        <RHFTextField control={control} name="city" label="City" placeholder="LA" />
+      </Box>
 
-      <Controller
-        control={control}
-        name="address"
-        render={({ field }) => (
-          <Input label="Address" isInvalid={!!errors.address} hint={errors.address?.message}
-            value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Full address" />
-        )}
-      />
+      <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />
+      <RHFSelect control={control} name="workRouteId" label="Work route (optional)" options={routeOptions} />
 
-      <div className="grid grid-cols-3 gap-3">
-        <Controller
-          control={control}
-          name="country"
-          render={({ field }) => (
-            <Input label="Country" value={field.value ?? ''} onChange={v => field.onChange(v || null)}
-              onBlur={field.onBlur} placeholder="US" />
-          )}
-        />
-        <Controller
-          control={control}
-          name="state"
-          render={({ field }) => (
-            <Input label="State" value={field.value ?? ''} onChange={v => field.onChange(v || null)}
-              onBlur={field.onBlur} placeholder="CA" />
-          )}
-        />
-        <Controller
-          control={control}
-          name="city"
-          render={({ field }) => (
-            <Input label="City" value={field.value ?? ''} onChange={v => field.onChange(v || null)}
-              onBlur={field.onBlur} placeholder="LA" />
-          )}
-        />
-      </div>
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>Positions</Typography>
+          <Button size="small" startIcon={<AddOutlined />} onClick={() => append('')}>
+            Add position
+          </Button>
+        </Box>
 
-      <Controller
-        control={control}
-        name="clinicId"
-        render={({ field }) => (
-          <Select label="Clinic" placeholder="Select clinic" isInvalid={!!errors.clinicId}
-            hint={errors.clinicId?.message} selectedKey={field.value || null}
-            onSelectionChange={key => field.onChange(key)} items={clinicItems}>
-            {item => <Select.Item id={item.id}>{item.label}</Select.Item>}
-          </Select>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="workRouteId"
-        render={({ field }) => (
-          <Select label="Work route (optional)" placeholder="No route" selectedKey={field.value ?? '__none__'}
-            onSelectionChange={key => field.onChange(key === '__none__' ? null : key)}
-            items={routeItems}>
-            {item => <Select.Item id={item.id}>{item.label}</Select.Item>}
-          </Select>
-        )}
-      />
-
-      {/* Positions */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Positions</p>
-          <button type="button" onClick={() => append('')}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-            + Add position
-          </button>
-        </div>
         {errors.positions?.root && (
-          <p className="text-xs text-red-500">{errors.positions.root.message}</p>
+          <Typography color="error" sx={{ fontSize: 12, mb: 1 }}>
+            {errors.positions.root.message}
+          </Typography>
         )}
-        {fields.map((field, i) => (
-          <div key={field.id} className="flex gap-2">
-            <Controller
-              control={control}
-              name={`positions.${i}` as `positions.${number}`}
-              render={({ field: f }) => (
-                <Input
-                  placeholder={`Position ${i + 1}`}
-                  isInvalid={!!errors.positions?.[i]}
-                  value={f.value as string}
-                  onChange={f.onChange}
-                  onBlur={f.onBlur}
-                />
-              )}
-            />
-            {fields.length > 1 && (
-              <button type="button" onClick={() => remove(i)}
-                className="text-gray-400 hover:text-red-500 transition-colors shrink-0">
-                <Icon name="x" className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
 
-      <Button type="submit" isDisabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Saving…' : submitLabel}
+        <Stack spacing={1.5}>
+          {fields.map((f, i) => (
+            <Box key={f.id} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+              <RHFTextField
+                control={control}
+                name={`positions.${i}` as `positions.${number}`}
+                placeholder={`Position ${i + 1}`}
+              />
+              {fields.length > 1 && (
+                <IconButton size="small" color="error" onClick={() => remove(i)} aria-label="Remove position" sx={{ mt: 0.5 }}>
+                  <DeleteOutlineOutlined fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+        {submitLabel}
       </Button>
-    </form>
+    </Box>
   )
 }
 
@@ -244,92 +183,88 @@ export function CollaboratorsPage() {
   }
 
   return (
-    <div>
+    <Box>
       <PageHeader
         title="Collaborators"
         description="Staff directory — nurses, doctors, and field workers."
         action={
-          <Button onPress={openCreate}>
-            <Icon name="briefcase" className="w-4 h-4" />
+          <Button variant="contained" startIcon={<AddOutlined />} onClick={openCreate}>
             New Collaborator
           </Button>
         }
       />
 
       {isLoading ? (
-        <div className="space-y-3">
+        <Stack spacing={1.5}>
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <Skeleton key={i} variant="rounded" height={64} />
           ))}
-        </div>
+        </Stack>
       ) : !collaborators?.length ? (
-        <TableCard.Root>
-          <div className="flex flex-col items-center gap-2 py-16 text-gray-500">
-            <Icon name="briefcase" className="w-10 h-10 opacity-40" />
-            <p className="text-sm">No collaborators yet. Add the first one.</p>
-          </div>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <WorkOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
+          <Typography sx={{ mt: 1, fontSize: 14 }}>No collaborators yet. Add the first one.</Typography>
+        </Paper>
       ) : (
-        <TableCard.Root>
-          <TableCard.Header
-            title="Collaborators"
-            badge={String(collaborators.length)}
-          />
-          <Table selectionMode="none" aria-label="Collaborators">
-            <Table.Header>
-              <Table.Head label="Name" isRowHeader />
-              <Table.Head label="Clinic" />
-              <Table.Head label="Positions" />
-              <Table.Head label="Contact" />
-              <Table.Head label="" />
-            </Table.Header>
-            <Table.Body>
-              {collaborators.map((c) => (
-                <Table.Row key={c.id}>
-                  <Table.Cell>
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0 text-xs font-semibold text-violet-700 dark:text-violet-300">
-                        {c.firstName[0]}{c.lastName[0]}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {c.firstName} {c.lastName}
-                        </div>
-                        <div className="text-xs text-gray-400">{c.email}</div>
-                      </div>
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <span className="text-gray-500">{c.clinicName}</span>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex flex-wrap gap-1">
-                      {c.positions.map(p => (
-                        <span key={p.id}
-                          className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300">
-                          {p.name}
-                        </span>
-                      ))}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <span className="text-xs text-gray-500">{c.phoneNumber}</span>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button color="secondary" size="sm" onPress={() => openEdit(c)} aria-label="Edit">
-                        <Icon name="settings" className="w-4 h-4" />
-                      </Button>
-                      <Button color="secondary-destructive" size="sm" onPress={() => setToDeactivate(c)} aria-label="Deactivate">
-                        <Icon name="x" className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Collaborators</Typography>
+            <Chip label={collaborators.length} size="small" />
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Clinic</TableCell>
+                  <TableCell>Positions</TableCell>
+                  <TableCell>Contact</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {collaborators.map((c) => (
+                  <TableRow key={c.id} hover>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
+                          {c.firstName[0]}{c.lastName[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                            {c.firstName} {c.lastName}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{c.email}</Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary' }}>{c.clinicName}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {c.positions.map((p) => (
+                          <Chip key={p.id} label={p.name} size="small" color="primary" variant="outlined" />
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: 13 }}>{c.phoneNumber}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => openEdit(c)} aria-label="Edit">
+                          <EditOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Deactivate">
+                        <IconButton size="small" color="error" onClick={() => setToDeactivate(c)} aria-label="Deactivate">
+                          <DeleteOutlineOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
       <SlideOver
@@ -353,6 +288,6 @@ export function CollaboratorsPage() {
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}
       />
-    </div>
+    </Box>
   )
 }
