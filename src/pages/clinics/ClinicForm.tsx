@@ -1,6 +1,7 @@
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Box, Button, TextField } from '@mui/material'
+import { Box, Button } from '@mui/material'
+import { RHFTextField } from '@/components/shared/form'
 import { clinicSchema, type ClinicFormData } from '@/schemas/clinic.schema'
 import type { ClinicResponse } from '@/types/clinic.types'
 
@@ -10,8 +11,6 @@ interface Props {
   submitLabel: string
 }
 
-// RHF + MUI reference pattern: spread {...field} into TextField (MUI's onChange is an
-// event, which field.onChange accepts directly — no adapter, unlike the React Aria inputs).
 export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   const {
     control,
@@ -30,38 +29,15 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
     >
-      <Controller
-        control={control}
-        name="name"
-        render={({ field, fieldState }) => (
-          <TextField
-            {...field}
-            label="Name"
-            placeholder="e.g. Clinic Central"
-            fullWidth
-            error={!!fieldState.error}
-            helperText={fieldState.error?.message}
-          />
-        )}
-      />
-
-      <Controller
+      <RHFTextField control={control} name="name" label="Name" placeholder="e.g. Clinic Central" />
+      <RHFTextField
         control={control}
         name="address"
-        render={({ field, fieldState }) => (
-          <TextField
-            {...field}
-            label="Address"
-            placeholder="Full address"
-            fullWidth
-            multiline
-            rows={3}
-            error={!!fieldState.error}
-            helperText={fieldState.error?.message}
-          />
-        )}
+        label="Address"
+        placeholder="Full address"
+        multiline
+        rows={3}
       />
-
       <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
         {submitLabel}
       </Button>
