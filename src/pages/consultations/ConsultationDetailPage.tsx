@@ -1,18 +1,30 @@
 import { useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  IconButton,
+  MenuItem,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material'
+import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
+import SendOutlined from '@mui/icons-material/SendOutlined'
 import {
   useConsultationDetail,
   usePostMessage,
   useUpdateConsultationStatus,
 } from '@/hooks/consultations/useConsultations'
 import { useAuthStore } from '@/store/auth.store'
-import { Icon } from '@/components/shared/Icon'
-import { Input } from '@/components/base/input/input'
-import { Select } from '@/components/base/select/select'
-import { Button } from '@/components/base/buttons/button'
+import { RichTextView } from '@/components/shared/RichTextView'
+import { RHFRichText } from '@/components/shared/form'
 import type { ConsultationStatus } from '@/types/consultation.types'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -22,10 +34,11 @@ const messageSchema = z.object({
 type MessageForm = z.infer<typeof messageSchema>
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const STATUS_COLORS: Record<ConsultationStatus, string> = {
-  Open:        'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  UnderReview: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  Resolved:    'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+type ChipColor = 'default' | 'info' | 'warning' | 'success'
+const STATUS_COLOR: Record<ConsultationStatus, ChipColor> = {
+  Open: 'info',
+  UnderReview: 'warning',
+  Resolved: 'success',
 }
 
 const STATUS_ITEMS = [
@@ -36,9 +49,16 @@ const STATUS_ITEMS = [
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
+}
+
+function initials(name: string) {
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -57,7 +77,12 @@ export function ConsultationDetailPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [data?.messages.length])
 
-  const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm<MessageForm>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<MessageForm>({
     resolver: zodResolver(messageSchema),
     defaultValues: { body: '' },
   })
@@ -69,17 +94,17 @@ export function ConsultationDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+        <CircularProgress size={28} />
+      </Box>
     )
   }
 
   if (!data) {
     return (
-      <div className="text-center py-16 text-gray-400 text-sm">
+      <Typography sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 14 }}>
         Consultation not found.
-      </div>
+      </Typography>
     )
   }
 
@@ -87,102 +112,104 @@ export function ConsultationDetailPage() {
   const status = consultation.status as ConsultationStatus
 
   return (
-    <div className="space-y-4 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => navigate('/consultations')}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Back"
-        >
-          <Icon name="chevron" className="w-4 h-4 -rotate-90" />
-        </button>
-        <h1 className="text-xl font-semibold text-[var(--hc-text-primary)] flex-1 truncate">
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <IconButton onClick={() => navigate('/consultations')} aria-label="Back">
+          <ArrowBackOutlined />
+        </IconButton>
+        <Typography variant="h6" noWrap sx={{ flex: 1, fontWeight: 600 }}>
           {consultation.title}
-        </h1>
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${STATUS_COLORS[status]}`}>
-          {status === 'UnderReview' ? 'Under Review' : status}
-        </span>
-        <Select
-          items={STATUS_ITEMS}
-          selectedKey={status}
-          onSelectionChange={(k) => updateStatus.mutate({ status: k as ConsultationStatus })}
-          className="w-40"
+        </Typography>
+        <Chip
+          label={status === 'UnderReview' ? 'Under Review' : status}
+          color={STATUS_COLOR[status] ?? 'default'}
+          size="small"
+        />
+        <TextField
+          select
+          size="small"
+          value={status}
+          onChange={(e) => updateStatus.mutate({ status: e.target.value as ConsultationStatus })}
+          sx={{ width: 160 }}
         >
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      </div>
+          {STATUS_ITEMS.map((s) => (
+            <MenuItem key={s.id} value={s.id}>
+              {s.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
       {/* Thread */}
-      <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl flex flex-col min-h-0">
+      <Paper variant="outlined" sx={{ flex: 1, borderRadius: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4 max-h-[calc(100vh-20rem)]">
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 'calc(100vh - 20rem)' }}>
           {messages.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">No messages yet.</p>
+            <Typography sx={{ fontSize: 14, color: 'text.secondary', textAlign: 'center', py: 4 }}>
+              No messages yet.
+            </Typography>
           ) : (
             messages.map((msg) => {
               const isMe = msg.authorId === user?.id
               return (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
-                >
-                  {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 self-end">
-                    <span className="text-white text-xs font-semibold">
-                      {msg.authorName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Bubble */}
-                  <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                    <div className={`px-4 py-2.5 rounded-2xl text-sm ${
-                      isMe
-                        ? 'bg-blue-600 text-white rounded-br-sm'
-                        : 'bg-gray-100 dark:bg-gray-800 text-[var(--hc-text-primary)] rounded-bl-sm'
-                    }`}>
-                      {msg.body}
-                    </div>
-                    <span className="text-xs text-[var(--hc-text-tertiary)] px-1">
-                      {!isMe && <span className="font-medium text-gray-600 dark:text-gray-400 mr-1">{msg.authorName} ·</span>}
+                <Box key={msg.id} sx={{ display: 'flex', gap: 1.5, flexDirection: isMe ? 'row-reverse' : 'row' }}>
+                  <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main', alignSelf: 'flex-end' }}>
+                    {initials(msg.authorName)}
+                  </Avatar>
+                  <Box sx={{ maxWidth: '70%', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 1.25,
+                        borderRadius: 3,
+                        bgcolor: isMe ? 'primary.main' : 'action.hover',
+                        color: isMe ? 'primary.contrastText' : 'text.primary',
+                        ...(isMe ? { borderBottomRightRadius: 4 } : { borderBottomLeftRadius: 4 }),
+                      }}
+                    >
+                      <RichTextView
+                        content={msg.body}
+                        sx={{ '& .fr-view': { color: isMe ? 'primary.contrastText' : 'text.primary', fontSize: 14 } }}
+                      />
+                    </Box>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled', px: 0.5 }}>
+                      {!isMe && (
+                        <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', mr: 0.5 }}>
+                          {msg.authorName} ·
+                        </Box>
+                      )}
                       {formatTime(msg.createdDate)}
-                    </span>
-                  </div>
-                </div>
+                    </Typography>
+                  </Box>
+                </Box>
               )
             })
           )}
           <div ref={messagesEndRef} />
-        </div>
+        </Box>
 
         {/* Reply box */}
-        {status !== 'Resolved' && (
-          <div className="border-t border-gray-100 dark:border-gray-800 p-4">
-            <form onSubmit={handleSubmit(onSend)} className="flex gap-3 items-end">
-              <div className="flex-1">
-                <Controller control={control} name="body" render={({ field }) => (
-                  <Input
-                    placeholder="Write a message…"
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                  />
-                )} />
-              </div>
-              <Button type="submit" isLoading={isSubmitting} className="flex-shrink-0 mb-0.5">
-                <Icon name="send" className="w-4 h-4" />
+        {status !== 'Resolved' ? (
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSend)}
+            sx={{ borderTop: 1, borderColor: 'divider', p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
+          >
+            <RHFRichText control={control} name="body" placeholder="Write a message…" />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button type="submit" variant="contained" startIcon={<SendOutlined />} loading={isSubmitting}>
+                Send
               </Button>
-            </form>
-          </div>
-        )}
-
-        {status === 'Resolved' && (
-          <div className="border-t border-gray-100 dark:border-gray-800 px-5 py-3">
-            <p className="text-xs text-center text-[var(--hc-text-tertiary)]">
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ borderTop: 1, borderColor: 'divider', px: 2.5, py: 1.5 }}>
+            <Typography sx={{ fontSize: 12, textAlign: 'center', color: 'text.disabled' }}>
               This consultation is resolved. Change status to reply.
-            </p>
-          </div>
+            </Typography>
+          </Box>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   )
 }
