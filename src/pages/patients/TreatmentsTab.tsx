@@ -3,17 +3,38 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-  useTreatments, useCreateTreatment, useUpdateTreatment,
-  usePatchTreatmentStatus, useDeactivateTreatment,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  IconButton,
+  MenuItem,
+  Pagination,
+  Paper,
+  Skeleton,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import AddOutlined from '@mui/icons-material/AddOutlined'
+import CloseOutlined from '@mui/icons-material/CloseOutlined'
+import EditOutlined from '@mui/icons-material/EditOutlined'
+import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
+import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined'
+import MedicalServicesOutlined from '@mui/icons-material/MedicalServicesOutlined'
+import {
+  useTreatments,
+  useCreateTreatment,
+  useUpdateTreatment,
+  usePatchTreatmentStatus,
+  useDeactivateTreatment,
   useCreateTreatmentDetail,
   useCreateTreatmentComment,
 } from '@/hooks/patients/useTreatments'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { Icon } from '@/components/shared/Icon'
-import { Input } from '@/components/base/input/input'
-import { Select } from '@/components/base/select/select'
-import { Button } from '@/components/base/buttons/button'
+import { RHFTextField, RHFSelect, RHFDatePicker, RHFRichText } from '@/components/shared/form'
 import type { TreatmentResponse } from '@/types/patient.types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
@@ -23,7 +44,7 @@ const treatmentSchema = z.object({
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
   type: z.enum(['Medical', 'EducationalReinforcement']).nullable(),
-  profile: z.string().url().nullable().or(z.literal('')).transform(v => v || null),
+  profile: z.string().url().nullable().or(z.literal('')).transform((v) => v || null),
 })
 type TreatmentForm = z.infer<typeof treatmentSchema>
 
@@ -31,7 +52,7 @@ const detailSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   treatmentDate: z.string().min(1),
-  profile: z.string().url().nullable().or(z.literal('')).transform(v => v || null),
+  profile: z.string().url().nullable().or(z.literal('')).transform((v) => v || null),
 })
 type DetailForm = z.infer<typeof detailSchema>
 
@@ -41,12 +62,9 @@ const commentSchema = z.object({
 })
 type CommentForm = z.infer<typeof commentSchema>
 
-// ── Status helpers ────────────────────────────────────────────────────────────
-const STATUS_COLORS: Record<string, string> = {
-  Active:    'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  Completed: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  Paused:    'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-}
+// ── Options & colors ───────────────────────────────────────────────────────────
+type ChipColor = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
+const STATUS_COLOR: Record<string, ChipColor> = { Active: 'success', Completed: 'info', Paused: 'warning' }
 
 const STATUS_ITEMS = [
   { id: 'Active', label: 'Active' },
@@ -54,16 +72,16 @@ const STATUS_ITEMS = [
   { id: 'Paused', label: 'Paused' },
 ]
 
-const TYPE_ITEMS = [
-  { id: '__inherit__', label: 'Inherit from patient' },
-  { id: 'Medical', label: 'Medical' },
-  { id: 'EducationalReinforcement', label: 'Educational Reinforcement' },
+const TYPE_OPTIONS = [
+  { value: '', label: 'Inherit from patient' },
+  { value: 'Medical', label: 'Medical' },
+  { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
 ]
 
-const COMMENT_TYPE_ITEMS = [
-  { id: 'Simple', label: 'Simple' },
-  { id: 'Medical', label: 'Medical' },
-  { id: 'Route', label: 'Route' },
+const COMMENT_TYPE_OPTIONS = [
+  { value: 'Simple', label: 'Simple' },
+  { value: 'Medical', label: 'Medical' },
+  { value: 'Route', label: 'Route' },
 ]
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -76,58 +94,79 @@ function TreatmentFormPanel({
   onSubmit: (d: TreatmentForm) => Promise<void>
   submitLabel: string
 }) {
-  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<TreatmentForm>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<TreatmentForm>({
     resolver: zodResolver(treatmentSchema),
     defaultValues: defaultValues
-      ? { name: defaultValues.name, description: defaultValues.description, startDate: defaultValues.startDate.slice(0, 10), endDate: defaultValues.endDate.slice(0, 10), type: defaultValues.type, profile: defaultValues.profile }
+      ? {
+          name: defaultValues.name,
+          description: defaultValues.description,
+          startDate: defaultValues.startDate.slice(0, 10),
+          endDate: defaultValues.endDate.slice(0, 10),
+          type: defaultValues.type,
+          profile: defaultValues.profile,
+        }
       : { name: '', description: '', startDate: '', endDate: '', type: null, profile: null },
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Controller control={control} name="name" render={({ field }) => (
-        <Input label="Name" isInvalid={!!errors.name} hint={errors.name?.message}
-          value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Treatment name" />
-      )} />
-      <Controller control={control} name="description" render={({ field }) => (
-        <Input label="Description" isInvalid={!!errors.description} hint={errors.description?.message}
-          value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Brief description" />
-      )} />
-      <div className="grid grid-cols-2 gap-3">
-        <Controller control={control} name="startDate" render={({ field }) => (
-          <Input label="Start date" type="date" isInvalid={!!errors.startDate} hint={errors.startDate?.message}
-            value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
-        )} />
-        <Controller control={control} name="endDate" render={({ field }) => (
-          <Input label="End date" type="date" isInvalid={!!errors.endDate} hint={errors.endDate?.message}
-            value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
-        )} />
-      </div>
-      <Controller control={control} name="type" render={({ field }) => (
-        <Select label="Type" selectedKey={field.value ?? '__inherit__'}
-          onSelectionChange={k => field.onChange(k === '__inherit__' ? null : k)} items={TYPE_ITEMS}>
-          {item => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-      <Button type="submit" isDisabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Saving…' : submitLabel}
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <RHFTextField control={control} name="name" label="Name" placeholder="Treatment name" />
+      <RHFTextField control={control} name="description" label="Description" placeholder="Brief description" multiline minRows={2} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <RHFDatePicker control={control} name="startDate" label="Start date" />
+        <RHFDatePicker control={control} name="endDate" label="End date" />
+      </Box>
+      {/* Nullable enum: the '' option maps to null at the field boundary, so the schema
+          stays a plain nullable enum (no transform -> no RHF input/output type divergence). */}
+      <Controller
+        control={control}
+        name="type"
+        render={({ field, fieldState }) => (
+          <TextField
+            select
+            fullWidth
+            label="Type"
+            value={field.value ?? ''}
+            onChange={(e) => field.onChange(e.target.value === '' ? null : e.target.value)}
+            onBlur={field.onBlur}
+            error={!!fieldState.error}
+            helperText={fieldState.error?.message}
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <MenuItem key={o.value} value={o.value}>
+                {o.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+      />
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+        {submitLabel}
       </Button>
-    </form>
+    </Box>
   )
 }
 
 function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentResponse; patientId: string }) {
   const patchStatus = usePatchTreatmentStatus(patientId, treatment.id)
   const createDetail = useCreateTreatmentDetail(treatment.id, patientId)
-  // const deleteDetail = useDeleteTreatmentDetail(treatment.id, patientId)
   const createComment = useCreateTreatmentComment(treatment.id, patientId)
-  // const deleteComment = useDeleteTreatmentComment(treatment.id, patientId)
 
   const [addingDetail, setAddingDetail] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
 
-  const detailForm = useForm<DetailForm>({ resolver: zodResolver(detailSchema), defaultValues: { name: '', description: '', treatmentDate: '', profile: null } })
-  const commentForm = useForm<CommentForm>({ resolver: zodResolver(commentSchema), defaultValues: { body: '', type: 'Simple' } })
+  const detailForm = useForm<DetailForm>({
+    resolver: zodResolver(detailSchema),
+    defaultValues: { name: '', description: '', treatmentDate: '', profile: null },
+  })
+  const commentForm = useForm<CommentForm>({
+    resolver: zodResolver(commentSchema),
+    defaultValues: { body: '', type: 'Simple' },
+  })
 
   const onAddDetail = async (d: DetailForm) => {
     await createDetail.mutateAsync(d)
@@ -142,83 +181,98 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/40 border-t border-gray-200 dark:border-gray-700 p-4 space-y-5">
-      {/* Status control */}
-      <div className="flex items-center gap-3">
-        <p className="text-xs font-medium text-[var(--hc-text-secondary)] uppercase tracking-wide">Status:</p>
-        <div className="flex gap-2">
-          {STATUS_ITEMS.map(s => (
-            <button key={s.id}
-              onClick={() => patchStatus.mutate(s.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                treatment.status === s.id
-                  ? `${STATUS_COLORS[s.id]} border-current`
-                  : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:border-gray-400'
-              }`}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <Box sx={{ bgcolor: 'action.hover', borderTop: 1, borderColor: 'divider', p: 2 }}>
+      <Stack spacing={2.5}>
+        {/* Status control */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Status
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            {STATUS_ITEMS.map((s) => (
+              <Chip
+                key={s.id}
+                label={s.label}
+                size="small"
+                onClick={() => patchStatus.mutate(s.id)}
+                color={treatment.status === s.id ? STATUS_COLOR[s.id] ?? 'default' : 'default'}
+                variant={treatment.status === s.id ? 'filled' : 'outlined'}
+              />
+            ))}
+          </Stack>
+        </Box>
 
-      {/* Details section */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Details</p>
-          <button onClick={() => setAddingDetail(v => !v)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-            {addingDetail ? 'Cancel' : '+ Add detail'}
-          </button>
-        </div>
+        {/* Details section */}
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Details
+            </Typography>
+            <Button
+              size="small"
+              startIcon={addingDetail ? <CloseOutlined /> : <AddOutlined />}
+              onClick={() => setAddingDetail((v) => !v)}
+            >
+              {addingDetail ? 'Cancel' : 'Add detail'}
+            </Button>
+          </Box>
 
-        {addingDetail && (
-          <form onSubmit={detailForm.handleSubmit(onAddDetail)} className="grid grid-cols-2 gap-2 mb-3 p-3 border border-dashed border-blue-300 dark:border-blue-700 rounded-lg">
-            <Controller control={detailForm.control} name="name" render={({ field }) => (
-              <Input label="Name" value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Detail name" />
-            )} />
-            <Controller control={detailForm.control} name="treatmentDate" render={({ field }) => (
-              <Input label="Date" type="date" value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
-            )} />
-            <div className="col-span-2">
-              <Controller control={detailForm.control} name="description" render={({ field }) => (
-                <Input label="Description" value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Brief description" />
-              )} />
-            </div>
-            <div className="col-span-2">
-              <Button type="submit" isDisabled={detailForm.formState.isSubmitting} className="w-full">Save detail</Button>
-            </div>
-          </form>
-        )}
+          {addingDetail && (
+            <Paper
+              component="form"
+              variant="outlined"
+              onSubmit={detailForm.handleSubmit(onAddDetail)}
+              sx={{ p: 2, mb: 1.5, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 1.5 }}
+            >
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                <RHFTextField control={detailForm.control} name="name" label="Name" placeholder="Detail name" />
+                <RHFDatePicker control={detailForm.control} name="treatmentDate" label="Date" />
+              </Box>
+              <RHFRichText control={detailForm.control} name="description" label="Description" placeholder="Describe this detail…" />
+              <Button type="submit" variant="contained" fullWidth loading={detailForm.formState.isSubmitting}>
+                Save detail
+              </Button>
+            </Paper>
+          )}
 
-        {/* Detail items — the API returns them embedded in the treatment list from the summary; real paginated data comes from the detail endpoints. For now we show a placeholder until the full detail list endpoint is called */}
-        <p className="text-xs text-[var(--hc-text-tertiary)] italic">Details load from treatment detail endpoints (T10).</p>
-      </div>
+          {/* Detail items load from the treatment detail endpoints (T10) — list pending. */}
+          <Typography sx={{ fontSize: 12, color: 'text.disabled', fontStyle: 'italic' }}>
+            Details load from treatment detail endpoints (T10).
+          </Typography>
+        </Box>
 
-      {/* Comments section */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Comments</p>
-          <button onClick={() => setAddingComment(v => !v)} className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-            {addingComment ? 'Cancel' : '+ Add comment'}
-          </button>
-        </div>
+        {/* Comments section */}
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Comments
+            </Typography>
+            <Button
+              size="small"
+              startIcon={addingComment ? <CloseOutlined /> : <AddOutlined />}
+              onClick={() => setAddingComment((v) => !v)}
+            >
+              {addingComment ? 'Cancel' : 'Add comment'}
+            </Button>
+          </Box>
 
-        {addingComment && (
-          <form onSubmit={commentForm.handleSubmit(onAddComment)} className="space-y-2 mb-3 p-3 border border-dashed border-blue-300 dark:border-blue-700 rounded-lg">
-            <Controller control={commentForm.control} name="type" render={({ field }) => (
-              <Select label="Type" selectedKey={field.value} onSelectionChange={k => field.onChange(k)} items={COMMENT_TYPE_ITEMS}>
-                {item => <Select.Item id={item.id}>{item.label}</Select.Item>}
-              </Select>
-            )} />
-            <Controller control={commentForm.control} name="body" render={({ field }) => (
-              <Input label="Comment" isInvalid={!!commentForm.formState.errors.body}
-                hint={commentForm.formState.errors.body?.message}
-                value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="Write your comment…" />
-            )} />
-            <Button type="submit" isDisabled={commentForm.formState.isSubmitting} className="w-full">Post comment</Button>
-          </form>
-        )}
-      </div>
-    </div>
+          {addingComment && (
+            <Paper
+              component="form"
+              variant="outlined"
+              onSubmit={commentForm.handleSubmit(onAddComment)}
+              sx={{ p: 2, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 1.5 }}
+            >
+              <RHFSelect control={commentForm.control} name="type" label="Type" options={COMMENT_TYPE_OPTIONS} />
+              <RHFRichText control={commentForm.control} name="body" label="Comment" placeholder="Write your comment…" />
+              <Button type="submit" variant="contained" fullWidth loading={commentForm.formState.isSubmitting}>
+                Post comment
+              </Button>
+            </Paper>
+          )}
+        </Box>
+      </Stack>
+    </Box>
   )
 }
 
@@ -227,7 +281,6 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
   const [page, setPage] = useState(1)
   const { data, isLoading } = useTreatments(patientId, page)
   const createTreatment = useCreateTreatment(patientId)
-  // const updateTreatment = useUpdateTreatment(patientId, '')
   const deactivateTreatment = useDeactivateTreatment(patientId)
 
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -235,93 +288,129 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
   const [editing, setEditing] = useState<TreatmentResponse | null>(null)
   const [toDelete, setToDelete] = useState<TreatmentResponse | null>(null)
 
-  const handleCreate = async (d: TreatmentForm) => {
-    await createTreatment.mutateAsync(d)
-    setSlideMode(null)
-  }
+  // Hook stays at the top level (was previously called inside handleUpdate — a
+  // rules-of-hooks violation); it re-binds to the treatment being edited.
+  const updateTreatment = useUpdateTreatment(patientId, editing?.id ?? '')
 
-  const handleUpdate = async (d: TreatmentForm) => {
-    if (!editing) return
-    await useUpdateTreatment(patientId, editing.id).mutateAsync(d)
+  const closeSlide = () => {
     setSlideMode(null)
     setEditing(null)
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {[...Array(3)].map((_, i) => <div key={i} className="h-16 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />)}
-      </div>
-    )
+  const handleCreate = async (d: TreatmentForm) => {
+    await createTreatment.mutateAsync(d)
+    closeSlide()
+  }
+
+  const handleUpdate = async (d: TreatmentForm) => {
+    if (!editing) return
+    await updateTreatment.mutateAsync(d)
+    closeSlide()
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button onClick={() => { setEditing(null); setSlideMode('create') }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
-          <Icon name="chart" className="w-4 h-4" />
+    <Stack spacing={2}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={() => {
+            setEditing(null)
+            setSlideMode('create')
+          }}
+        >
           New Treatment
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      {!data?.items.length ? (
-        <div className="text-center py-10 text-[var(--hc-text-tertiary)]">
-          <Icon name="chart" className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">No treatments yet. Create the first one.</p>
-        </div>
-      ) : (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden divide-y divide-[var(--hc-surface-border)]">
-          {data.items.map(t => (
-            <div key={t.id}>
-              <div
-                className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors cursor-pointer"
-                onClick={() => setExpanded(prev => prev === t.id ? null : t.id)}
-              >
-                <Icon name={expanded === t.id ? 'x' : 'chart'} className="w-4 h-4 text-gray-400 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-[var(--hc-text-primary)] truncate">{t.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{t.description}</p>
-                </div>
-                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[t.status]}`}>
-                  {t.status}
-                </span>
-                <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => { setEditing(t); setSlideMode('edit') }}
-                    className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors">
-                    <Icon name="settings" className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => setToDelete(t)}
-                    className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors">
-                    <Icon name="x" className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-              {expanded === t.id && <ExpandedTreatment treatment={t} patientId={patientId} />}
-            </div>
+      {isLoading ? (
+        <Stack spacing={1.5}>
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} variant="rounded" height={56} />
           ))}
-        </div>
+        </Stack>
+      ) : !data?.items.length ? (
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <MedicalServicesOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
+          <Typography sx={{ mt: 1, fontSize: 14 }}>No treatments yet. Create the first one.</Typography>
+        </Paper>
+      ) : (
+        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          {data.items.map((t, i) => (
+            <Box key={t.id} sx={{ borderTop: i === 0 ? 0 : 1, borderColor: 'divider' }}>
+              <Box
+                onClick={() => setExpanded((prev) => (prev === t.id ? null : t.id))}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  px: 2,
+                  py: 1.5,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <ExpandMoreOutlined
+                  fontSize="small"
+                  sx={{
+                    color: 'text.secondary',
+                    transition: 'transform 0.2s',
+                    transform: expanded === t.id ? 'rotate(180deg)' : 'none',
+                  }}
+                />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography noWrap sx={{ fontSize: 14, fontWeight: 500 }}>
+                    {t.name}
+                  </Typography>
+                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
+                    {t.description}
+                  </Typography>
+                </Box>
+                <Chip label={t.status} size="small" color={STATUS_COLOR[t.status] ?? 'default'} />
+                <Box sx={{ display: 'flex' }} onClick={(e) => e.stopPropagation()}>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setEditing(t)
+                        setSlideMode('edit')
+                      }}
+                      aria-label="Edit treatment"
+                    >
+                      <EditOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Deactivate">
+                    <IconButton size="small" color="error" onClick={() => setToDelete(t)} aria-label="Deactivate treatment">
+                      <DeleteOutlineOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+              <Collapse in={expanded === t.id} unmountOnExit>
+                <ExpandedTreatment treatment={t} patientId={patientId} />
+              </Collapse>
+            </Box>
+          ))}
+        </Paper>
       )}
 
       {data && data.totalPages > 1 && (
-        <div className="flex justify-end gap-2">
-          <button disabled={!data.hasPreviousPage} onClick={() => setPage(p => p - 1)}
-            className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            Previous
-          </button>
-          <button disabled={!data.hasNextPage} onClick={() => setPage(p => p + 1)}
-            className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            Next
-          </button>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Pagination count={data.totalPages} page={page} onChange={(_, p) => setPage(p)} color="primary" />
+        </Box>
       )}
 
-      <SlideOver open={slideMode !== null} onClose={() => { setSlideMode(null); setEditing(null) }}
-        title={slideMode === 'edit' ? 'Edit Treatment' : 'New Treatment'}>
-        {slideMode === 'edit' && editing
-          ? <TreatmentFormPanel defaultValues={editing} onSubmit={handleUpdate} submitLabel="Save changes" />
-          : <TreatmentFormPanel onSubmit={handleCreate} submitLabel="Create treatment" />
-        }
+      <SlideOver
+        open={slideMode !== null}
+        onClose={closeSlide}
+        title={slideMode === 'edit' ? 'Edit Treatment' : 'New Treatment'}
+      >
+        {slideMode === 'edit' && editing ? (
+          <TreatmentFormPanel defaultValues={editing} onSubmit={handleUpdate} submitLabel="Save changes" />
+        ) : (
+          <TreatmentFormPanel onSubmit={handleCreate} submitLabel="Create treatment" />
+        )}
       </SlideOver>
 
       <ConfirmDialog
@@ -330,9 +419,14 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
         description={`"${toDelete?.name}" will be deactivated.`}
         confirmLabel="Deactivate"
         loading={deactivateTreatment.isPending}
-        onConfirm={async () => { if (toDelete) { await deactivateTreatment.mutateAsync(toDelete.id); setToDelete(null) } }}
+        onConfirm={async () => {
+          if (toDelete) {
+            await deactivateTreatment.mutateAsync(toDelete.id)
+            setToDelete(null)
+          }
+        }}
         onCancel={() => setToDelete(null)}
       />
-    </div>
+    </Stack>
   )
 }
