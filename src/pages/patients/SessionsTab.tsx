@@ -1,17 +1,30 @@
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import {
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  IconButton,
+  Pagination,
+  Paper,
+  Skeleton,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import AddOutlined from '@mui/icons-material/AddOutlined'
+import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
+import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined'
 import { useSessions, useCreateSession, usePatchSessionStatus, useDeleteSession } from '@/hooks/patients/useSessions'
 import { useCollaborators } from '@/hooks/collaborators/useCollaborators'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { Icon } from '@/components/shared/Icon'
-import { Input } from '@/components/base/input/input'
-import { Select } from '@/components/base/select/select'
-import { Button } from '@/components/base/buttons/button'
+import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { AttentionSessionResponse, SessionStatus } from '@/types/session.types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
@@ -44,32 +57,27 @@ const statusSchema = z.object({
 type StatusForm = z.infer<typeof statusSchema>
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const STATUS_COLORS: Record<SessionStatus, string> = {
-  Scheduled: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  Completed: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  Missed:    'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-}
+type ChipColor = 'default' | 'info' | 'success' | 'error'
+const STATUS_COLOR: Record<SessionStatus, ChipColor> = { Scheduled: 'info', Completed: 'success', Missed: 'error' }
 
-const STATUS_ITEMS = [
-  { id: 'Scheduled', label: 'Scheduled' },
-  { id: 'Completed', label: 'Completed' },
-  { id: 'Missed', label: 'Missed' },
+const STATUS_OPTIONS = [
+  { value: 'Scheduled', label: 'Scheduled' },
+  { value: 'Completed', label: 'Completed' },
+  { value: 'Missed', label: 'Missed' },
 ]
 
-const TYPE_ITEMS = [
-  { id: 'Medical', label: 'Medical' },
-  { id: 'EducationalReinforcement', label: 'Educational Reinforcement' },
+const TYPE_OPTIONS = [
+  { value: 'Medical', label: 'Medical' },
+  { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
 ]
 
-const LOCATION_MODE_ITEMS = [
-  { id: 'clinic', label: 'Clinic' },
-  { id: 'workRoute', label: 'Work Route' },
+const LOCATION_MODE_OPTIONS = [
+  { value: 'clinic', label: 'Clinic' },
+  { value: 'workRoute', label: 'Work Route' },
 ]
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 // ── Create form (inside SlideOver) ────────────────────────────────────────────
@@ -79,33 +87,35 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
   const { data: workRoutesData } = useWorkRoutes()
   const createSession = useCreateSession(patientId)
 
-  const { control, handleSubmit, watch, formState: { errors, isSubmitting } } =
-    useForm<CreateForm>({
-      resolver: zodResolver(createSchema),
-      defaultValues: {
-        collaboratorId: '',
-        attentionType: 'Medical',
-        sessionDate: '',
-        durationMinutes: '',
-        notes: '',
-        locationMode: 'clinic',
-        clinicId: '',
-        workRouteId: '',
-      },
-    })
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<CreateForm>({
+    resolver: zodResolver(createSchema),
+    defaultValues: {
+      collaboratorId: '',
+      attentionType: 'Medical',
+      sessionDate: '',
+      durationMinutes: '',
+      notes: '',
+      locationMode: 'clinic',
+      clinicId: '',
+      workRouteId: '',
+    },
+  })
 
-  const locationMode = watch('locationMode')
+  const locationMode = useWatch({ control, name: 'locationMode' })
 
-  const collaboratorItems =
-    collaboratorsData?.map((c) => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })) ?? []
-  const clinicItems = clinics?.map((c) => ({ id: c.id, label: c.name })) ?? []
-  const workRouteItems = workRoutesData?.map((w) => ({ id: w.id, label: w.routeName })) ?? []
+  const collaboratorOptions = collaboratorsData?.map((c) => ({ value: c.id, label: `${c.firstName} ${c.lastName}` })) ?? []
+  const clinicOptions = clinics?.map((c) => ({ value: c.id, label: c.name })) ?? []
+  const workRouteOptions = workRoutesData?.map((w) => ({ value: w.id, label: w.routeName })) ?? []
 
   const onSubmit = async (data: CreateForm) => {
     await createSession.mutateAsync({
       collaboratorId: data.collaboratorId,
-      clinicId: data.locationMode === 'clinic' ? (data.clinicId || null) : null,
-      workRouteId: data.locationMode === 'workRoute' ? (data.workRouteId || null) : null,
+      clinicId: data.locationMode === 'clinic' ? data.clinicId || null : null,
+      workRouteId: data.locationMode === 'workRoute' ? data.workRouteId || null : null,
       attentionType: data.attentionType,
       sessionDate: new Date(data.sessionDate).toISOString(),
       durationMinutes: data.durationMinutes ? parseInt(data.durationMinutes, 10) : null,
@@ -115,69 +125,27 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <Controller control={control} name="collaboratorId" render={({ field }) => (
-        <Select label="Collaborator" items={collaboratorItems}
-          selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as string)}
-          isInvalid={!!errors.collaboratorId} hint={errors.collaboratorId?.message}>
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-
-      <Controller control={control} name="attentionType" render={({ field }) => (
-        <Select label="Attention Type" items={TYPE_ITEMS}
-          selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as string)}>
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-
-      <Controller control={control} name="sessionDate" render={({ field }) => (
-        <Input label="Session Date" type="datetime-local"
-          value={field.value} onChange={field.onChange}
-          isInvalid={!!errors.sessionDate} hint={errors.sessionDate?.message} />
-      )} />
-
-      <Controller control={control} name="locationMode" render={({ field }) => (
-        <Select label="Location Type" items={LOCATION_MODE_ITEMS}
-          selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as 'clinic' | 'workRoute')}>
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-
-      {locationMode === 'clinic' && (
-        <Controller control={control} name="clinicId" render={({ field }) => (
-          <Select label="Clinic" items={clinicItems}
-            selectedKey={field.value ?? ''} onSelectionChange={(k) => field.onChange(k as string)}
-            isInvalid={!!errors.clinicId} hint={errors.clinicId?.message}>
-            {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-          </Select>
-        )} />
-      )}
-
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <RHFSelect control={control} name="collaboratorId" label="Collaborator" options={collaboratorOptions} />
+      <RHFSelect control={control} name="attentionType" label="Attention Type" options={TYPE_OPTIONS} />
+      <RHFTextField
+        control={control}
+        name="sessionDate"
+        label="Session Date"
+        type="datetime-local"
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      <RHFSelect control={control} name="locationMode" label="Location Type" options={LOCATION_MODE_OPTIONS} />
+      {locationMode === 'clinic' && <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />}
       {locationMode === 'workRoute' && (
-        <Controller control={control} name="workRouteId" render={({ field }) => (
-          <Select label="Work Route" items={workRouteItems}
-            selectedKey={field.value ?? ''} onSelectionChange={(k) => field.onChange(k as string)}
-            isInvalid={!!errors.workRouteId} hint={errors.workRouteId?.message}>
-            {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-          </Select>
-        )} />
+        <RHFSelect control={control} name="workRouteId" label="Work Route" options={workRouteOptions} />
       )}
-
-      <Controller control={control} name="durationMinutes" render={({ field }) => (
-        <Input label="Duration (minutes)" type="number" placeholder="Optional"
-          value={field.value ?? ''} onChange={field.onChange} />
-      )} />
-
-      <Controller control={control} name="notes" render={({ field }) => (
-        <Input label="Notes" placeholder="Optional"
-          value={field.value ?? ''} onChange={field.onChange} />
-      )} />
-
-      <Button type="submit" isLoading={isSubmitting} className="w-full justify-center">
+      <RHFTextField control={control} name="durationMinutes" label="Duration (minutes)" type="number" placeholder="Optional" />
+      <RHFTextField control={control} name="notes" label="Notes" placeholder="Optional" multiline minRows={2} />
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
         Create Session
       </Button>
-    </form>
+    </Box>
   )
 }
 
@@ -193,7 +161,11 @@ function StatusPatchForm({
 }) {
   const patchStatus = usePatchSessionStatus(patientId)
 
-  const { control, handleSubmit, formState: { isSubmitting } } = useForm<StatusForm>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<StatusForm>({
     resolver: zodResolver(statusSchema),
     defaultValues: {
       status: session.status,
@@ -215,27 +187,26 @@ function StatusPatchForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mt-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Controller control={control} name="status" render={({ field }) => (
-          <Select label="Status" items={STATUS_ITEMS}
-            selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as string)}>
-            {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-          </Select>
-        )} />
-        <Controller control={control} name="durationMinutes" render={({ field }) => (
-          <Input label="Duration (min)" type="number"
-            value={field.value ?? ''} onChange={field.onChange} />
-        )} />
-        <Controller control={control} name="notes" render={({ field }) => (
-          <Input label="Notes" value={field.value ?? ''} onChange={field.onChange} />
-        )} />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <Button size="sm" color="secondary" onPress={onClose}>Cancel</Button>
-        <Button size="sm" type="submit" isLoading={isSubmitting}>Save</Button>
-      </div>
-    </form>
+    <Paper
+      component="form"
+      variant="outlined"
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ mt: 1.5, p: 2, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
+        <RHFSelect control={control} name="status" label="Status" options={STATUS_OPTIONS} />
+        <RHFTextField control={control} name="durationMinutes" label="Duration (min)" type="number" />
+        <RHFTextField control={control} name="notes" label="Notes" />
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+        <Button size="small" color="inherit" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button size="small" type="submit" variant="contained" loading={isSubmitting}>
+          Save
+        </Button>
+      </Box>
+    </Paper>
   )
 }
 
@@ -257,96 +228,78 @@ export function SessionsTab({ patientId }: Props) {
   const totalPages = data?.totalPages ?? 1
 
   return (
-    <div className="space-y-4">
+    <Stack spacing={2}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--hc-text-primary)]">
-          Attention Sessions
-        </h3>
-        <Button size="sm" onPress={() => setCreateOpen(true)}>
-          <Icon name="plus" className="w-4 h-4 mr-1.5" />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Attention Sessions</Typography>
+        <Button size="small" variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
           New Session
         </Button>
-      </div>
+      </Box>
 
-      {/* Table */}
+      {/* List */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <Stack spacing={1.5}>
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} variant="rounded" height={56} />
+          ))}
+        </Stack>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-12 text-[var(--hc-text-tertiary)] text-sm">
-          No sessions recorded yet.
-        </div>
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 14 }}>No sessions recorded yet.</Typography>
+        </Paper>
       ) : (
-        <div className="space-y-2">
+        <Stack spacing={1.5}>
           {sessions.map((session) => (
-            <div
-              key={session.id}
-              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden"
-            >
-              <div className="flex items-center gap-3 px-4 py-3">
-                <button
+            <Paper key={session.id} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5 }}>
+                <Box
                   onClick={() => setExpandedId(expandedId === session.id ? null : session.id)}
-                  className="flex-1 flex items-center gap-3 text-left"
+                  sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', minWidth: 0 }}
                 >
-                  <Icon
-                    name="chevron"
-                    className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${
-                      expandedId === session.id ? 'rotate-180' : 'rotate-90'
-                    }`}
+                  <ExpandMoreOutlined
+                    fontSize="small"
+                    sx={{
+                      color: 'text.secondary',
+                      transition: 'transform 0.2s',
+                      transform: expandedId === session.id ? 'rotate(180deg)' : 'none',
+                    }}
                   />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-[var(--hc-text-primary)]">
-                        {formatDate(session.sessionDate)}
-                      </span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[session.status]}`}>
-                        {session.status}
-                      </span>
-                      <span className="text-xs text-[var(--hc-text-tertiary)]">
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{formatDate(session.sessionDate)}</Typography>
+                      <Chip label={session.status} size="small" color={STATUS_COLOR[session.status] ?? 'default'} />
+                      <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
                         {session.attentionType === 'EducationalReinforcement' ? 'Educational' : session.attentionType}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[var(--hc-text-secondary)] mt-0.5 truncate">
+                      </Typography>
+                    </Box>
+                    <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
                       {session.collaboratorName}
                       {session.durationMinutes ? ` · ${session.durationMinutes} min` : ''}
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setDeleteTarget(session)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  aria-label="Delete session"
-                >
-                  <Icon name="trash" className="w-4 h-4" />
-                </button>
-              </div>
-
-              {expandedId === session.id && (
-                <div className="px-4 pb-4">
+                    </Typography>
+                  </Box>
+                </Box>
+                <Tooltip title="Delete">
+                  <IconButton size="small" color="error" onClick={() => setDeleteTarget(session)} aria-label="Delete session">
+                    <DeleteOutlineOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Collapse in={expandedId === session.id} unmountOnExit>
+                <Box sx={{ px: 2, pb: 2 }}>
                   <StatusPatchForm session={session} patientId={patientId} onClose={() => setExpandedId(null)} />
-                </div>
-              )}
-            </div>
+                </Box>
+              </Collapse>
+            </Paper>
           ))}
-        </div>
+        </Stack>
       )}
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <Button size="sm" color="secondary" isDisabled={page === 1} onPress={() => setPage((p) => p - 1)}>
-            Previous
-          </Button>
-          <span className="text-xs text-[var(--hc-text-secondary)]">
-            Page {page} of {totalPages}
-          </span>
-          <Button size="sm" color="secondary" isDisabled={page === totalPages} onPress={() => setPage((p) => p + 1)}>
-            Next
-          </Button>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Pagination count={totalPages} page={page} onChange={(_, p) => setPage(p)} color="primary" />
+        </Box>
       )}
 
       {/* Create slide-over */}
@@ -360,12 +313,13 @@ export function SessionsTab({ patientId }: Props) {
         title="Delete session?"
         description="This action cannot be undone."
         confirmLabel="Delete"
+        loading={deleteSession.isPending}
         onConfirm={async () => {
           if (deleteTarget) await deleteSession.mutateAsync(deleteTarget.id)
           setDeleteTarget(null)
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </Stack>
   )
 }
