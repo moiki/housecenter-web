@@ -1,17 +1,28 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  MenuItem,
+  Pagination,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import AddOutlined from '@mui/icons-material/AddOutlined'
+import ChevronRightOutlined from '@mui/icons-material/ChevronRightOutlined'
 import { useConsultations, useCreateConsultation } from '@/hooks/consultations/useConsultations'
 import { usePatients } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
-import { Icon } from '@/components/shared/Icon'
-import { Input } from '@/components/base/input/input'
-import { Select } from '@/components/base/select/select'
-import { Button } from '@/components/base/buttons/button'
+import { RHFTextField, RHFSelect, RHFRichText } from '@/components/shared/form'
 import type { ConsultationStatus } from '@/types/consultation.types'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -25,23 +36,18 @@ const createSchema = z.object({
 type CreateForm = z.infer<typeof createSchema>
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const STATUS_COLORS: Record<ConsultationStatus, string> = {
-  Open:        'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  UnderReview: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  Resolved:    'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-}
+type ChipColor = 'default' | 'info' | 'warning' | 'success'
+const STATUS_COLOR: Record<ConsultationStatus, ChipColor> = { Open: 'info', UnderReview: 'warning', Resolved: 'success' }
 
-const STATUS_FILTER_ITEMS = [
-  { id: '__all__', label: 'All statuses' },
-  { id: 'Open', label: 'Open' },
-  { id: 'UnderReview', label: 'Under Review' },
-  { id: 'Resolved', label: 'Resolved' },
+const STATUS_FILTER_OPTIONS = [
+  { value: '', label: 'All statuses' },
+  { value: 'Open', label: 'Open' },
+  { value: 'UnderReview', label: 'Under Review' },
+  { value: 'Resolved', label: 'Resolved' },
 ]
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 // ── Create form ───────────────────────────────────────────────────────────────
@@ -50,19 +56,19 @@ function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
   const { data: users } = useUsers()
   const createConsultation = useCreateConsultation()
 
-  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<CreateForm>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
     defaultValues: { patientId: '', assignedDoctorId: '', title: '', firstMessage: '', treatmentId: '' },
   })
 
-  const patientItems = patients?.items.map((p) => ({
-    id: p.id,
-    label: `${p.firstName} ${p.lastName}`,
-  })) ?? []
-
-  const doctorItems = (users ?? [])
+  const patientOptions = patients?.items.map((p) => ({ value: p.id, label: `${p.firstName} ${p.lastName}` })) ?? []
+  const doctorOptions = (users ?? [])
     .filter((u) => u.roles.includes('Doctor'))
-    .map((u) => ({ id: u.id, label: `${u.firstName} ${u.lastName}` }))
+    .map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))
 
   const onSubmit = async (data: CreateForm) => {
     await createConsultation.mutateAsync({
@@ -77,39 +83,15 @@ function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <Controller control={control} name="patientId" render={({ field }) => (
-        <Select label="Patient" items={patientItems}
-          selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as string)}
-          isInvalid={!!errors.patientId} hint={errors.patientId?.message}>
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-
-      <Controller control={control} name="assignedDoctorId" render={({ field }) => (
-        <Select label="Assigned Doctor" items={doctorItems}
-          selectedKey={field.value} onSelectionChange={(k) => field.onChange(k as string)}
-          isInvalid={!!errors.assignedDoctorId} hint={errors.assignedDoctorId?.message}>
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      )} />
-
-      <Controller control={control} name="title" render={({ field }) => (
-        <Input label="Title" placeholder="Subject of the consultation"
-          value={field.value} onChange={field.onChange}
-          isInvalid={!!errors.title} hint={errors.title?.message} />
-      )} />
-
-      <Controller control={control} name="firstMessage" render={({ field }) => (
-        <Input label="First Message" placeholder="Describe the case..."
-          value={field.value} onChange={field.onChange}
-          isInvalid={!!errors.firstMessage} hint={errors.firstMessage?.message} />
-      )} />
-
-      <Button type="submit" isLoading={isSubmitting} className="w-full justify-center">
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <RHFSelect control={control} name="patientId" label="Patient" options={patientOptions} />
+      <RHFSelect control={control} name="assignedDoctorId" label="Assigned Doctor" options={doctorOptions} />
+      <RHFTextField control={control} name="title" label="Title" placeholder="Subject of the consultation" />
+      <RHFRichText control={control} name="firstMessage" label="First Message" placeholder="Describe the case…" />
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
         Open Consultation
       </Button>
-    </form>
+    </Box>
   )
 }
 
@@ -120,102 +102,103 @@ export function ConsultationsPage() {
   const [statusFilter, setStatusFilter] = useState<ConsultationStatus | undefined>()
   const [createOpen, setCreateOpen] = useState(false)
 
-  const { data, isLoading } = useConsultations({
-    page,
-    pageSize: 15,
-    status: statusFilter,
-  })
+  const { data, isLoading } = useConsultations({ page, pageSize: 15, status: statusFilter })
 
   const consultations = data?.items ?? []
   const totalPages = data?.totalPages ?? 1
 
   return (
-    <div className="space-y-6">
+    <Box>
       <PageHeader
         title="Consultations"
         description="Medical inbox — open cases and threads"
         action={
-          <Button onPress={() => setCreateOpen(true)}>
-            <Icon name="plus" className="w-4 h-4 mr-1.5" />
+          <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
             New Consultation
           </Button>
         }
       />
 
-      {/* Filter bar */}
-      <div className="flex items-center gap-3">
-        <Select
-          label=""
-          items={STATUS_FILTER_ITEMS}
-          selectedKey={statusFilter ?? '__all__'}
-          onSelectionChange={(k) => {
-            const v = k as string
-            setStatusFilter(v === '__all__' ? undefined : (v as ConsultationStatus))
+      <Stack spacing={2}>
+        {/* Filter bar */}
+        <TextField
+          select
+          size="small"
+          value={statusFilter ?? ''}
+          onChange={(e) => {
+            const v = e.target.value
+            setStatusFilter(v === '' ? undefined : (v as ConsultationStatus))
             setPage(1)
           }}
-          className="w-48"
+          sx={{ width: 200 }}
         >
-          {(item) => <Select.Item id={item.id}>{item.label}</Select.Item>}
-        </Select>
-      </div>
-
-      {/* Inbox list */}
-      {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : consultations.length === 0 ? (
-        <div className="text-center py-16 text-[var(--hc-text-tertiary)] text-sm">
-          No consultations found.
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl divide-y divide-[var(--hc-surface-border)]">
-          {consultations.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => navigate(`/consultations/${c.id}`)}
-              className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[var(--hc-surface-raised)] transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <span className="text-sm font-medium text-[var(--hc-text-primary)] truncate">
-                    {c.title}
-                  </span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${STATUS_COLORS[c.status as ConsultationStatus]}`}>
-                    {c.status === 'UnderReview' ? 'Under Review' : c.status}
-                  </span>
-                </div>
-                {c.resolvedAt && (
-                  <p className="text-xs text-[var(--hc-text-tertiary)]">
-                    Resolved {formatDate(c.resolvedAt)}
-                  </p>
-                )}
-              </div>
-              <Icon name="chevron" className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0 rotate-90" />
-            </button>
+          {STATUS_FILTER_OPTIONS.map((o) => (
+            <MenuItem key={o.value} value={o.value}>
+              {o.label}
+            </MenuItem>
           ))}
-        </div>
-      )}
+        </TextField>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <Button color="secondary" isDisabled={page === 1} onPress={() => setPage((p) => p - 1)}>
-            Previous
-          </Button>
-          <span className="text-xs text-[var(--hc-text-secondary)]">
-            Page {page} of {totalPages}
-          </span>
-          <Button color="secondary" isDisabled={page === totalPages} onPress={() => setPage((p) => p + 1)}>
-            Next
-          </Button>
-        </div>
-      )}
+        {/* Inbox list */}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress size={28} />
+          </Box>
+        ) : consultations.length === 0 ? (
+          <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+            <Typography sx={{ fontSize: 14 }}>No consultations found.</Typography>
+          </Paper>
+        ) : (
+          <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            {consultations.map((c, i) => (
+              <Box
+                key={c.id}
+                onClick={() => navigate(`/consultations/${c.id}`)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  px: 2.5,
+                  py: 2,
+                  cursor: 'pointer',
+                  borderTop: i === 0 ? 0 : 1,
+                  borderColor: 'divider',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.25 }}>
+                    <Typography noWrap sx={{ fontSize: 14, fontWeight: 500 }}>
+                      {c.title}
+                    </Typography>
+                    <Chip
+                      label={c.status === 'UnderReview' ? 'Under Review' : c.status}
+                      size="small"
+                      color={STATUS_COLOR[c.status as ConsultationStatus] ?? 'default'}
+                    />
+                  </Box>
+                  {c.resolvedAt && (
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Resolved {formatDate(c.resolvedAt)}</Typography>
+                  )}
+                </Box>
+                <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled' }} />
+              </Box>
+            ))}
+          </Paper>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Pagination count={totalPages} page={page} onChange={(_, p) => setPage(p)} color="primary" />
+          </Box>
+        )}
+      </Stack>
 
       {/* Create slide-over */}
       <SlideOver title="New Consultation" open={createOpen} onClose={() => setCreateOpen(false)}>
         <CreateConsultationForm onSuccess={() => setCreateOpen(false)} />
       </SlideOver>
-    </div>
+    </Box>
   )
 }

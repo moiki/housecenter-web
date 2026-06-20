@@ -9,6 +9,10 @@ import { CommentsTab } from './CommentsTab'
 
 type Tab = 'overview' | 'treatments' | 'sessions' | 'comments'
 
+function calculateAge(birthDate: string): number {
+  return Math.floor((Date.now() - new Date(birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+}
+
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'overview',    label: 'Overview',    icon: 'users'   },
   { id: 'treatments',  label: 'Treatments',  icon: 'chart'   },
@@ -18,7 +22,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePatientFullSummary>['data']> }) {
   const { patient } = summary
-  const age = Math.floor((Date.now() - new Date(patient.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+  const age = calculateAge(patient.birthDate)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

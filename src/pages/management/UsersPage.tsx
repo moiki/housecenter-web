@@ -1,26 +1,36 @@
 import { useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Chip,
+  IconButton,
+  Paper,
+  Skeleton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
+import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined'
 import { useUsers, useDeactivateUser } from '@/hooks/users/useUsers'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { Icon } from '@/components/shared/Icon'
-import { Button } from '@/components/base/buttons/button'
-import { Table, TableCard } from '@/components/application/table/table'
 import type { UserResponse } from '@/types/user.types'
 
-const ROLE_COLORS: Record<string, string> = {
-  Owner:         'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  Administrator: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  Doctor:        'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  Member:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-  Sponsor:       'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-}
+type ChipColor = 'default' | 'error' | 'warning' | 'info' | 'success'
 
-function RoleBadge({ role }: { role: string }) {
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[role] ?? 'bg-gray-100 text-gray-600'}`}>
-      {role}
-    </span>
-  )
+const ROLE_COLOR: Record<string, ChipColor> = {
+  Owner: 'error',
+  Administrator: 'warning',
+  Doctor: 'info',
+  Member: 'default',
+  Sponsor: 'success',
 }
 
 export function UsersPage() {
@@ -35,86 +45,82 @@ export function UsersPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Users"
-        description="All registered accounts in the system."
-      />
+    <Box>
+      <PageHeader title="Users" description="All registered accounts in the system." />
 
       {isLoading ? (
-        <div className="space-y-3">
+        <Stack spacing={1.5}>
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <Skeleton key={i} variant="rounded" height={64} />
           ))}
-        </div>
+        </Stack>
       ) : !users?.length ? (
-        <TableCard.Root>
-          <div className="flex flex-col items-center gap-2 py-16 text-gray-500">
-            <Icon name="shield" className="w-10 h-10 opacity-40" />
-            <p className="text-sm">No users found.</p>
-          </div>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <AdminPanelSettingsOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
+          <Typography sx={{ mt: 1, fontSize: 14 }}>No users found.</Typography>
+        </Paper>
       ) : (
-        <TableCard.Root>
-          <TableCard.Header
-            title="Users"
-            badge={String(users.length)}
-          />
-          <Table selectionMode="none" aria-label="Users">
-            <Table.Header>
-              <Table.Head label="User" isRowHeader />
-              <Table.Head label="Roles" />
-              <Table.Head label="Status" />
-              <Table.Head label="" />
-            </Table.Header>
-            <Table.Body>
-              {users.map((user) => (
-                <Table.Row key={user.id}>
-                  <Table.Cell>
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0 text-xs font-semibold text-blue-700 dark:text-blue-300">
-                        {user.firstName[0]}{user.lastName[0]}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {user.firstName} {user.lastName}
-                        </div>
-                        <div className="text-xs text-gray-400">{user.email}</div>
-                      </div>
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex flex-wrap gap-1">
-                      {user.roles.map(r => <RoleBadge key={r} role={r} />)}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-                      user.isActive
-                        ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      <span className={`size-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </Table.Cell>
-                  <Table.Cell>
-                    {user.isActive && (
-                      <Button
-                        color="secondary-destructive"
-                        size="sm"
-                        onPress={() => setToDeactivate(user)}
-                        aria-label="Deactivate"
-                      >
-                        <Icon name="x" className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Users</Typography>
+            <Chip label={users.length} size="small" />
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>User</TableCell>
+                  <TableCell>Roles</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id} hover>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
+                          {user.firstName[0]}{user.lastName[0]}
+                        </Avatar>
+                        <Box>
+                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                            {user.firstName} {user.lastName}
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{user.email}</Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {user.roles.map((r) => (
+                          <Chip key={r} label={r} size="small" color={ROLE_COLOR[r] ?? 'default'} variant="outlined" />
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.isActive ? 'Active' : 'Inactive'}
+                        size="small"
+                        color={user.isActive ? 'success' : 'default'}
+                        variant={user.isActive ? 'filled' : 'outlined'}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      {user.isActive && (
+                        <Tooltip title="Deactivate">
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(user)} aria-label="Deactivate">
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
       <ConfirmDialog
@@ -126,6 +132,6 @@ export function UsersPage() {
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}
       />
-    </div>
+    </Box>
   )
 }

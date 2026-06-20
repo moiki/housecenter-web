@@ -1,13 +1,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Paper,
+  Skeleton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import AddOutlined from '@mui/icons-material/AddOutlined'
+import EditOutlined from '@mui/icons-material/EditOutlined'
+import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
+import BusinessOutlined from '@mui/icons-material/BusinessOutlined'
 import { useClinics, useCreateClinic, useDeactivateClinic } from '@/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
-import { Button } from '@/components/base/buttons/button'
-import { Table, TableCard } from '@/components/application/table/table'
-import { Icon } from '@/components/shared/Icon'
 import type { ClinicResponse } from '@/types/clinic.types'
 import type { ClinicFormData } from '@/schemas/clinic.schema'
 
@@ -32,75 +50,66 @@ export function ClinicsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <Box>
       <PageHeader
         title="Clinics"
         description="Manage the NGO's clinic locations."
         action={
-          <Button onPress={() => setSlideOpen(true)}>
-            <Icon name="building" className="w-4 h-4 mr-1.5" />
+          <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setSlideOpen(true)}>
             New Clinic
           </Button>
         }
       />
 
       {isLoading ? (
-        <div className="space-y-3">
+        <Stack spacing={1.5}>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-14 rounded-xl bg-secondary animate-pulse" />
+            <Skeleton key={i} variant="rounded" height={56} />
           ))}
-        </div>
+        </Stack>
       ) : !clinics?.length ? (
-        <TableCard.Root>
-          <div className="flex flex-col items-center gap-2 py-16 text-tertiary">
-            <Icon name="building" className="w-10 h-10 opacity-40" />
-            <p className="text-sm">No clinics yet. Create the first one.</p>
-          </div>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <BusinessOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
+          <Typography sx={{ mt: 1, fontSize: 14 }}>No clinics yet. Create the first one.</Typography>
+        </Paper>
       ) : (
-        <TableCard.Root>
-          <TableCard.Header
-            title="Clinics"
-            badge={String(clinics.length)}
-          />
-          <Table selectionMode="none" aria-label="Clinics">
-            <Table.Header>
-              <Table.Head label="Name" isRowHeader />
-              <Table.Head label="Address" />
-              <Table.Head />
-            </Table.Header>
-            <Table.Body>
-              {clinics.map((clinic) => (
-                <Table.Row key={clinic.id}>
-                  <Table.Cell>
-                    <span className="font-medium text-primary">{clinic.name}</span>
-                  </Table.Cell>
-                  <Table.Cell>{clinic.address}</Table.Cell>
-                  <Table.Cell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        color="secondary"
-                        size="sm"
-                        onPress={() => navigate(`/clinics/${clinic.id}`)}
-                        aria-label="Edit"
-                      >
-                        <Icon name="settings" className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        color="secondary-destructive"
-                        size="sm"
-                        onPress={() => setToDeactivate(clinic)}
-                        aria-label="Deactivate"
-                      >
-                        <Icon name="x" className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </TableCard.Root>
+        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Clinics</Typography>
+            <Chip label={clinics.length} size="small" />
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {clinics.map((clinic) => (
+                  <TableRow key={clinic.id} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>{clinic.name}</TableCell>
+                    <TableCell>{clinic.address}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label="Edit">
+                          <EditOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Deactivate">
+                        <IconButton size="small" color="error" onClick={() => setToDeactivate(clinic)} aria-label="Deactivate">
+                          <DeleteOutlineOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
       <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="New Clinic">
@@ -116,6 +125,6 @@ export function ClinicsPage() {
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}
       />
-    </div>
+    </Box>
   )
 }

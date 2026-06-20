@@ -1,103 +1,175 @@
 import { NavLink } from 'react-router-dom'
+import {
+  Avatar,
+  Box,
+  Divider,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import type { SvgIconComponent } from '@mui/icons-material'
+import HomeOutlined from '@mui/icons-material/HomeOutlined'
+import PeopleOutlined from '@mui/icons-material/PeopleOutlined'
+import BusinessOutlined from '@mui/icons-material/BusinessOutlined'
+import RouteOutlined from '@mui/icons-material/RouteOutlined'
+import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined'
+import BarChartOutlined from '@mui/icons-material/BarChartOutlined'
+import WorkOutlined from '@mui/icons-material/WorkOutlined'
+import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined'
+import MailOutlined from '@mui/icons-material/MailOutlined'
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import { NAV_ITEMS } from '@/lib/constants'
-import type { RoleName } from '@/lib/constants'
-import { Icon } from '@/components/shared/Icon'
+import type { NavItem, RoleName } from '@/lib/constants'
+
+const EXPANDED = 224
+const COLLAPSED = 56
+
+// Maps the string icon names stored in NAV_ITEMS to MUI icons.
+const NAV_ICONS: Record<string, SvgIconComponent> = {
+  home: HomeOutlined,
+  users: PeopleOutlined,
+  building: BusinessOutlined,
+  map: RouteOutlined,
+  message: ChatBubbleOutlineOutlined,
+  chart: BarChartOutlined,
+  briefcase: WorkOutlined,
+  shield: AdminPanelSettingsOutlined,
+  mail: MailOutlined,
+  settings: SettingsOutlined,
+}
+
+const CORE_PATHS = ['/', '/patients', '/clinics', '/work-routes', '/consultations']
+const REPORT_PATH = ['/reports']
+const ADMIN_PATHS = ['/collaborators', '/management/users', '/management/invitations']
 
 interface Props {
   role: RoleName
   collapsed: boolean
 }
 
-const CORE_PATHS  = ['/', '/patients', '/clinics', '/work-routes', '/consultations']
-const REPORT_PATH = ['/reports']
-const ADMIN_PATHS = ['/collaborators', '/management/users', '/management/invitations']
-
 export function Sidebar({ role, collapsed }: Props) {
+  const width = collapsed ? COLLAPSED : EXPANDED
   const visible = NAV_ITEMS.filter((item) => item.roles.includes(role))
-
-  const core    = visible.filter((i) => CORE_PATHS.includes(i.path))
+  const core = visible.filter((i) => CORE_PATHS.includes(i.path))
   const reports = visible.filter((i) => REPORT_PATH.includes(i.path))
-  const admin   = visible.filter((i) => ADMIN_PATHS.includes(i.path))
+  const admin = visible.filter((i) => ADMIN_PATHS.includes(i.path))
 
-  const navItem = (item: typeof NAV_ITEMS[0]) => (
-    <NavLink
-      key={item.path}
-      to={item.path}
-      end={item.path === '/'}
-      title={collapsed ? item.label : undefined}
-      className={({ isActive }) =>
-        `group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors select-none
-         ${isActive
-           ? 'bg-brand-50 text-brand-700'
-           : 'text-tertiary hover:bg-secondary hover:text-secondary'
-         }
-         ${collapsed ? 'justify-center px-2' : ''}`
-      }
-    >
-      <Icon name={item.icon} className="w-[15px] h-[15px] flex-shrink-0" />
-      {!collapsed && <span className="truncate">{item.label}</span>}
-    </NavLink>
-  )
+  const renderItem = (item: NavItem) => {
+    const IconComp = NAV_ICONS[item.icon] ?? HomeOutlined
+    return (
+      <Tooltip key={item.path} title={collapsed ? item.label : ''} placement="right">
+        <ListItemButton
+          component={NavLink}
+          to={item.path}
+          end={item.path === '/'}
+          sx={{
+            borderRadius: 1,
+            mx: 0.5,
+            minHeight: 40,
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            px: collapsed ? 1 : 1.5,
+            '& .MuiListItemText-primary': { fontSize: 13, fontWeight: 500 },
+            '&.active': {
+              bgcolor: 'action.selected',
+              color: 'primary.main',
+              '& .MuiListItemIcon-root': { color: 'primary.main' },
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 1.5, justifyContent: 'center' }}>
+            <IconComp fontSize="small" />
+          </ListItemIcon>
+          {!collapsed && <ListItemText primary={item.label} />}
+        </ListItemButton>
+      </Tooltip>
+    )
+  }
 
-  const groupLabel = (label: string) =>
-    !collapsed ? (
-      <p className="px-2.5 pt-5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-quaternary">
-        {label}
-      </p>
+  const groupHeader = (label: string) =>
+    collapsed ? (
+      <Divider sx={{ my: 1 }} />
     ) : (
-      <div className="mt-4 border-t border-secondary" />
+      <ListSubheader
+        disableSticky
+        sx={{
+          bgcolor: 'transparent',
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          lineHeight: 2.5,
+          color: 'text.disabled',
+        }}
+      >
+        {label}
+      </ListSubheader>
     )
 
   return (
-    <aside
-      className={`flex flex-col h-full flex-shrink-0 transition-all duration-200 ease-in-out bg-primary border-r border-secondary ${collapsed ? 'w-14' : 'w-56'}`}
+    <Drawer
+      variant="permanent"
+      open={!collapsed}
+      sx={{
+        width,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width,
+          position: 'relative',
+          boxSizing: 'border-box',
+          bgcolor: 'background.default',
+          borderRight: 0, // override MUI's default docked-Drawer right border
+          overflowX: 'hidden',
+          transition: (t) =>
+            t.transitions.create('width', { duration: t.transitions.duration.shorter }),
+        },
+      }}
     >
       {/* Logo */}
-      <div
-        className={`flex items-center h-14 flex-shrink-0 border-b border-secondary ${collapsed ? 'justify-center px-2' : 'px-4 gap-2.5'}`}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.25,
+          height: 56,
+          px: collapsed ? 0 : 2,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          flexShrink: 0,
+        }}
       >
-        <div className="w-7 h-7 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-[11px] font-bold tracking-tight">HC</span>
-        </div>
-        {!collapsed && (
-          <span className="text-[13px] font-semibold text-primary truncate">HouseCenter</span>
-        )}
-      </div>
+        <Avatar variant="rounded" sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: 11, fontWeight: 700 }}>
+          HC
+        </Avatar>
+        {!collapsed && <Typography sx={{ fontSize: 13, fontWeight: 600 }}>HouseCenter</Typography>}
+      </Box>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {core.map(navItem)}
-
+      <List sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 1 }}>
+        {core.map(renderItem)}
         {reports.length > 0 && (
           <>
-            {groupLabel('Reports')}
-            {reports.map(navItem)}
+            {groupHeader('Reports')}
+            {reports.map(renderItem)}
           </>
         )}
-
         {admin.length > 0 && (
           <>
-            {groupLabel('Management')}
-            {admin.map(navItem)}
+            {groupHeader('Management')}
+            {admin.map(renderItem)}
           </>
         )}
-      </nav>
+      </List>
 
       {/* Settings pinned */}
-      <div className="px-2 py-3 border-t border-secondary">
-        <NavLink
-          to="/settings"
-          title={collapsed ? 'Settings' : undefined}
-          className={({ isActive }) =>
-            `group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors
-             ${isActive ? 'bg-brand-50 text-brand-700' : 'text-tertiary hover:bg-secondary hover:text-secondary'}
-             ${collapsed ? 'justify-center px-2' : ''}`
-          }
-        >
-          <Icon name="settings" className="w-[15px] h-[15px] flex-shrink-0" />
-          {!collapsed && <span>Settings</span>}
-        </NavLink>
-      </div>
-    </aside>
+      <Box sx={{ py: 0.5 }}>
+        <List disablePadding>
+          {renderItem({ label: 'Settings', path: '/settings', roles: [], icon: 'settings' })}
+        </List>
+      </Box>
+    </Drawer>
   )
 }

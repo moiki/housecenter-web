@@ -1,10 +1,33 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import {
+  AppBar,
+  Avatar,
+  Badge,
+  Box,
+  ButtonBase,
+  Chip,
+  Divider,
+  IconButton,
+  InputAdornment,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  TextField,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import MenuOutlined from '@mui/icons-material/MenuOutlined'
+import SearchOutlined from '@mui/icons-material/SearchOutlined'
+import LightModeOutlined from '@mui/icons-material/LightModeOutlined'
+import DarkModeOutlined from '@mui/icons-material/DarkModeOutlined'
+import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
+import LogoutOutlined from '@mui/icons-material/LogoutOutlined'
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import { useAuthStore } from '@/store/auth.store'
 import { usersApi } from '@/api/modules/users.api'
-import { Icon } from '@/components/shared/Icon'
-import { useOnClickOutside } from '@/hooks/utils/useOnClickOutside'
 
 interface Props {
   onToggleSidebar: () => void
@@ -13,10 +36,12 @@ interface Props {
 export function Topbar({ onToggleSidebar }: Props) {
   const { user, updateUser, logout } = useAuthStore()
   const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  useOnClickOutside(menuRef, () => setMenuOpen(false))
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const menuOpen = Boolean(anchorEl)
 
+  // Optimistic theme toggle: update the user in the store + toggle the legacy `.dark-mode`
+  // class (still needed by un-migrated Tailwind/Untitled UI), then persist. The MUI theme
+  // re-renders automatically because AppThemeProvider reads user.darkMode from the store.
   const themeMutation = useMutation({
     mutationFn: usersApi.updateTheme,
     onMutate: ({ isDarkMode }) => {
@@ -25,117 +50,111 @@ export function Topbar({ onToggleSidebar }: Props) {
     },
   })
 
-  const handleThemeToggle = () => {
-    const next = !user?.darkMode
-    themeMutation.mutate({ isDarkMode: next })
-  }
-
+  const handleThemeToggle = () => themeMutation.mutate({ isDarkMode: !user?.darkMode })
   const handleLogout = () => {
+    setAnchorEl(null)
     logout()
     navigate('/login', { replace: true })
   }
+  const goSettings = () => {
+    setAnchorEl(null)
+    navigate('/settings')
+  }
 
-  const initials = user
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : '?'
+  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '?'
 
   return (
-    <header
-      className="h-12 flex items-center justify-between px-4 flex-shrink-0 gap-4 bg-primary border-b border-secondary"
+    <AppBar
+      position="static"
+      color="default"
+      elevation={0}
+      sx={{ bgcolor: 'background.default' }}
     >
-      {/* Left: sidebar toggle */}
-      <button
-        onClick={onToggleSidebar}
-        className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-white/5 transition-colors"
-        aria-label="Toggle sidebar"
-      >
-        <Icon name="menu" className="w-4 h-4" />
-      </button>
+      <Toolbar variant="dense" sx={{ gap: 1.5 }}>
+        <IconButton edge="start" onClick={onToggleSidebar} aria-label="Toggle sidebar" size="small">
+          <MenuOutlined fontSize="small" />
+        </IconButton>
 
-      {/* Center: search */}
-      <div className="flex-1 max-w-sm">
-        <div className="relative">
-          <Icon name="search" className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-          <input
-            type="search"
-            placeholder="Search…"
-            className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-md text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 transition-all"
-          />
-        </div>
-      </div>
+        <TextField
+          size="small"
+          placeholder="Search…"
+          type="search"
+          sx={{ width: { xs: 140, sm: 280 } }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchOutlined fontSize="small" />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
 
-      {/* Right: actions */}
-      <div className="flex items-center gap-1">
-        {/* Dark mode toggle */}
-        <button
-          onClick={handleThemeToggle}
-          className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-white/5 transition-colors"
-          aria-label="Toggle dark mode"
+        <Box sx={{ flexGrow: 1 }} />
+
+        <Tooltip title={user?.darkMode ? 'Light mode' : 'Dark mode'}>
+          <IconButton onClick={handleThemeToggle} size="small" aria-label="Toggle dark mode">
+            {user?.darkMode ? <LightModeOutlined fontSize="small" /> : <DarkModeOutlined fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+
+        <IconButton size="small" aria-label="Notifications">
+          <Badge color="error" variant="dot" invisible>
+            <NotificationsOutlined fontSize="small" />
+          </Badge>
+        </IconButton>
+
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+        <ButtonBase
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+          sx={{ display: 'flex', alignItems: 'center', gap: 1, borderRadius: 1, p: 0.5, '&:hover': { bgcolor: 'action.hover' } }}
         >
-          <Icon name={user?.darkMode ? 'sun' : 'moon'} className="w-4 h-4" />
-        </button>
+          <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: 11 }}>{initials}</Avatar>
+          <Typography sx={{ fontSize: 12, fontWeight: 500, display: { xs: 'none', sm: 'block' } }}>
+            {user?.firstName} {user?.lastName}
+          </Typography>
+        </ButtonBase>
 
-        {/* Notification bell */}
-        <button
-          className="relative p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-white/5 transition-colors"
-          aria-label="Notifications"
+        <Menu
+          anchorEl={anchorEl}
+          open={menuOpen}
+          onClose={() => setAnchorEl(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          slotProps={{ paper: { sx: { width: 220, mt: 0.5 } } }}
         >
-          <Icon name="bell" className="w-4 h-4" />
-        </button>
-
-        {/* Divider */}
-        <div className="w-px h-5 bg-gray-200 dark:bg-white/10 mx-1" />
-
-        {/* User avatar + dropdown */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-          >
-            <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-[10px] font-semibold">{initials}</span>
-            </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-[12px] font-medium text-gray-700 dark:text-gray-200 leading-none">
-                {user?.firstName} {user?.lastName}
-              </p>
-            </div>
-            <Icon name="chevron" className="w-3.5 h-3.5 text-gray-400 rotate-90" />
-          </button>
-
-          {menuOpen && (
-            <div className="absolute right-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl py-1 z-50">
-              {/* User info header */}
-              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
-                <p className="text-[12px] font-semibold text-gray-900 dark:text-white">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{user?.email}</p>
-                {user?.roles?.[0] && (
-                  <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-                    {user.roles[0]}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => { setMenuOpen(false); navigate('/settings') }}
-                className="flex items-center gap-2 w-full px-4 py-2 text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                <Icon name="settings" className="w-3.5 h-3.5" />
-                Settings
-              </button>
-              <hr className="my-1 border-gray-100 dark:border-gray-800" />
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-4 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                <Icon name="logout" className="w-3.5 h-3.5" />
-                Sign out
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>
+              {user?.firstName} {user?.lastName}
+            </Typography>
+            <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{user?.email}</Typography>
+            {user?.roles?.[0] && (
+              <Chip
+                label={user.roles[0]}
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ mt: 0.5, height: 18, fontSize: 10 }}
+              />
+            )}
+          </Box>
+          <Divider />
+          <MenuItem onClick={goSettings}>
+            <ListItemIcon>
+              <SettingsOutlined fontSize="small" />
+            </ListItemIcon>
+            Settings
+          </MenuItem>
+          <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+            <ListItemIcon>
+              <LogoutOutlined fontSize="small" sx={{ color: 'error.main' }} />
+            </ListItemIcon>
+            Sign out
+          </MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   )
 }

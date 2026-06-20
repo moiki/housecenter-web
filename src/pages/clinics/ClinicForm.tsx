@@ -1,9 +1,8 @@
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Box, Button } from '@mui/material'
+import { RHFTextField } from '@/components/shared/form'
 import { clinicSchema, type ClinicFormData } from '@/schemas/clinic.schema'
-import { Input } from '@/components/base/input/input'
-import { TextArea } from '@/components/base/textarea/textarea'
-import { Button } from '@/components/base/buttons/button'
 import type { ClinicResponse } from '@/types/clinic.types'
 
 interface Props {
@@ -16,7 +15,7 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<ClinicFormData>({
     resolver: zodResolver(clinicSchema),
     defaultValues: defaultValues
@@ -25,46 +24,23 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Controller
-        control={control}
-        name="name"
-        render={({ field }) => (
-          <Input
-            label="Name"
-            hint={errors.name?.message}
-            isInvalid={!!errors.name}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
-            placeholder="e.g. Clinic Central"
-          />
-        )}
-      />
-
-      <Controller
+    <Box
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+    >
+      <RHFTextField control={control} name="name" label="Name" placeholder="e.g. Clinic Central" />
+      <RHFTextField
         control={control}
         name="address"
-        render={({ field }) => (
-          <TextArea
-            label="Address"
-            hint={errors.address?.message}
-            isInvalid={!!errors.address}
-            value={field.value}
-            onChange={field.onChange}
-            onBlur={field.onBlur}
-            placeholder="Full address"
-          />
-        )}
+        label="Address"
+        placeholder="Full address"
+        multiline
+        rows={3}
       />
-
-      <Button
-        type="submit"
-        isDisabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Saving…' : submitLabel}
+      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+        {submitLabel}
       </Button>
-    </form>
+    </Box>
   )
 }

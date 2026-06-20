@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Box, Typography } from '@mui/material'
 
 interface Props {
   title: string
@@ -8,18 +9,18 @@ interface Props {
 
 export function PageHeader({ title, description, action }: Props) {
   return (
-    <div className="flex items-start justify-between mb-5">
-      <div>
-        <h1 className="text-[18px] font-semibold" style={{ color: 'var(--hc-text-primary)' }}>
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2.5 }}>
+      <Box>
+        <Typography variant="h5" sx={{ fontSize: 18, fontWeight: 600 }}>
           {title}
-        </h1>
+        </Typography>
         {description && (
-          <p className="mt-0.5 text-[13px]" style={{ color: 'var(--hc-text-secondary)' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, fontSize: 13 }}>
             {description}
-          </p>
+          </Typography>
         )}
-      </div>
-      {action && <div className="flex-shrink-0 ml-4">{action}</div>}
-    </div>
+      </Box>
+      {action && <Box sx={{ flexShrink: 0, ml: 2 }}>{action}</Box>}
+    </Box>
   )
 }
