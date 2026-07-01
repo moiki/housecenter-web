@@ -7,7 +7,10 @@ import {
   Button,
   Chip,
   IconButton,
+  Pagination,
   Paper,
+  Skeleton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -21,20 +24,13 @@ import PersonAddOutlined from '@mui/icons-material/PersonAddOutlined'
 import SendOutlined from '@mui/icons-material/SendOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import MailOutlined from '@mui/icons-material/MailOutlined'
-import { useCreateInvitation, useResendInvitation, useDeleteInvitation } from '@/hooks/invitations/useInvitations'
+import { useInvitations, useCreateInvitation, useResendInvitation, useDeleteInvitation } from '@/hooks/invitations/useInvitations'
+import { useRoles } from '@/hooks/roles/useRoles'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { InvitationResponse } from '@/types/invitation.types'
-
-const ROLES = [
-  { value: 'owner-role-id', label: 'Owner' },
-  { value: 'administrator-role-id', label: 'Administrator' },
-  { value: 'doctor-role-id', label: 'Doctor' },
-  { value: 'member-role-id', label: 'Member' },
-  { value: 'sponsor-role-id', label: 'Sponsor' },
-]
 
 type ChipColor = 'default' | 'warning' | 'success'
 const STATUS_COLOR: Record<string, ChipColor> = {
@@ -49,7 +45,13 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
-function InviteForm({ onSubmit }: { onSubmit: (data: FormData) => Promise<void> }) {
+function InviteForm({
+  roleOptions,
+  onSubmit,
+}: {
+  roleOptions: { value: string; label: string }[]
+  onSubmit: (data: FormData) => Promise<void>
+}) {
   const {
     control,
     handleSubmit,
@@ -62,7 +64,7 @@ function InviteForm({ onSubmit }: { onSubmit: (data: FormData) => Promise<void> 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
       <RHFTextField control={control} name="email" label="Email" type="email" placeholder="colleague@example.com" />
-      <RHFSelect control={control} name="roleId" label="Role" options={ROLES} />
+      <RHFSelect control={control} name="roleId" label="Role" options={roleOptions} />
       <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
         Send invitation
       </Button>
@@ -71,28 +73,26 @@ function InviteForm({ onSubmit }: { onSubmit: (data: FormData) => Promise<void> 
 }
 
 export function InvitationsPage() {
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useInvitations(page)
+  const { data: roles } = useRoles()
   const createInvitation = useCreateInvitation()
   const resendInvitation = useResendInvitation()
   const deleteInvitation = useDeleteInvitation()
 
   const [slideOpen, setSlideOpen] = useState(false)
   const [toDelete, setToDelete] = useState<InvitationResponse | null>(null)
-  const [sent, setSent] = useState<InvitationResponse[]>([])
+
+  const roleOptions = (roles ?? []).map((r) => ({ value: r.id, label: r.name }))
 
   const handleCreate = async (data: FormData) => {
-    const inv = await createInvitation.mutateAsync(data)
-    setSent((prev) => [inv, ...prev])
+    await createInvitation.mutateAsync(data)
     setSlideOpen(false)
-  }
-
-  const handleResend = async (id: string) => {
-    await resendInvitation.mutateAsync(id)
   }
 
   const handleDelete = async () => {
     if (!toDelete) return
     await deleteInvitation.mutateAsync(toDelete.id)
-    setSent((prev) => prev.filter((i) => i.id !== toDelete.id))
     setToDelete(null)
   }
 
@@ -108,16 +108,22 @@ export function InvitationsPage() {
         }
       />
 
-      {sent.length === 0 ? (
+      {isLoading ? (
+        <Stack spacing={1.5}>
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} variant="rounded" height={52} />
+          ))}
+        </Stack>
+      ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <MailOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No invitations sent yet in this session.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>No invitations yet.</Typography>
         </Paper>
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
             <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Invitations</Typography>
-            <Chip label={sent.length} size="small" />
+            <Chip label={data.totalCount} size="small" />
           </Box>
           <TableContainer>
             <Table>
@@ -130,7 +136,7 @@ export function InvitationsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sent.map((inv) => (
+                {data.items.map((inv) => (
                   <TableRow key={inv.id} hover>
                     <TableCell sx={{ fontWeight: 500 }}>{inv.email}</TableCell>
                     <TableCell>
@@ -147,7 +153,7 @@ export function InvitationsPage() {
                     <TableCell align="right">
                       {inv.status === 'Pending' && (
                         <Tooltip title="Resend">
-                          <IconButton size="small" onClick={() => handleResend(inv.id)} aria-label="Resend">
+                          <IconButton size="small" onClick={() => resendInvitation.mutate(inv.id)} aria-label="Resend">
                             <SendOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -166,8 +172,14 @@ export function InvitationsPage() {
         </Paper>
       )}
 
+      {data && data.totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          <Pagination count={data.totalPages} page={page} onChange={(_, p) => setPage(p)} color="primary" />
+        </Box>
+      )}
+
       <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="Invite user">
-        <InviteForm onSubmit={handleCreate} />
+        <InviteForm roleOptions={roleOptions} onSubmit={handleCreate} />
       </SlideOver>
 
       <ConfirmDialog

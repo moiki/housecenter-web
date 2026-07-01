@@ -1,9 +1,15 @@
 import { apiClient } from '@/api/client'
+import type { PagedResult } from '@/types/common.types'
 import type { InvitationResponse, CreateInvitationRequest } from '@/types/invitation.types'
 
-const BASE = '/api/v1/invitations'
+// Unversioned, like /auth, /notifications, /attachments — was wrongly "/api/v1/invitations"
+// before, which 404'd against the real backend (HouseCenter.Api registers "/invitations").
+const BASE = '/invitations'
 
 export const invitationsApi = {
+  list: (page = 1, pageSize = 20) =>
+    apiClient.get<PagedResult<InvitationResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
+
   create: (data: CreateInvitationRequest) =>
     apiClient.post<InvitationResponse>(BASE, data).then(r => r.data),
 
