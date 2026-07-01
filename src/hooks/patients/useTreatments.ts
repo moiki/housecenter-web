@@ -7,6 +7,16 @@ export const treatmentKeys = {
   list: (patientId: string, page: number) => [...treatmentKeys.all(patientId), 'list', page] as const,
 }
 
+export const treatmentDetailKeys = {
+  all: (treatmentId: string) => ['treatmentDetails', treatmentId] as const,
+  list: (treatmentId: string, page: number) => [...treatmentDetailKeys.all(treatmentId), 'list', page] as const,
+}
+
+export const treatmentCommentKeys = {
+  all: (treatmentId: string) => ['treatmentComments', treatmentId] as const,
+  list: (treatmentId: string, page: number) => [...treatmentCommentKeys.all(treatmentId), 'list', page] as const,
+}
+
 export function useTreatments(patientId: string, page = 1) {
   return useQuery({
     queryKey: treatmentKeys.list(patientId, page),
@@ -51,11 +61,23 @@ export function useDeactivateTreatment(patientId: string) {
   })
 }
 
+export function useTreatmentDetails(treatmentId: string, page = 1) {
+  return useQuery({
+    queryKey: treatmentDetailKeys.list(treatmentId, page),
+    queryFn: () => treatmentsApi.listDetails(treatmentId, page),
+    enabled: !!treatmentId,
+    placeholderData: keepPreviousData,
+  })
+}
+
 export function useCreateTreatmentDetail(treatmentId: string, patientId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: object) => treatmentsApi.createDetail(treatmentId, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) })
+      qc.invalidateQueries({ queryKey: treatmentDetailKeys.all(treatmentId) })
+    },
   })
 }
 
@@ -63,7 +85,19 @@ export function useDeleteTreatmentDetail(treatmentId: string, patientId: string)
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (detailId: string) => treatmentsApi.deleteDetail(treatmentId, detailId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) })
+      qc.invalidateQueries({ queryKey: treatmentDetailKeys.all(treatmentId) })
+    },
+  })
+}
+
+export function useTreatmentComments(treatmentId: string, page = 1) {
+  return useQuery({
+    queryKey: treatmentCommentKeys.list(treatmentId, page),
+    queryFn: () => treatmentsApi.listComments(treatmentId, page),
+    enabled: !!treatmentId,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -71,7 +105,10 @@ export function useCreateTreatmentComment(treatmentId: string, patientId: string
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: object) => treatmentsApi.createComment(treatmentId, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) })
+      qc.invalidateQueries({ queryKey: treatmentCommentKeys.all(treatmentId) })
+    },
   })
 }
 
@@ -79,7 +116,10 @@ export function useDeleteTreatmentComment(treatmentId: string, patientId: string
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (commentId: string) => treatmentsApi.deleteComment(treatmentId, commentId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: treatmentKeys.all(patientId) })
+      qc.invalidateQueries({ queryKey: treatmentCommentKeys.all(treatmentId) })
+    },
   })
 }
 

@@ -33,6 +33,9 @@ export const treatmentsApi = {
     apiClient.delete<void>(`${t(patientId)}/${treatmentId}`).then(r => r.data),
 
   // Treatment details
+  listDetails: (treatmentId: string, page = 1, pageSize = 20) =>
+    apiClient.get<PagedResult<TreatmentDetailResponse>>(td(treatmentId), { params: { page, pageSize } }).then(r => r.data),
+
   createDetail: (treatmentId: string, data: object) =>
     apiClient.post<TreatmentDetailResponse>(td(treatmentId), data).then(r => r.data),
 
@@ -43,6 +46,9 @@ export const treatmentsApi = {
     apiClient.delete<void>(`${td(treatmentId)}/${detailId}`).then(r => r.data),
 
   // Treatment comments
+  listComments: (treatmentId: string, page = 1, pageSize = 20) =>
+    apiClient.get<PagedResult<TreatmentCommentResponse>>(tc(treatmentId), { params: { page, pageSize } }).then(r => r.data),
+
   createComment: (treatmentId: string, data: object) =>
     apiClient.post<TreatmentCommentResponse>(tc(treatmentId), data).then(r => r.data),
 

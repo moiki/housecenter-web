@@ -29,13 +29,18 @@ import {
   useUpdateTreatment,
   usePatchTreatmentStatus,
   useDeactivateTreatment,
+  useTreatmentDetails,
   useCreateTreatmentDetail,
+  useDeleteTreatmentDetail,
+  useTreatmentComments,
   useCreateTreatmentComment,
+  useDeleteTreatmentComment,
 } from '@/hooks/patients/useTreatments'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFTextField, RHFSelect, RHFDatePicker, RHFRichText } from '@/components/shared/form'
-import type { TreatmentResponse } from '@/types/patient.types'
+import type { TreatmentResponse, TreatmentDetailResponse, TreatmentCommentResponse } from '@/types/patient.types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const treatmentSchema = z.object({
@@ -83,6 +88,8 @@ const COMMENT_TYPE_OPTIONS = [
   { value: 'Medical', label: 'Medical' },
   { value: 'Route', label: 'Route' },
 ]
+
+const COMMENT_TYPE_COLOR: Record<string, ChipColor> = { Simple: 'default', Medical: 'info', Route: 'primary' }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function TreatmentFormPanel({
@@ -153,11 +160,17 @@ function TreatmentFormPanel({
 
 function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentResponse; patientId: string }) {
   const patchStatus = usePatchTreatmentStatus(patientId, treatment.id)
+  const { data: details, isLoading: detailsLoading } = useTreatmentDetails(treatment.id)
   const createDetail = useCreateTreatmentDetail(treatment.id, patientId)
+  const deleteDetail = useDeleteTreatmentDetail(treatment.id, patientId)
+  const { data: comments, isLoading: commentsLoading } = useTreatmentComments(treatment.id)
   const createComment = useCreateTreatmentComment(treatment.id, patientId)
+  const deleteComment = useDeleteTreatmentComment(treatment.id, patientId)
 
   const [addingDetail, setAddingDetail] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
+  const [detailToDelete, setDetailToDelete] = useState<TreatmentDetailResponse | null>(null)
+  const [commentToDelete, setCommentToDelete] = useState<TreatmentCommentResponse | null>(null)
 
   const detailForm = useForm<DetailForm>({
     resolver: zodResolver(detailSchema),
@@ -235,10 +248,38 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
             </Paper>
           )}
 
-          {/* Detail items load from the treatment detail endpoints (T10) — list pending. */}
-          <Typography sx={{ fontSize: 12, color: 'text.disabled', fontStyle: 'italic' }}>
-            Details load from treatment detail endpoints (T10).
-          </Typography>
+          {detailsLoading ? (
+            <Stack spacing={1}>
+              {[...Array(2)].map((_, i) => (
+                <Skeleton key={i} variant="rounded" height={52} />
+              ))}
+            </Stack>
+          ) : !details?.items.length ? (
+            <Typography sx={{ fontSize: 13, color: 'text.disabled', fontStyle: 'italic' }}>
+              No details recorded yet.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {details.items.map((d) => (
+                <Paper key={d.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{d.name}</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+                        {new Date(d.treatmentDate).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <Tooltip title="Delete">
+                      <IconButton size="small" color="error" onClick={() => setDetailToDelete(d)} aria-label="Delete detail">
+                        <DeleteOutlineOutlined fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  <RichTextView content={d.description} sx={{ mt: 0.5, fontSize: 13 }} />
+                </Paper>
+              ))}
+            </Stack>
+          )}
         </Box>
 
         {/* Comments section */}
@@ -270,8 +311,66 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
               </Button>
             </Paper>
           )}
+
+          {commentsLoading ? (
+            <Stack spacing={1}>
+              {[...Array(2)].map((_, i) => (
+                <Skeleton key={i} variant="rounded" height={52} />
+              ))}
+            </Stack>
+          ) : !comments?.items.length ? (
+            <Typography sx={{ fontSize: 13, color: 'text.disabled', fontStyle: 'italic' }}>
+              No comments yet.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {comments.items.map((c) => (
+                <Paper key={c.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                    <Chip label={c.type} size="small" variant="outlined" color={COMMENT_TYPE_COLOR[c.type] ?? 'default'} />
+                    <Tooltip title="Delete">
+                      <IconButton size="small" color="error" onClick={() => setCommentToDelete(c)} aria-label="Delete comment">
+                        <DeleteOutlineOutlined fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  <RichTextView content={c.body} sx={{ mt: 0.5, fontSize: 13 }} />
+                </Paper>
+              ))}
+            </Stack>
+          )}
         </Box>
       </Stack>
+
+      <ConfirmDialog
+        open={!!detailToDelete}
+        title="Delete detail"
+        description="This treatment detail will be permanently removed."
+        confirmLabel="Delete"
+        loading={deleteDetail.isPending}
+        onConfirm={async () => {
+          if (detailToDelete) {
+            await deleteDetail.mutateAsync(detailToDelete.id)
+            setDetailToDelete(null)
+          }
+        }}
+        onCancel={() => setDetailToDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={!!commentToDelete}
+        title="Delete comment"
+        description="This comment will be permanently removed."
+        confirmLabel="Delete"
+        loading={deleteComment.isPending}
+        onConfirm={async () => {
+          if (commentToDelete) {
+            await deleteComment.mutateAsync(commentToDelete.id)
+            setCommentToDelete(null)
+          }
+        }}
+        onCancel={() => setCommentToDelete(null)}
+      />
     </Box>
   )
 }
