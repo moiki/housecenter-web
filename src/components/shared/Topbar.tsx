@@ -4,7 +4,6 @@ import { useMutation } from '@tanstack/react-query'
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   ButtonBase,
   Chip,
@@ -23,11 +22,11 @@ import MenuOutlined from '@mui/icons-material/MenuOutlined'
 import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import LightModeOutlined from '@mui/icons-material/LightModeOutlined'
 import DarkModeOutlined from '@mui/icons-material/DarkModeOutlined'
-import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import LogoutOutlined from '@mui/icons-material/LogoutOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import { useAuthStore } from '@/store/auth.store'
 import { usersApi } from '@/api/modules/users.api'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 
 interface Props {
   onToggleSidebar: () => void
@@ -99,11 +98,7 @@ export function Topbar({ onToggleSidebar }: Props) {
           </IconButton>
         </Tooltip>
 
-        <IconButton size="small" aria-label="Notifications">
-          <Badge color="error" variant="dot" invisible>
-            <NotificationsOutlined fontSize="small" />
-          </Badge>
-        </IconButton>
+        <NotificationBell />
 
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
 
