@@ -26,6 +26,7 @@ import { PatientsPage } from '@/pages/patients/PatientsPage'
 import { PatientProfilePage } from '@/pages/patients/PatientProfilePage'
 import { ConsultationsPage } from '@/pages/consultations/ConsultationsPage'
 import { ConsultationDetailPage } from '@/pages/consultations/ConsultationDetailPage'
+import { SettingsPage } from '@/pages/settings/SettingsPage'
 
 const router = createBrowserRouter([
   // Public auth pages
@@ -76,7 +77,7 @@ const router = createBrowserRouter([
             ],
           },
 
-          { path: '/settings', element: <div className="text-gray-400 text-sm">Settings — T15</div> },
+          { path: '/settings', element: <SettingsPage /> },
           { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
