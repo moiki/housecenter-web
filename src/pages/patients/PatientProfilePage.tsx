@@ -6,8 +6,9 @@ import { Icon } from '@/components/shared/Icon'
 import { TreatmentsTab } from './TreatmentsTab'
 import { SessionsTab } from './SessionsTab'
 import { CommentsTab } from './CommentsTab'
+import { AttachmentsTab } from './AttachmentsTab'
 
-type Tab = 'overview' | 'treatments' | 'sessions' | 'comments'
+type Tab = 'overview' | 'treatments' | 'sessions' | 'comments' | 'attachments'
 
 function calculateAge(birthDate: string): number {
   return Math.floor((Date.now() - new Date(birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
@@ -18,6 +19,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'treatments',  label: 'Treatments',  icon: 'chart'   },
   { id: 'sessions',    label: 'Sessions',    icon: 'map'     },
   { id: 'comments',    label: 'Comments',    icon: 'message' },
+  { id: 'attachments', label: 'Attachments', icon: 'download' },
 ]
 
 function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePatientFullSummary>['data']> }) {
@@ -98,6 +100,7 @@ export function PatientProfilePage() {
             {activeTab === 'treatments' && <TreatmentsTab patientId={id!} />}
             {activeTab === 'sessions'   && <SessionsTab patientId={id!} />}
             {activeTab === 'comments'   && <CommentsTab patientId={id!} />}
+            {activeTab === 'attachments' && <AttachmentsTab patientId={id!} />}
           </div>
         </div>
       )}
