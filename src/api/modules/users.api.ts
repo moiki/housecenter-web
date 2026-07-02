@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
 import type { UserResponse, UpdateUserRequest, AssignRolesRequest } from '@/types/user.types'
 
-const BASE = '/api/v1/users'
+const BASE = '/users'
 
 export const usersApi = {
   list: () =>

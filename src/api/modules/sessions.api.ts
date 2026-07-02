@@ -8,7 +8,7 @@ import type {
   SessionStatus,
 } from '@/types/session.types'
 
-const base = (patientId: string) => `/api/v1/patients/${patientId}/sessions`
+const base = (patientId: string) => `/patients/${patientId}/sessions`
 
 export const sessionsApi = {
   list: (

@@ -7,7 +7,7 @@ import type {
   UpdatePatientRequest,
 } from '@/types/patient.types'
 
-const BASE = '/api/v1/patients'
+const BASE = '/patients'
 
 export const patientsApi = {
   list: (page = 1, pageSize = 20) =>

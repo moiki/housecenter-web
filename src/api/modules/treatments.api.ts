@@ -8,12 +8,12 @@ import type {
 } from '@/types/patient.types'
 
 // Treatments
-const t = (patientId: string) => `/api/v1/patients/${patientId}/treatments`
-const td = (treatmentId: string) => `/api/v1/treatments/${treatmentId}/details`
-const tc = (treatmentId: string) => `/api/v1/treatments/${treatmentId}/comments`
-const pc = (patientId: string) => `/api/v1/patients/${patientId}/comments`
-const pcol = (patientId: string) => `/api/v1/patients/${patientId}/collaborators`
-const pdoc = (patientId: string) => `/api/v1/patients/${patientId}/doctors`
+const t = (patientId: string) => `/patients/${patientId}/treatments`
+const td = (treatmentId: string) => `/treatments/${treatmentId}/details`
+const tc = (treatmentId: string) => `/treatments/${treatmentId}/comments`
+const pc = (patientId: string) => `/patients/${patientId}/comments`
+const pcol = (patientId: string) => `/patients/${patientId}/collaborators`
+const pdoc = (patientId: string) => `/patients/${patientId}/doctors`
 
 export const treatmentsApi = {
   // Treatments

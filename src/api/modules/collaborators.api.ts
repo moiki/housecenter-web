@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
 import type { CollaboratorResponse, CreateCollaboratorRequest, UpdateCollaboratorRequest } from '@/types/collaborator.types'
 
-const BASE = '/api/v1/collaborators'
+const BASE = '/collaborators'
 
 export const collaboratorsApi = {
   list: () =>

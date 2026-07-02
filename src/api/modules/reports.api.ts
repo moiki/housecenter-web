@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
 import type { SummaryReportResponse, SessionPeriodReportResponse } from '@/types/report.types'
 
-const BASE = '/api/v1/reports'
+const BASE = '/reports'
 
 export const reportsApi = {
   getSummary: () =>

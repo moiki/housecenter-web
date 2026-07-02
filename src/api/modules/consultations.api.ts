@@ -10,7 +10,7 @@ import type {
   ConsultationStatus,
 } from '@/types/consultation.types'
 
-const BASE = '/api/v1/consultations'
+const BASE = '/consultations'
 
 export const consultationsApi = {
   list: (params: { page?: number; pageSize?: number; status?: ConsultationStatus } = {}) =>

@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
 import type { WorkRouteResponse, CreateWorkRouteRequest, UpdateWorkRouteRequest } from '@/types/workroute.types'
 
-const BASE = '/api/v1/workroutes'
+const BASE = '/workroutes'
 
 export const workRoutesApi = {
   list: () =>

@@ -2,7 +2,8 @@
 
 React 19 SPA — a healthcare/clinic management dashboard (patients, treatments, sessions,
 clinics, work routes, consultations, collaborators, reports). It is the **frontend client
-of a .NET backend** (sibling repo `housecenter-api`): `/api/v1/` routes, RFC 7807
+of a .NET backend** (sibling repo `housecenter-api`): mostly unversioned routes (only
+`/clinics` is under `/api/v1/` today — see the versioning gotcha below), RFC 7807
 `ProblemDetails` errors, PascalCase enums, GUID ids. No business logic lives here — only
 presentation and data orchestration.
 
@@ -42,7 +43,7 @@ src/pages/<feature>/<Feature>Page.tsx (4) UI — render, forms, actions; calls h
 Layer rules — these are hard boundaries:
 
 - **Pages NEVER import `apiClient` or axios.** A page talks to hooks; a hook talks to an api module; an api module talks to `apiClient`. (`grep -r apiClient src/pages` must stay empty.)
-- **api modules are dumb**: each function is `apiClient.<verb>(...).then(r => r.data)`. No React, no caching, no try/catch. Define `const BASE = '/api/v1/<feature>'` at the top.
+- **api modules are dumb**: each function is `apiClient.<verb>(...).then(r => r.data)`. No React, no caching, no try/catch. Define `const BASE = '/<feature>'` at the top — **not** `/api/v1/<feature>` (see the versioning gotcha below); copy `BASE` from a neighboring module and verify it against the actual backend route, don't assume.
 - **Hooks own caching.** Every hook file exports a **query-key factory** (e.g. `patientKeys.all / list / detail`) and uses it for both `queryKey` and invalidation. After a mutation, `invalidateQueries({ queryKey: <feature>Keys.all })`; on update, also `setQueryData(detail(id), updated)` for an instant cache write. See `src/hooks/patients/usePatients.ts` (paged) and `src/hooks/clinics/useClinics.ts` (non-paged) as the two reference shapes.
 - **Forms** use `useForm({ resolver: zodResolver(schema) })` with `Controller` per field. Schema lives in `src/schemas/<feature>.schema.ts`; export `type XFormData = z.infer<typeof xSchema>`.
 
@@ -66,7 +67,7 @@ To scaffold a new slice, invoke the **`add-feature-slice`** skill. To add one en
 
 ## Gotchas (things that have bitten / will bite)
 
-- **Route versioning is inconsistent**: auth endpoints are **unversioned** (`/auth/login`, `/auth/me`) while domain endpoints are **versioned** (`/api/v1/patients`). Match the backend exactly — copy `BASE` from a neighboring module.
+- **Almost nothing is versioned — only Clinics is.** The backend wraps exactly one module in `/api/v1/`: `v1.MapClinicEndpoints()` in the API's `Program.cs`. Every other module (`auth`, `patients`, `treatments` + its nested details/comments/collaborators/doctors, `sessions`, `consultations`, `collaborators`, `workroutes`, `reports`, `users`, `roles`, `invitations`, `notifications`, `attachments`) is mapped directly on `app` with **no prefix**. This bit hard once already: 8 of 14 api modules had `/api/v1/<feature>` hardcoded despite the backend never serving it, 404ing on every real request while `dotnet test` stayed green (C#-to-C# tests don't catch a frontend URL string typo). **Never assume — grep the actual route registration in `Program.cs`/`*Endpoints.cs` in the API repo before writing `BASE`.**
 - **Empty string vs null**: HTML inputs emit `""`, but the .NET API wants `null` for "no value". Zod schemas normalize at the boundary: `.nullable().or(z.literal('')).transform(v => v || null)`. Reuse that for every optional string field.
 - **`VITE_API_BASE_URL`** comes from `.env` (see `.env.example`, default `http://localhost:5000`). The .NET API must be running for the app to work.
 - **No error boundary exists** — an uncaught render error white-screens the app. Keep render code defensive.
