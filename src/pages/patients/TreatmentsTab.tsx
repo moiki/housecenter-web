@@ -38,6 +38,7 @@ import {
 } from '@/hooks/patients/useTreatments'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFTextField, RHFSelect, RHFDatePicker, RHFRichText } from '@/components/shared/form'
 import type { TreatmentResponse, TreatmentDetailResponse, TreatmentCommentResponse } from '@/types/patient.types'
@@ -201,6 +202,7 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
           <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             Status
           </Typography>
+          <HelpTooltip topicKey="treatments.status-lifecycle" />
           <Stack direction="row" spacing={1}>
             {STATUS_ITEMS.map((s) => (
               <Chip

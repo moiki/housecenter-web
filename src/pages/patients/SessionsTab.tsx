@@ -24,6 +24,7 @@ import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { AttentionSessionResponse, SessionStatus } from '@/types/session.types'
 
@@ -135,7 +136,16 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
         type="datetime-local"
         slotProps={{ inputLabel: { shrink: true } }}
       />
-      <RHFSelect control={control} name="locationMode" label="Location Type" options={LOCATION_MODE_OPTIONS} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <RHFSelect
+          control={control}
+          name="locationMode"
+          label="Location Type"
+          options={LOCATION_MODE_OPTIONS}
+          sx={{ flex: 1 }}
+        />
+        <HelpTooltip topicKey="sessions.clinic-or-route" />
+      </Box>
       {locationMode === 'clinic' && <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />}
       {locationMode === 'workRoute' && (
         <RHFSelect control={control} name="workRouteId" label="Work Route" options={workRouteOptions} />
@@ -194,7 +204,10 @@ function StatusPatchForm({
       sx={{ mt: 1.5, p: 2, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 2 }}
     >
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
-        <RHFSelect control={control} name="status" label="Status" options={STATUS_OPTIONS} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <RHFSelect control={control} name="status" label="Status" options={STATUS_OPTIONS} sx={{ flex: 1 }} />
+          <HelpTooltip topicKey="sessions.status-lifecycle" />
+        </Box>
         <RHFTextField control={control} name="durationMinutes" label="Duration (min)" type="number" />
         <RHFTextField control={control} name="notes" label="Notes" />
       </Box>
@@ -232,9 +245,12 @@ export function SessionsTab({ patientId }: Props) {
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Attention Sessions</Typography>
-        <Button size="small" variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
-          New Session
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <HelpTooltip topicKey="sessions.recording" />
+          <Button size="small" variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
+            New Session
+          </Button>
+        </Box>
       </Box>
 
       {/* List */}
