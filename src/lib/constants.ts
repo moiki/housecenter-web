@@ -29,4 +29,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Collaborators',  path: '/collaborators',       roles: ADMIN_ABOVE, icon: 'briefcase' },
   { label: 'Users',          path: '/management/users',    roles: ADMIN_ABOVE, icon: 'shield' },
   { label: 'Invitations',    path: '/management/invitations', roles: ADMIN_ABOVE, icon: 'mail' },
+  { label: 'Help',           path: '/help',                roles: ALL_ROLES,   icon: 'help' },
 ]

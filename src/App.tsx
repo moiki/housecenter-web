@@ -27,6 +27,8 @@ import { PatientProfilePage } from '@/pages/patients/PatientProfilePage'
 import { ConsultationsPage } from '@/pages/consultations/ConsultationsPage'
 import { ConsultationDetailPage } from '@/pages/consultations/ConsultationDetailPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
+import { HelpIndexPage } from '@/pages/help/HelpIndexPage'
+import { HelpTopicPage } from '@/pages/help/HelpTopicPage'
 
 const router = createBrowserRouter([
   // Public auth pages
@@ -57,6 +59,8 @@ const router = createBrowserRouter([
           { path: '/patients', element: <PatientsPage /> },
           { path: '/patients/:id', element: <PatientProfilePage /> },
           { path: '/reports', element: <ReportsPage /> },
+          { path: '/help', element: <HelpIndexPage /> },
+          { path: '/help/:topicKey', element: <HelpTopicPage /> },
 
           // Staff-only (no Sponsor)
           {

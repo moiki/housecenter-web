@@ -23,6 +23,7 @@ import WorkOutlined from '@mui/icons-material/WorkOutlined'
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined'
 import MailOutlined from '@mui/icons-material/MailOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
+import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
 import { NAV_ITEMS } from '@/lib/constants'
 import type { NavItem, RoleName } from '@/lib/constants'
 
@@ -41,9 +42,10 @@ const NAV_ICONS: Record<string, SvgIconComponent> = {
   shield: AdminPanelSettingsOutlined,
   mail: MailOutlined,
   settings: SettingsOutlined,
+  help: HelpOutlineOutlined,
 }
 
-const CORE_PATHS = ['/', '/patients', '/clinics', '/work-routes', '/consultations']
+const CORE_PATHS = ['/', '/patients', '/clinics', '/work-routes', '/consultations', '/help']
 const REPORT_PATH = ['/reports']
 const ADMIN_PATHS = ['/collaborators', '/management/users', '/management/invitations']
 
