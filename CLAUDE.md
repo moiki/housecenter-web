@@ -24,7 +24,7 @@ presentation and data orchestration.
 - **Zustand** — *client* state, used only for the auth session (`src/store/auth.store.ts`).
 - **React Hook Form + Zod** — forms and validation; the Zod schema is the form's type.
 - **Axios** — single instance in `src/api/client.ts` with auth interceptors.
-- **Tailwind 4 + React Aria Components** — UI primitives live in `src/components/base/*` (an Untitled UI kit). Reuse them; do not hand-roll inputs/buttons/selects.
+- **MUI v9** (`@mui/material`, `@mui/icons-material`, `@mui/x-date-pickers`) — the UI kit. There is no shared primitive-wrapper directory; import components directly from `@mui/material` (`Table`, `Button`, `Chip`, `Paper`, `Box`, `Typography`, `IconButton`, `Tooltip`, etc.) and use `onClick` handlers. (The project started on Untitled UI + React Aria Components + Tailwind and migrated to MUI v9 early on — see `src/components/shared/SlideOver.tsx` for a comment documenting the swap.)
 
 ## Architecture — the four-layer convention (READ THIS FIRST)
 
@@ -54,8 +54,8 @@ To scaffold a new slice, invoke the **`add-feature-slice`** skill. To add one en
 - **Named exports only** — no `export default` for components/modules (`App.tsx` is the lone exception React requires).
 - **Imports use the `@/` alias**, never long relative chains (`@/components/...`, not `../../components/...`).
 - **Filenames**: pages/components `PascalCase.tsx`; hooks `useThing.ts`; api modules `<feature>.api.ts`; types `<feature>.types.ts`; schemas `<feature>.schema.ts`.
-- **Icons**: use `<Icon name="..." />` (`src/components/shared/Icon.tsx`). Valid names only — `home, users, building, map, message, chart, briefcase, shield, mail, bell, sun, moon, logout, settings, chevron, menu, x, plus, trash, send, search, eye, check, filter, download`. Add a new path to the `paths` map before using a new name.
-- **Styling is Tailwind classes** keyed to the theme tokens (`bg-primary`, `text-tertiary`, `ring-secondary`, `text-brand-600`, dark-mode variants). Match the surrounding page; don't introduce raw hex colors.
+- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`), as done throughout `src/components/shared/Sidebar.tsx` and the page components. `src/components/shared/Icon.tsx` (a legacy `name` → SVG-path map) is near-dead code with a single remaining consumer (`PatientProfilePage.tsx`) — do not add new usages of it.
+- **Styling uses MUI's `sx` prop** against the shared theme (`src/styles/theme.ts`, applied via `AppThemeProvider`). Match the surrounding page; don't introduce raw hex colors or reach for Tailwind utility classes on MUI components.
 
 ## State, auth & RBAC
 

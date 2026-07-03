@@ -23,7 +23,8 @@ over cleverness. Reference implementations: patients (paged list) and clinics (f
 3. **Read the full templates** in [reference.md](reference.md) before generating — it has
    the exact file shapes for both the paged and non-paged variants. Also read one real
    neighbor (`src/pages/patients/PatientsPage.tsx` or `src/pages/clinics/ClinicsPage.tsx`)
-   to copy the current component APIs (`Table`, `SlideOver`, `Select`, `Button`, etc.).
+   to copy the current component APIs (`@mui/material`'s `Table`, `Select`, `Button`, etc.,
+   plus `src/components/shared/SlideOver.tsx`).
 
 ## The files to create (in this order)
 
@@ -48,7 +49,7 @@ Then wire it up:
 - **Hook file exports a query-key factory** (`<feature>Keys`) and uses it for every `queryKey` and `invalidateQueries`. On `useUpdate`, also `setQueryData(detail(id), updated)`.
 - **Optional string fields** in the schema use `.nullable().or(z.literal('')).transform(v => v || null)`.
 - **Place the route under the right guard** in `App.tsx`: all-roles (no wrapper), `STAFF_ONLY`, or `ADMIN_ABOVE` via `<RequireRole roles={...}>`. The `NAV_ITEMS` `roles` must match.
-- **Icons**: only names that exist in `src/components/shared/Icon.tsx`. If none fit, add a path to its `paths` map first.
+- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`). Do not add new usages of `src/components/shared/Icon.tsx` — it's legacy, near-dead code with a single remaining consumer.
 
 ## After scaffolding
 

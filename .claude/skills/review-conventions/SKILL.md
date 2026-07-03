@@ -32,8 +32,8 @@ quote the offending snippet. If everything passes, say so plainly.
 **Conventions**
 - [ ] Named exports only (no `export default` outside `App.tsx`).
 - [ ] Imports use the `@/` alias, not `../../` chains.
-- [ ] UI uses `@/components/base/*` primitives (`Input`, `Button`, `Select`, `Table`, `SlideOver`, `ConfirmDialog`) rather than raw `<input>`/`<button>`; buttons use `onPress`, not `onClick`.
-- [ ] `<Icon name="…" />` uses a name present in `src/components/shared/Icon.tsx`.
+- [ ] UI uses `@mui/material` components (`Button`, `TextField`, `Select`, `Table`, `Paper`, etc., plus `src/components/shared/SlideOver.tsx`) rather than raw `<input>`/`<button>`; buttons use `onClick`, not `onPress`.
+- [ ] Icons are imported per-file from `@mui/icons-material` (not new usages of the legacy `src/components/shared/Icon.tsx`, which has a single remaining consumer).
 - [ ] Filenames follow the pattern (`PascalCase.tsx` pages/components, `useThing.ts` hooks, `<feature>.api.ts`, `<feature>.types.ts`, `<feature>.schema.ts`).
 
 **Auth & RBAC**
