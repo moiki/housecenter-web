@@ -64,7 +64,7 @@ import type {
   Create<Feature>Request, Update<Feature>Request,
 } from '@/types/<feature>.types'
 
-const BASE = '/api/v1/<plural>'
+const BASE = '/<plural>'  // not /api/v1/ — only Clinics is versioned, verify against the backend
 
 export const <feature>sApi = {
   list: (page = 1, pageSize = 20) =>

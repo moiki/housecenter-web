@@ -14,9 +14,11 @@ over cleverness. Reference implementations: patients (paged list) and clinics (f
 
 1. **Confirm the backend contract.** Ask the user (or check `housecenter-api`) for: the
    resource's fields and types, whether the list endpoint is **paged** (`PagedResult<T>`,
-   like patients) or **returns all** (`T[]`, like clinics), the exact route base
-   (`/api/v1/<plural>` — but verify; auth routes are unversioned), and which roles may
-   access it. Do **not** invent fields.
+   like patients) or **returns all** (`T[]`, like clinics), and which roles may access it.
+   Do **not** invent fields. **The route base is almost always unversioned** (`/<plural>`)
+   — only Clinics is served under `/api/v1/`. Grep the actual route registration in
+   `Program.cs`/`*Endpoints.cs` in the `housecenter-api` repo before writing `BASE`; never
+   assume `/api/v1/` by default.
 2. **Pick naming**: `<feature>` = lowercase singular for files/types (`treatment`),
    `<plural>` for routes/dirs where the codebase uses plurals (`treatments`),
    `<Feature>` = PascalCase (`Treatment`). Follow whatever neighboring slices do.
@@ -45,7 +47,7 @@ Then wire it up:
 
 - **Named exports only.** Import with the `@/` alias, never `../../`.
 - **Pages never import `apiClient`/axios.** Page → hook → api module → `apiClient`.
-- **api module functions are one-liners**: `apiClient.<verb>(...).then(r => r.data)`. Define `const BASE = '/api/v1/<plural>'`.
+- **api module functions are one-liners**: `apiClient.<verb>(...).then(r => r.data)`. Define `const BASE = '/<plural>'` — **not** `/api/v1/<plural>`; only Clinics is versioned. Copy `BASE` from a neighboring module and verify it against the actual backend route.
 - **Hook file exports a query-key factory** (`<feature>Keys`) and uses it for every `queryKey` and `invalidateQueries`. On `useUpdate`, also `setQueryData(detail(id), updated)`.
 - **Optional string fields** in the schema use `.nullable().or(z.literal('')).transform(v => v || null)`.
 - **Place the route under the right guard** in `App.tsx`: all-roles (no wrapper), `STAFF_ONLY`, or `ADMIN_ABOVE` via `<RequireRole roles={...}>`. The `NAV_ITEMS` `roles` must match.
