@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { usePatientFullSummary } from '@/hooks/patients/usePatients'
+import { useUsers } from '@/hooks/users/useUsers'
+import { useAssignDoctor, useRemoveDoctor } from '@/hooks/patients/useTreatments'
+import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Icon } from '@/components/shared/Icon'
+import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { TreatmentsTab } from './TreatmentsTab'
 import { SessionsTab } from './SessionsTab'
 import { CommentsTab } from './CommentsTab'
 import { AttachmentsTab } from './AttachmentsTab'
+import type { DoctorSummaryDto } from '@/types/patient.types'
 
 type Tab = 'overview' | 'treatments' | 'sessions' | 'comments' | 'attachments'
 
@@ -22,28 +28,103 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'attachments', label: 'Attachments', icon: 'download' },
 ]
 
+function AssignedDoctorsSection({ patientId, doctors }: { patientId: string; doctors: DoctorSummaryDto[] }) {
+  const isOwner = useAuthStore((s) => s.user?.roles.includes('Owner') ?? false)
+  const { data: users } = useUsers()
+  const assignDoctor = useAssignDoctor(patientId)
+  const removeDoctor = useRemoveDoctor(patientId)
+  const [selectedDoctorId, setSelectedDoctorId] = useState('')
+
+  const doctorOptions = (users ?? [])
+    .filter((u) => u.roles.includes('Doctor') && !doctors.some((d) => d.id === u.id))
+    .map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))
+
+  const handleAssign = () => {
+    if (!selectedDoctorId) return
+    assignDoctor.mutate(selectedDoctorId, { onSuccess: () => setSelectedDoctorId('') })
+  }
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Assigned Doctors
+        </Typography>
+        <HelpTooltip topicKey="patients.assign-doctor" />
+      </Box>
+
+      {doctors.length === 0 ? (
+        <Typography sx={{ fontSize: 14, color: 'text.disabled', mb: 1.5 }}>No doctors assigned.</Typography>
+      ) : (
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.5 }}>
+          {doctors.map((d) => (
+            <Chip
+              key={d.id}
+              size="small"
+              label={`${d.firstName} ${d.lastName}`}
+              onDelete={isOwner ? () => removeDoctor.mutate(d.id) : undefined}
+            />
+          ))}
+        </Stack>
+      )}
+
+      {isOwner && (
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            select
+            size="small"
+            value={selectedDoctorId}
+            onChange={(e) => setSelectedDoctorId(e.target.value)}
+            sx={{ minWidth: 220 }}
+            disabled={doctorOptions.length === 0}
+          >
+            {doctorOptions.length === 0 ? (
+              <MenuItem value="" disabled>No doctors available</MenuItem>
+            ) : (
+              doctorOptions.map((o) => (
+                <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+              ))
+            )}
+          </TextField>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={handleAssign}
+            disabled={!selectedDoctorId || assignDoctor.isPending}
+          >
+            Assign
+          </Button>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
 function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePatientFullSummary>['data']> }) {
   const { patient } = summary
   const age = calculateAge(patient.birthDate)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {[
-        { label: 'Full name',      value: `${patient.firstName} ${patient.lastName}` },
-        { label: 'Age',            value: `${age} years old` },
-        { label: 'Gender',         value: patient.gender },
-        { label: 'Birth date',     value: new Date(patient.birthDate).toLocaleDateString() },
-        { label: 'Address',        value: patient.address },
-        { label: 'Country / City', value: [patient.country, patient.state, patient.city].filter(Boolean).join(', ') || '—' },
-        { label: 'Attention type', value: patient.primaryAttentionType === 'EducationalReinforcement' ? 'Educational Reinforcement' : patient.primaryAttentionType },
-        { label: 'Description',    value: patient.description ?? '—' },
-      ].map(({ label, value }) => (
-        <div key={label} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg px-4 py-3">
-          <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-          <p className="text-sm font-medium text-[var(--hc-text-primary)]">{value}</p>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          { label: 'Full name',      value: `${patient.firstName} ${patient.lastName}` },
+          { label: 'Age',            value: `${age} years old` },
+          { label: 'Gender',         value: patient.gender },
+          { label: 'Birth date',     value: new Date(patient.birthDate).toLocaleDateString() },
+          { label: 'Address',        value: patient.address },
+          { label: 'Country / City', value: [patient.country, patient.state, patient.city].filter(Boolean).join(', ') || '—' },
+          { label: 'Attention type', value: patient.primaryAttentionType === 'EducationalReinforcement' ? 'Educational Reinforcement' : patient.primaryAttentionType },
+          { label: 'Description',    value: patient.description ?? '—' },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg px-4 py-3">
+            <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+            <p className="text-sm font-medium text-[var(--hc-text-primary)]">{value}</p>
+          </div>
+        ))}
+      </div>
+      <AssignedDoctorsSection patientId={patient.id} doctors={summary.assignedDoctors} />
+    </>
   )
 }
 

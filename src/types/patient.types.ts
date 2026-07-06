@@ -68,10 +68,18 @@ export interface PatientCommentDto {
   createdDate: string
 }
 
+export interface DoctorSummaryDto {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+}
+
 export interface PatientFullSummaryResponse {
   patient: PatientResponse
   treatments: TreatmentSummaryDto[]
   comments: PatientCommentDto[]
+  assignedDoctors: DoctorSummaryDto[]
 }
 
 export interface TreatmentResponse {

@@ -138,3 +138,19 @@ export function useDeletePatientComment(patientId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: patientKeys.summary(patientId) }),
   })
 }
+
+export function useAssignDoctor(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string) => treatmentsApi.addDoctor(patientId, userId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: patientKeys.summary(patientId) }),
+  })
+}
+
+export function useRemoveDoctor(patientId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string) => treatmentsApi.removeDoctor(patientId, userId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: patientKeys.summary(patientId) }),
+  })
+}
