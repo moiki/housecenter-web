@@ -54,7 +54,7 @@ To scaffold a new slice, invoke the **`add-feature-slice`** skill. To add one en
 - **Named exports only** — no `export default` for components/modules (`App.tsx` is the lone exception React requires).
 - **Imports use the `@/` alias**, never long relative chains (`@/components/...`, not `../../components/...`).
 - **Filenames**: pages/components `PascalCase.tsx`; hooks `useThing.ts`; api modules `<feature>.api.ts`; types `<feature>.types.ts`; schemas `<feature>.schema.ts`.
-- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`), as done throughout `src/components/shared/Sidebar.tsx` and the page components. `src/components/shared/Icon.tsx` (a legacy `name` → SVG-path map) is near-dead code with a single remaining consumer (`PatientProfilePage.tsx`) — do not add new usages of it.
+- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`), as done throughout `src/components/shared/Sidebar.tsx` and the page components. The legacy `Icon.tsx` (`name` → SVG-path map) has been removed — `PatientProfilePage.tsx` was its last consumer and is now on MUI too.
 - **Styling uses MUI's `sx` prop** against the shared theme (`src/styles/theme.ts`, applied via `AppThemeProvider`). Match the surrounding page; don't introduce raw hex colors or reach for Tailwind utility classes on MUI components.
 
 ## State, auth & RBAC

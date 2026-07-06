@@ -49,7 +49,7 @@ Then wire it up:
 - **Hook file exports a query-key factory** (`<feature>Keys`) and uses it for every `queryKey` and `invalidateQueries`. On `useUpdate`, also `setQueryData(detail(id), updated)`.
 - **Optional string fields** in the schema use `.nullable().or(z.literal('')).transform(v => v || null)`.
 - **Place the route under the right guard** in `App.tsx`: all-roles (no wrapper), `STAFF_ONLY`, or `ADMIN_ABOVE` via `<RequireRole roles={...}>`. The `NAV_ITEMS` `roles` must match.
-- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`). Do not add new usages of `src/components/shared/Icon.tsx` — it's legacy, near-dead code with a single remaining consumer.
+- **Icons**: import per-file from `@mui/icons-material` (e.g. `import AddOutlined from '@mui/icons-material/AddOutlined'`). The legacy `src/components/shared/Icon.tsx` has been removed — there's no fallback to reach for.
 
 ## After scaffolding
 

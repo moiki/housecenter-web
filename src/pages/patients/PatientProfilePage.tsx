@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Chip, MenuItem, Paper, Skeleton, Stack, Tab, Tabs, TextField, Typography } from '@mui/material'
+import type { SvgIconComponent } from '@mui/icons-material'
+import PersonOutlined from '@mui/icons-material/PersonOutlined'
+import MedicalServicesOutlined from '@mui/icons-material/MedicalServicesOutlined'
+import EventOutlined from '@mui/icons-material/EventOutlined'
+import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined'
+import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined'
 import { usePatientFullSummary } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
 import { useAssignDoctor, useRemoveDoctor } from '@/hooks/patients/useTreatments'
 import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Icon } from '@/components/shared/Icon'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { TreatmentsTab } from './TreatmentsTab'
 import { SessionsTab } from './SessionsTab'
@@ -14,18 +19,18 @@ import { CommentsTab } from './CommentsTab'
 import { AttachmentsTab } from './AttachmentsTab'
 import type { DoctorSummaryDto } from '@/types/patient.types'
 
-type Tab = 'overview' | 'treatments' | 'sessions' | 'comments' | 'attachments'
+type TabId = 'overview' | 'treatments' | 'sessions' | 'comments' | 'attachments'
 
 function calculateAge(birthDate: string): number {
   return Math.floor((Date.now() - new Date(birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
 }
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'overview',    label: 'Overview',    icon: 'users'   },
-  { id: 'treatments',  label: 'Treatments',  icon: 'chart'   },
-  { id: 'sessions',    label: 'Sessions',    icon: 'map'     },
-  { id: 'comments',    label: 'Comments',    icon: 'message' },
-  { id: 'attachments', label: 'Attachments', icon: 'download' },
+const TABS: { id: TabId; label: string; icon: SvgIconComponent }[] = [
+  { id: 'overview',    label: 'Overview',    icon: PersonOutlined },
+  { id: 'treatments',  label: 'Treatments',  icon: MedicalServicesOutlined },
+  { id: 'sessions',    label: 'Sessions',    icon: EventOutlined },
+  { id: 'comments',    label: 'Comments',    icon: ChatBubbleOutlineOutlined },
+  { id: 'attachments', label: 'Attachments', icon: AttachFileOutlined },
 ]
 
 function AssignedDoctorsSection({ patientId, doctors }: { patientId: string; doctors: DoctorSummaryDto[] }) {
@@ -106,7 +111,7 @@ function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePa
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
         {[
           { label: 'Full name',      value: `${patient.firstName} ${patient.lastName}` },
           { label: 'Age',            value: `${age} years old` },
@@ -117,12 +122,12 @@ function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePa
           { label: 'Attention type', value: patient.primaryAttentionType === 'EducationalReinforcement' ? 'Educational Reinforcement' : patient.primaryAttentionType },
           { label: 'Description',    value: patient.description ?? '—' },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg px-4 py-3">
-            <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-            <p className="text-sm font-medium text-[var(--hc-text-primary)]">{value}</p>
-          </div>
+          <Box key={label} sx={{ bgcolor: 'action.hover', borderRadius: 1.5, px: 2, py: 1.5 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.disabled', mb: 0.25 }}>{label}</Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{value}</Typography>
+          </Box>
         ))}
-      </div>
+      </Box>
       <AssignedDoctorsSection patientId={patient.id} doctors={summary.assignedDoctors} />
     </>
   )
@@ -132,12 +137,12 @@ function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof usePa
 export function PatientProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { data: summary, isLoading } = usePatientFullSummary(id!)
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
 
   const patient = summary?.patient
 
   return (
-    <div className="space-y-6">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title={patient ? `${patient.firstName} ${patient.lastName}` : 'Patient Profile'}
         description={patient
@@ -146,45 +151,45 @@ export function PatientProfilePage() {
       />
 
       {isLoading ? (
-        <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-14 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+        <Stack spacing={2}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="rounded" height={56} />
           ))}
-        </div>
+        </Stack>
       ) : !summary ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-sm">Patient not found.</p>
-        </div>
+        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: 14 }}>Patient not found.</Typography>
+        </Paper>
       ) : (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl">
-          {/* Tab bar */}
-          <div className="flex border-b border-[var(--hc-surface-border)] overflow-x-auto">
-            {TABS.map(tab => (
-              <button
+        <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+          <Tabs
+            value={activeTab}
+            onChange={(_, value: TabId) => setActiveTab(value)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ borderBottom: 1, borderColor: 'divider' }}
+          >
+            {TABS.map((tab) => (
+              <Tab
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-[var(--hc-text-secondary)] hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-              >
-                <Icon name={tab.icon} className="w-4 h-4" />
-                {tab.label}
-              </button>
+                value={tab.id}
+                label={tab.label}
+                icon={<tab.icon fontSize="small" />}
+                iconPosition="start"
+                sx={{ minHeight: 48, fontSize: 14, fontWeight: 500 }}
+              />
             ))}
-          </div>
+          </Tabs>
 
-          {/* Tab content */}
-          <div className="p-6">
+          <Box sx={{ p: 3 }}>
             {activeTab === 'overview'   && <OverviewTab summary={summary} />}
             {activeTab === 'treatments' && <TreatmentsTab patientId={id!} />}
             {activeTab === 'sessions'   && <SessionsTab patientId={id!} />}
             {activeTab === 'comments'   && <CommentsTab patientId={id!} />}
             {activeTab === 'attachments' && <AttachmentsTab patientId={id!} />}
-          </div>
-        </div>
+          </Box>
+        </Paper>
       )}
-    </div>
+    </Box>
   )
 }
