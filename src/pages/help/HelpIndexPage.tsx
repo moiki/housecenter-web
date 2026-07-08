@@ -1,6 +1,8 @@
+import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Box, List, ListItemButton, ListItemText, Paper, Skeleton, Stack, Typography } from '@mui/material'
+import { Box, InputAdornment, List, ListItemButton, ListItemText, Paper, Skeleton, Stack, TextField, Typography } from '@mui/material'
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
+import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import { useHelpTopics } from '@/hooks/help/useHelpTopics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import type { HelpTopicSummary } from '@/types/help.types'
@@ -20,11 +22,33 @@ function groupByCategory(topics: HelpTopicSummary[]) {
 
 export function HelpIndexPage() {
   const { data, isLoading } = useHelpTopics()
-  const groups = groupByCategory(data ?? [])
+  const [search, setSearch] = useState('')
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return data ?? []
+    return (data ?? []).filter(
+      (t) => t.title.toLowerCase().includes(query) || t.summary.toLowerCase().includes(query),
+    )
+  }, [data, search])
+
+  const groups = groupByCategory(filtered)
 
   return (
     <Box>
       <PageHeader title="Help" description="Guides for using HouseCenter." />
+
+      {!isLoading && (data?.length ?? 0) > 0 && (
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Buscar en las guías…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchOutlined fontSize="small" /></InputAdornment> } }}
+          sx={{ mb: 2.5 }}
+        />
+      )}
 
       {isLoading ? (
         <Stack spacing={1.5}>
@@ -35,7 +59,9 @@ export function HelpIndexPage() {
       ) : groups.size === 0 ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <HelpOutlineOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No help topics available yet.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>
+            {search ? 'No se encontraron guías para tu búsqueda.' : 'No help topics available yet.'}
+          </Typography>
         </Paper>
       ) : (
         <Stack spacing={3}>

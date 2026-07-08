@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { Box, Typography } from '@mui/material'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
 
@@ -7,14 +7,15 @@ interface Props {
   description?: string
   action?: ReactNode
   helpKey?: string
+  titleRef?: Ref<HTMLHeadingElement>
 }
 
-export function PageHeader({ title, description, action, helpKey }: Props) {
+export function PageHeader({ title, description, action, helpKey, titleRef }: Props) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2.5 }}>
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="h5" sx={{ fontSize: 18, fontWeight: 600 }}>
+          <Typography ref={titleRef} tabIndex={-1} variant="h5" sx={{ fontSize: 18, fontWeight: 600, outline: 'none' }}>
             {title}
           </Typography>
           {helpKey && <HelpTooltip topicKey={helpKey} />}

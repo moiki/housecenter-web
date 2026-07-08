@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { Box, Button, Paper, Skeleton, Stack, Typography } from '@mui/material'
+import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import Markdown from 'markdown-to-jsx'
 import { useHelpTopic } from '@/hooks/help/useHelpTopics'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -7,6 +9,14 @@ import { PageHeader } from '@/components/shared/PageHeader'
 export function HelpTopicPage() {
   const { topicKey = '' } = useParams<{ topicKey: string }>()
   const { data: topic, isLoading, isError } = useHelpTopic(topicKey)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  // Move focus to the heading on every topic navigation so keyboard/screen-reader
+  // users get an announced landing point — SPA route changes don't move focus by
+  // default, which is especially bad on the feature meant to assist navigation.
+  useEffect(() => {
+    if (topic) titleRef.current?.focus()
+  }, [topic])
 
   if (isLoading) {
     return (
@@ -39,7 +49,17 @@ export function HelpTopicPage() {
 
   return (
     <Box>
-      <PageHeader title={topic.title} />
+      <Button
+        component={RouterLink}
+        to="/help"
+        size="small"
+        color="inherit"
+        startIcon={<ArrowBackOutlined fontSize="small" />}
+        sx={{ mb: 1, ml: -1 }}
+      >
+        Volver a Help
+      </Button>
+      <PageHeader title={topic.title} titleRef={titleRef} />
       <Paper variant="outlined" sx={{ borderRadius: 2, p: 3 }}>
         <Markdown
           options={{
