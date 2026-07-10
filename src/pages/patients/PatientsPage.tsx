@@ -35,6 +35,8 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect, RHFDatePicker } from '@/components/shared/form'
 import type { PatientResponse } from '@/types/patient.types'
 
+const NEW_PATIENT_FORM_ID = 'new-patient-form'
+
 const GENDER_OPTIONS = [
   { value: 'Male', label: 'Male' },
   { value: 'Female', label: 'Female' },
@@ -44,15 +46,29 @@ const TYPE_OPTIONS = [
   { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
 ]
 
-function PatientForm({ onSubmit, submitLabel }: { onSubmit: (d: PatientFormData) => Promise<void>; submitLabel: string }) {
+// Groups related fields under a quiet uppercase micro-label. Turns a flat wall of
+// inputs into a scannable form with hierarchy — part of the elevate-ui design language.
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Typography
+        sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}
+      >
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  )
+}
+
+// The submit button lives in the SlideOver footer (a DOM sibling), so the form is
+// tagged with `id` and the button links to it via its `form` attribute — validation
+// and submit still run through react-hook-form's handleSubmit.
+function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: PatientFormData) => Promise<void> }) {
   const { data: clinics } = useClinics()
   const { data: routes } = useWorkRoutes()
 
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<PatientFormData>({
+  const { control, handleSubmit } = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
       firstName: '', lastName: '', profile: null,
@@ -75,33 +91,37 @@ function PatientForm({ onSubmit, submitLabel }: { onSubmit: (d: PatientFormData)
   ]
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <RHFTextField control={control} name="firstName" label="First name" placeholder="Jane" />
-        <RHFTextField control={control} name="lastName" label="Last name" placeholder="Doe" />
-      </Box>
+    <Box
+      component="form"
+      id={formId}
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}
+    >
+      <FormSection title="Patient details">
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+          <RHFTextField control={control} name="firstName" label="First name" />
+          <RHFTextField control={control} name="lastName" label="Last name" />
+        </Box>
+        <RHFDatePicker control={control} name="birthDate" label="Birth date" />
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+          <RHFSelect control={control} name="gender" label="Gender" options={GENDER_OPTIONS} />
+          <RHFSelect control={control} name="primaryAttentionType" label="Attention type" options={TYPE_OPTIONS} />
+        </Box>
+      </FormSection>
 
-      <RHFDatePicker control={control} name="birthDate" label="Birth date" />
+      <FormSection title="Location">
+        <RHFTextField control={control} name="address" label="Address" />
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
+          <RHFTextField control={control} name="country" label="Country" />
+          <RHFTextField control={control} name="state" label="State" />
+          <RHFTextField control={control} name="city" label="City" />
+        </Box>
+      </FormSection>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <RHFSelect control={control} name="gender" label="Gender" options={GENDER_OPTIONS} />
-        <RHFSelect control={control} name="primaryAttentionType" label="Attention type" options={TYPE_OPTIONS} />
-      </Box>
-
-      <RHFTextField control={control} name="address" label="Address" placeholder="Full address" />
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
-        <RHFTextField control={control} name="country" label="Country" placeholder="NI" />
-        <RHFTextField control={control} name="state" label="State" />
-        <RHFTextField control={control} name="city" label="City" />
-      </Box>
-
-      <RHFSelect control={control} name="clinicId" label="Clinic (optional)" options={clinicOptions} />
-      <RHFSelect control={control} name="workRouteId" label="Work route (optional)" options={routeOptions} />
-
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        {submitLabel}
-      </Button>
+      <FormSection title="Assignment">
+        <RHFSelect control={control} name="clinicId" label="Clinic (optional)" options={clinicOptions} />
+        <RHFSelect control={control} name="workRouteId" label="Work route (optional)" options={routeOptions} />
+      </FormSection>
     </Box>
   )
 }
@@ -242,8 +262,23 @@ export function PatientsPage() {
         </>
       )}
 
-      <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="New Patient">
-        <PatientForm onSubmit={handleCreate} submitLabel="Create patient" />
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title="New patient"
+        description="Register a patient in the clinic system."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={NEW_PATIENT_FORM_ID} variant="contained" loading={createPatient.isPending}>
+              Create patient
+            </Button>
+          </>
+        }
+      >
+        <PatientForm formId={NEW_PATIENT_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
 
       <ConfirmDialog
