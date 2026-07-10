@@ -79,3 +79,4 @@ Project skills live in `.claude/skills/`:
 - **`add-feature-slice`** — scaffold a complete CRUD vertical slice (all four layers + schema + route + nav).
 - **`add-api-call`** — add a single endpoint to an existing api module and its Query/Mutation hook.
 - **`review-conventions`** — audit a file or diff against the conventions in this document.
+- **`elevate-ui`** — propose + implement restrained, product-grade design/UX polish on a page or component, applying the project's design language (theme tokens + `SlideOver`/`FormSection` patterns). Reference implementation: the New Patient slide-over in `PatientsPage.tsx`.
