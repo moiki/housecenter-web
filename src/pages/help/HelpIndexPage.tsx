@@ -1,10 +1,22 @@
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Box, InputAdornment, List, ListItemButton, ListItemText, Paper, Skeleton, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Chip,
+  InputAdornment,
+  List,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Skeleton,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
 import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import { useHelpTopics } from '@/hooks/help/useHelpTopics'
-import { PageHeader } from '@/components/shared/PageHeader'
 import type { HelpTopicSummary } from '@/types/help.types'
 
 function groupByCategory(topics: HelpTopicSummary[]) {
@@ -23,31 +35,89 @@ function groupByCategory(topics: HelpTopicSummary[]) {
 export function HelpIndexPage() {
   const { data, isLoading } = useHelpTopics()
   const [search, setSearch] = useState('')
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
+  // Counted from the full list, not the filtered one, so chips don't disappear
+  // as soon as a filter narrows the results down.
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const [category, topics] of groupByCategory(data ?? [])) {
+      counts.set(category, topics.length)
+    }
+    return counts
+  }, [data])
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase()
-    if (!query) return data ?? []
-    return (data ?? []).filter(
-      (t) => t.title.toLowerCase().includes(query) || t.summary.toLowerCase().includes(query),
-    )
-  }, [data, search])
+    return (data ?? []).filter((t) => {
+      if (activeCategory && t.category !== activeCategory) return false
+      if (!query) return true
+      return t.title.toLowerCase().includes(query) || t.summary.toLowerCase().includes(query)
+    })
+  }, [data, search, activeCategory])
 
   const groups = groupByCategory(filtered)
+  const hasTopics = (data?.length ?? 0) > 0
+  const hasActiveFilters = search.trim() !== '' || activeCategory !== null
+
+  const clearFilters = () => {
+    setSearch('')
+    setActiveCategory(null)
+  }
 
   return (
     <Box>
-      <PageHeader title="Help" description="Guides for using HouseCenter." />
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600, fontSize: { xs: 22, sm: 28 } }}>
+          Guías para usar HouseCenter
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+          Encontrá cómo hacer cualquier cosa en la plataforma.
+        </Typography>
+      </Box>
 
-      {!isLoading && (data?.length ?? 0) > 0 && (
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Buscar en las guías…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchOutlined fontSize="small" /></InputAdornment> } }}
-          sx={{ mb: 2.5 }}
-        />
+      {hasTopics && (
+        <>
+          <TextField
+            fullWidth
+            size="medium"
+            placeholder="Buscar en las guías…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ maxWidth: 480, mx: 'auto', display: 'block', mb: 2.5 }}
+          />
+
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 3 }}>
+            <Chip
+              label="Todos"
+              size="small"
+              aria-pressed={activeCategory === null}
+              onClick={() => setActiveCategory(null)}
+              color={activeCategory === null ? 'primary' : 'default'}
+              variant={activeCategory === null ? 'filled' : 'outlined'}
+            />
+            {[...categoryCounts.entries()].map(([category, count]) => (
+              <Chip
+                key={category}
+                label={`${category} (${count})`}
+                size="small"
+                aria-pressed={activeCategory === category}
+                onClick={() => setActiveCategory(activeCategory === category ? null : category)}
+                color={activeCategory === category ? 'primary' : 'default'}
+                variant={activeCategory === category ? 'filled' : 'outlined'}
+              />
+            ))}
+          </Stack>
+        </>
       )}
 
       {isLoading ? (
@@ -60,8 +130,13 @@ export function HelpIndexPage() {
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <HelpOutlineOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>
-            {search ? 'No se encontraron guías para tu búsqueda.' : 'No help topics available yet.'}
+            {hasTopics ? 'No se encontraron guías para tu búsqueda o categoría.' : 'No help topics available yet.'}
           </Typography>
+          {hasActiveFilters && (
+            <Button size="small" onClick={clearFilters} sx={{ mt: 2 }}>
+              Limpiar filtros
+            </Button>
+          )}
         </Paper>
       ) : (
         <Stack spacing={3}>
