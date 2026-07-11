@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Box, Button, IconButton, Paper, Skeleton, Stack, Typography } from '@mui/material'
 import AddOutlined from '@mui/icons-material/AddOutlined'
+import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import { updateWorkRouteSchema, type UpdateWorkRouteFormData } from '@/schemas/workroute.schema'
 import { useWorkRoute, useUpdateWorkRoute } from '@/hooks/workroutes/useWorkRoutes'
@@ -15,6 +16,7 @@ import { WorkRouteFormFields } from '@/pages/work-routes/WorkRouteFormFields'
 const EMPTY_DESTINATION = { name: '', description: '', picture: null, googleMapUrl: null }
 
 function WorkRouteEditor({ routeId }: { routeId: string }) {
+  const navigate = useNavigate()
   const { data: route } = useWorkRoute(routeId)
   const updateRoute = useUpdateWorkRoute(routeId)
   const [saved, setSaved] = useState(false)
@@ -90,6 +92,9 @@ function WorkRouteEditor({ routeId }: { routeId: string }) {
         <Button type="submit" variant="contained" disabled={!isDirty} loading={isSubmitting}>
           Save changes
         </Button>
+        <Button color="inherit" onClick={() => navigate('/work-routes')}>
+          Cancel
+        </Button>
         {saved && (
           <Typography color="success.main" sx={{ fontSize: 14, fontWeight: 500 }}>
             Saved!
@@ -102,11 +107,20 @@ function WorkRouteEditor({ routeId }: { routeId: string }) {
 
 export function WorkRouteDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { data: route, isLoading } = useWorkRoute(id!)
 
   return (
     <Box>
-      <PageHeader title={route?.routeName ?? 'Work Route'} description={route ? `Clinic: ${route.clinicName}` : ''} />
+      <PageHeader
+        title={route?.routeName ?? 'Work Route'}
+        description={route ? `Clinic: ${route.clinicName}` : ''}
+        action={
+          <Button color="inherit" startIcon={<ArrowBackOutlined />} onClick={() => navigate('/work-routes')}>
+            Back
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <Stack spacing={1.5}>
