@@ -29,6 +29,7 @@ import { patientSchema, type PatientFormData } from '@/schemas/patient.schema'
 import { usePatients, useCreatePatient, useDeactivatePatient } from '@/hooks/patients/usePatients'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -51,8 +52,9 @@ const TYPE_OPTIONS = [
 // tagged with `id` and the button links to it via its `form` attribute — validation
 // and submit still run through react-hook-form's handleSubmit.
 function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: PatientFormData) => Promise<void> }) {
-  const { data: clinics } = useClinics()
-  const { data: routes } = useWorkRoutes()
+  // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
+  const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
+  const { data: routesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
 
   const { control, handleSubmit } = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -69,11 +71,11 @@ function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: Patie
   // Empty-string option => Zod transforms '' -> null (replaces the legacy '__none__' sentinel).
   const clinicOptions = [
     { value: '', label: 'No clinic' },
-    ...(clinics ?? []).map((c) => ({ value: c.id, label: c.name })),
+    ...(clinicsData?.items ?? []).map((c) => ({ value: c.id, label: c.name })),
   ]
   const routeOptions = [
     { value: '', label: 'No route' },
-    ...(routes ?? []).map((r) => ({ value: r.id, label: r.routeName })),
+    ...(routesData?.items ?? []).map((r) => ({ value: r.id, label: r.routeName })),
   ]
 
   return (
