@@ -1,17 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { workRoutesApi } from '@/api/modules/workroutes.api'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { CreateWorkRouteRequest, UpdateWorkRouteRequest } from '@/types/workroute.types'
 
 export const workRouteKeys = {
   all: ['workroutes'] as const,
-  list: () => [...workRouteKeys.all, 'list'] as const,
+  list: (page: number, pageSize: number) => [...workRouteKeys.all, 'list', page, pageSize] as const,
   detail: (id: string) => [...workRouteKeys.all, 'detail', id] as const,
 }
 
-export function useWorkRoutes() {
+export function useWorkRoutes(page = 1, pageSize = DEFAULT_PAGE_SIZE) {
   return useQuery({
-    queryKey: workRouteKeys.list(),
-    queryFn: workRoutesApi.list,
+    queryKey: workRouteKeys.list(page, pageSize),
+    queryFn: () => workRoutesApi.list(page, pageSize),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -27,7 +29,7 @@ export function useCreateWorkRoute() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateWorkRouteRequest) => workRoutesApi.create(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: workRouteKeys.list() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: workRouteKeys.all }),
   })
 }
 
@@ -37,7 +39,7 @@ export function useUpdateWorkRoute(id: string) {
     mutationFn: (data: UpdateWorkRouteRequest) => workRoutesApi.update(id, data),
     onSuccess: (updated) => {
       qc.setQueryData(workRouteKeys.detail(id), updated)
-      qc.invalidateQueries({ queryKey: workRouteKeys.list() })
+      qc.invalidateQueries({ queryKey: workRouteKeys.all })
     },
   })
 }
@@ -46,6 +48,6 @@ export function useDeactivateWorkRoute() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => workRoutesApi.deactivate(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: workRouteKeys.list() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: workRouteKeys.all }),
   })
 }
