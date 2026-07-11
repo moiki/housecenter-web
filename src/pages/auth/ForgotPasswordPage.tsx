@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Box, Button, Link, Typography } from '@mui/material'
 import { authApi } from '@/api/modules/auth.api'
+import { RHFTextField } from '@/components/shared/form'
 
 const schema = z.object({ email: z.string().email('Invalid email') })
 type FormData = z.infer<typeof schema>
@@ -13,8 +16,13 @@ export function ForgotPasswordPage() {
 
   const mutation = useMutation({ mutationFn: authApi.requestPasswordReset })
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { email: '' },
   })
 
   const onSubmit = async (data: FormData) => {
@@ -25,49 +33,47 @@ export function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="text-center space-y-3">
-        <p className="text-[var(--hc-text-primary)] font-medium">Check your inbox</p>
-        <p className="text-sm text-[var(--hc-text-secondary)]">
+      <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Typography sx={{ fontWeight: 600 }}>Check your inbox</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
           If that email is registered, you'll receive a reset link shortly.
-        </p>
-        <a href="/login" className="text-sm text-blue-600 hover:underline">
+        </Typography>
+        <Link component={RouterLink} to="/login" underline="hover" sx={{ fontSize: 14, fontWeight: 600 }}>
           Back to sign in
-        </a>
-      </div>
+        </Link>
+      </Box>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-[var(--hc-text-primary)] mb-1">Reset password</h2>
-        <p className="text-sm text-[var(--hc-text-secondary)]">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+          Reset password
+        </Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
           Enter your email and we'll send you a reset link.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-        <input
-          {...register('email')}
-          type="email"
-          autoComplete="email"
-          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-[var(--hc-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+      <Box
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
-        {isSubmitting ? 'Sending…' : 'Send reset link'}
-      </button>
+        <RHFTextField control={control} name="email" label="Email" type="email" autoComplete="email" placeholder="Enter your email" />
 
-      <p className="text-center">
-        <a href="/login" className="text-sm text-blue-600 hover:underline">Back to sign in</a>
-      </p>
-    </form>
+        <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+          Send reset link
+        </Button>
+
+        <Typography sx={{ textAlign: 'center', fontSize: 14 }}>
+          <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
+            Back to sign in
+          </Link>
+        </Typography>
+      </Box>
+    </Box>
   )
 }
