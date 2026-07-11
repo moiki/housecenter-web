@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   IconButton,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
@@ -31,7 +32,8 @@ import type { ClinicFormData } from '@/schemas/clinic.schema'
 
 export function ClinicsPage() {
   const navigate = useNavigate()
-  const { data: clinics, isLoading } = useClinics()
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useClinics(page)
   const createClinic = useCreateClinic()
   const deactivateClinic = useDeactivateClinic()
 
@@ -67,49 +69,66 @@ export function ClinicsPage() {
             <Skeleton key={i} variant="rounded" height={56} />
           ))}
         </Stack>
-      ) : !clinics?.length ? (
+      ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <BusinessOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>No clinics yet. Create the first one.</Typography>
         </Paper>
       ) : (
-        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Clinics</Typography>
-            <Chip label={clinics.length} size="small" />
-          </Box>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell align="right" />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {clinics.map((clinic) => (
-                  <TableRow key={clinic.id} hover>
-                    <TableCell sx={{ fontWeight: 500 }}>{clinic.name}</TableCell>
-                    <TableCell>{clinic.address}</TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label="Edit">
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Deactivate">
-                        <IconButton size="small" color="error" onClick={() => setToDeactivate(clinic)} aria-label="Deactivate">
-                          <DeleteOutlineOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+        <>
+          <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Clinics</Typography>
+              <Chip label={data.totalCount} size="small" />
+            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Address</TableCell>
+                    <TableCell align="right" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {data.items.map((clinic) => (
+                    <TableRow key={clinic.id} hover>
+                      <TableCell sx={{ fontWeight: 500 }}>{clinic.name}</TableCell>
+                      <TableCell>{clinic.address}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label="Edit">
+                            <EditOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Deactivate">
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(clinic)} aria-label="Deactivate">
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+
+          {data.totalPages > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                {data.totalCount} clinics — page {data.page} of {data.totalPages}
+              </Typography>
+              <Pagination
+                count={data.totalPages}
+                page={page}
+                onChange={(_, p) => setPage(p)}
+                size="small"
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
       )}
 
       <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="New Clinic">

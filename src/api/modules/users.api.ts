@@ -1,11 +1,13 @@
 import { apiClient } from '@/api/client'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import type { PagedResult } from '@/types/common.types'
 import type { UserResponse, UpdateUserRequest, AssignRolesRequest } from '@/types/user.types'
 
 const BASE = '/users'
 
 export const usersApi = {
-  list: () =>
-    apiClient.get<UserResponse[]>(BASE).then(r => r.data),
+  list: (page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
+    apiClient.get<PagedResult<UserResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
 
   getById: (id: string) =>
     apiClient.get<UserResponse>(`${BASE}/${id}`).then(r => r.data),

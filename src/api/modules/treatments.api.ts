@@ -1,10 +1,11 @@
 import { apiClient } from '@/api/client'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import type { PagedResult } from '@/types/common.types'
 import type {
   TreatmentResponse,
   TreatmentDetailResponse,
   TreatmentCommentResponse,
   PatientCommentResponse,
-  PagedResult,
 } from '@/types/patient.types'
 
 // Treatments
@@ -17,7 +18,7 @@ const pdoc = (patientId: string) => `/patients/${patientId}/doctors`
 
 export const treatmentsApi = {
   // Treatments
-  list: (patientId: string, page = 1, pageSize = 20) =>
+  list: (patientId: string, page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
     apiClient.get<PagedResult<TreatmentResponse>>(t(patientId), { params: { page, pageSize } }).then(r => r.data),
 
   create: (patientId: string, data: object) =>
@@ -33,7 +34,7 @@ export const treatmentsApi = {
     apiClient.delete<void>(`${t(patientId)}/${treatmentId}`).then(r => r.data),
 
   // Treatment details
-  listDetails: (treatmentId: string, page = 1, pageSize = 20) =>
+  listDetails: (treatmentId: string, page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
     apiClient.get<PagedResult<TreatmentDetailResponse>>(td(treatmentId), { params: { page, pageSize } }).then(r => r.data),
 
   createDetail: (treatmentId: string, data: object) =>
@@ -46,7 +47,7 @@ export const treatmentsApi = {
     apiClient.delete<void>(`${td(treatmentId)}/${detailId}`).then(r => r.data),
 
   // Treatment comments
-  listComments: (treatmentId: string, page = 1, pageSize = 20) =>
+  listComments: (treatmentId: string, page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
     apiClient.get<PagedResult<TreatmentCommentResponse>>(tc(treatmentId), { params: { page, pageSize } }).then(r => r.data),
 
   createComment: (treatmentId: string, data: object) =>

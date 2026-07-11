@@ -1,11 +1,13 @@
 import { apiClient } from '@/api/client'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import type { PagedResult } from '@/types/common.types'
 import type { WorkRouteResponse, CreateWorkRouteRequest, UpdateWorkRouteRequest } from '@/types/workroute.types'
 
 const BASE = '/workroutes'
 
 export const workRoutesApi = {
-  list: () =>
-    apiClient.get<WorkRouteResponse[]>(BASE).then(r => r.data),
+  list: (page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
+    apiClient.get<PagedResult<WorkRouteResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
 
   getById: (id: string) =>
     apiClient.get<WorkRouteResponse>(`${BASE}/${id}`).then(r => r.data),

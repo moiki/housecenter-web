@@ -22,6 +22,7 @@ import { useSessions, useCreateSession, usePatchSessionStatus, useDeleteSession 
 import { useCollaborators } from '@/hooks/collaborators/useCollaborators'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
@@ -83,9 +84,10 @@ function formatDate(iso: string) {
 
 // ── Create form (inside SlideOver) ────────────────────────────────────────────
 function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSuccess: () => void }) {
-  const { data: collaboratorsData } = useCollaborators()
-  const { data: clinics } = useClinics()
-  const { data: workRoutesData } = useWorkRoutes()
+  // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
+  const { data: collaboratorsData } = useCollaborators(1, DROPDOWN_PAGE_SIZE)
+  const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
+  const { data: workRoutesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
   const createSession = useCreateSession(patientId)
 
   const {
@@ -108,9 +110,9 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
 
   const locationMode = useWatch({ control, name: 'locationMode' })
 
-  const collaboratorOptions = collaboratorsData?.map((c) => ({ value: c.id, label: `${c.firstName} ${c.lastName}` })) ?? []
-  const clinicOptions = clinics?.map((c) => ({ value: c.id, label: c.name })) ?? []
-  const workRouteOptions = workRoutesData?.map((w) => ({ value: w.id, label: w.routeName })) ?? []
+  const collaboratorOptions = collaboratorsData?.items.map((c) => ({ value: c.id, label: `${c.firstName} ${c.lastName}` })) ?? []
+  const clinicOptions = clinicsData?.items.map((c) => ({ value: c.id, label: c.name })) ?? []
+  const workRouteOptions = workRoutesData?.items.map((w) => ({ value: w.id, label: w.routeName })) ?? []
 
   const onSubmit = async (data: CreateForm) => {
     await createSession.mutateAsync({

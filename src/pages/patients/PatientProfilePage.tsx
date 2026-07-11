@@ -9,6 +9,7 @@ import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutl
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined'
 import { usePatientFullSummary } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { useAssignDoctor, useRemoveDoctor } from '@/hooks/patients/useTreatments'
 import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -35,12 +36,13 @@ const TABS: { id: TabId; label: string; icon: SvgIconComponent }[] = [
 
 function AssignedDoctorsSection({ patientId, doctors }: { patientId: string; doctors: DoctorSummaryDto[] }) {
   const isOwner = useAuthStore((s) => s.user?.roles.includes('Owner') ?? false)
-  const { data: users } = useUsers()
+  // Dropdown needs the full user list; capped at the backend's clamp max (100 rows).
+  const { data: usersData } = useUsers(1, DROPDOWN_PAGE_SIZE)
   const assignDoctor = useAssignDoctor(patientId)
   const removeDoctor = useRemoveDoctor(patientId)
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
 
-  const doctorOptions = (users ?? [])
+  const doctorOptions = (usersData?.items ?? [])
     .filter((u) => u.roles.includes('Doctor') && !doctors.some((d) => d.id === u.id))
     .map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))
 

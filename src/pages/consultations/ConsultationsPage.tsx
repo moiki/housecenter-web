@@ -20,6 +20,7 @@ import ChevronRightOutlined from '@mui/icons-material/ChevronRightOutlined'
 import { useConsultations, useCreateConsultation } from '@/hooks/consultations/useConsultations'
 import { usePatients } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { RHFTextField, RHFSelect, RHFRichText } from '@/components/shared/form'
@@ -52,8 +53,12 @@ function formatDate(iso: string) {
 
 // ── Create form ───────────────────────────────────────────────────────────────
 function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
+  // NOTE: usePatients(1, 200) is a pre-existing, separately-tracked bug — the backend
+  // clamps pageSize to 100, so this silently drops patients beyond row 100 in orgs with
+  // >100 patients. Out of scope for this change; left as-is intentionally.
   const { data: patients } = usePatients(1, 200)
-  const { data: users } = useUsers()
+  // Dropdown needs the full user list; capped at the backend's clamp max (100 rows).
+  const { data: usersData } = useUsers(1, DROPDOWN_PAGE_SIZE)
   const createConsultation = useCreateConsultation()
 
   const {
@@ -66,7 +71,7 @@ function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
   })
 
   const patientOptions = patients?.items.map((p) => ({ value: p.id, label: `${p.firstName} ${p.lastName}` })) ?? []
-  const doctorOptions = (users ?? [])
+  const doctorOptions = (usersData?.items ?? [])
     .filter((u) => u.roles.includes('Doctor'))
     .map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))
 

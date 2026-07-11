@@ -7,6 +7,7 @@ import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined'
 import { useAttachments, useUploadAttachment, useDeleteAttachment } from '@/hooks/attachments/useAttachments'
 import { useUsers } from '@/hooks/users/useUsers'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { AttachmentThumbnail } from '@/components/attachments/AttachmentThumbnail'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { attachmentsApi } from '@/api/modules/attachments.api'
@@ -34,7 +35,8 @@ async function triggerDownload(attachment: AttachmentResponse) {
 
 export function AttachmentsTab({ patientId }: { patientId: string }) {
   const { data: attachments, isLoading } = useAttachments('Patient', patientId)
-  const { data: users } = useUsers()
+  // Lookup needs the full user list; capped at the backend's clamp max (100 rows).
+  const { data: usersData } = useUsers(1, DROPDOWN_PAGE_SIZE)
   const upload = useUploadAttachment('Patient', patientId)
   const deleteAttachment = useDeleteAttachment('Patient', patientId)
 
@@ -59,7 +61,7 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
   }
 
   const uploaderName = (userId: string) => {
-    const match = users?.find((candidate) => candidate.id === userId)
+    const match = usersData?.items.find((candidate) => candidate.id === userId)
     return match ? `${match.firstName} ${match.lastName}` : 'Unknown'
   }
 

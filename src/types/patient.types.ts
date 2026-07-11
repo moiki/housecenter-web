@@ -22,15 +22,7 @@ export interface PatientResponse {
   isActive: boolean
 }
 
-export interface PagedResult<T> {
-  items: T[]
-  page: number
-  pageSize: number
-  totalCount: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
-}
+// PagedResult<T> lives in @/types/common.types — import it from there, don't redeclare.
 
 export interface CreatePatientRequest {
   firstName: string
