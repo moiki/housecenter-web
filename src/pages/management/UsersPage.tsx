@@ -4,6 +4,7 @@ import {
   Box,
   Chip,
   IconButton,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
@@ -34,7 +35,8 @@ const ROLE_COLOR: Record<string, ChipColor> = {
 }
 
 export function UsersPage() {
-  const { data: users, isLoading } = useUsers()
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useUsers(page)
   const deactivate = useDeactivateUser()
   const [toDeactivate, setToDeactivate] = useState<UserResponse | null>(null)
 
@@ -54,73 +56,90 @@ export function UsersPage() {
             <Skeleton key={i} variant="rounded" height={64} />
           ))}
         </Stack>
-      ) : !users?.length ? (
+      ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <AdminPanelSettingsOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>No users found.</Typography>
         </Paper>
       ) : (
-        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Users</Typography>
-            <Chip label={users.length} size="small" />
-          </Box>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Roles</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="right" />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
-                          {user.firstName[0]}{user.lastName[0]}
-                        </Avatar>
-                        <Box>
-                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
-                            {user.firstName} {user.lastName}
-                          </Typography>
-                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{user.email}</Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {user.roles.map((r) => (
-                          <Chip key={r} label={r} size="small" color={ROLE_COLOR[r] ?? 'default'} variant="outlined" />
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={user.isActive ? 'Active' : 'Inactive'}
-                        size="small"
-                        color={user.isActive ? 'success' : 'default'}
-                        variant={user.isActive ? 'filled' : 'outlined'}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      {user.isActive && (
-                        <Tooltip title="Deactivate">
-                          <IconButton size="small" color="error" onClick={() => setToDeactivate(user)} aria-label="Deactivate">
-                            <DeleteOutlineOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </TableCell>
+        <>
+          <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Users</Typography>
+              <Chip label={data.totalCount} size="small" />
+            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>User</TableCell>
+                    <TableCell>Roles</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {data.items.map((user) => (
+                    <TableRow key={user.id} hover>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
+                            {user.firstName[0]}{user.lastName[0]}
+                          </Avatar>
+                          <Box>
+                            <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                              {user.firstName} {user.lastName}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{user.email}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {user.roles.map((r) => (
+                            <Chip key={r} label={r} size="small" color={ROLE_COLOR[r] ?? 'default'} variant="outlined" />
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.isActive ? 'Active' : 'Inactive'}
+                          size="small"
+                          color={user.isActive ? 'success' : 'default'}
+                          variant={user.isActive ? 'filled' : 'outlined'}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        {user.isActive && (
+                          <Tooltip title="Deactivate">
+                            <IconButton size="small" color="error" onClick={() => setToDeactivate(user)} aria-label="Deactivate">
+                              <DeleteOutlineOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+
+          {data.totalPages > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                {data.totalCount} users — page {data.page} of {data.totalPages}
+              </Typography>
+              <Pagination
+                count={data.totalPages}
+                page={page}
+                onChange={(_, p) => setPage(p)}
+                size="small"
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
       )}
 
       <ConfirmDialog

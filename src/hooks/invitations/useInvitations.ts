@@ -35,7 +35,7 @@ export function useDeleteInvitation() {
   return useMutation({
     mutationFn: (id: string) => invitationsApi.delete(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: userKeys.list() })
+      qc.invalidateQueries({ queryKey: userKeys.all })
       qc.invalidateQueries({ queryKey: invitationKeys.all })
     },
   })
