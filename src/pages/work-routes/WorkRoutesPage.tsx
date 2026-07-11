@@ -123,12 +123,26 @@ export function WorkRoutesPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const { data, isLoading } = useWorkRoutes(page)
+  // Calendar view needs every route in the visible range, not just one paginated page,
+  // so it gets its own full-list fetch (capped at the backend clamp max, 100). The List
+  // view stays server-paginated via `data` above.
+  const { data: calendarData, isLoading: calendarLoading } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
   const createRoute = useCreateWorkRoute()
   const deactivateRoute = useDeactivateWorkRoute()
 
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [slideOpen, setSlideOpen] = useState(false)
   const [toDeactivate, setToDeactivate] = useState<WorkRouteResponse | null>(null)
+
+  const isCalendar = view === 'calendar'
+  const activeLoading = isCalendar ? calendarLoading : isLoading
+
+  const emptyState = (
+    <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
+      <RouteOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
+      <Typography sx={{ mt: 1, fontSize: 14 }}>No work routes yet. Create the first one.</Typography>
+    </Paper>
+  )
 
   const handleCreate = async (data: WorkRouteFormData) => {
     await createRoute.mutateAsync(data)
@@ -170,23 +184,24 @@ export function WorkRoutesPage() {
         }
       />
 
-      {isLoading ? (
+      {activeLoading ? (
         <Stack spacing={1.5}>
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} variant="rounded" height={64} />
           ))}
         </Stack>
+      ) : isCalendar ? (
+        !calendarData?.items.length ? (
+          emptyState
+        ) : (
+          <WorkRouteCalendar
+            routes={calendarData.items}
+            onDayClick={() => setSlideOpen(true)}
+            onRouteClick={(route) => navigate(`/work-routes/${route.id}`)}
+          />
+        )
       ) : !data?.items.length ? (
-        <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
-          <RouteOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No work routes yet. Create the first one.</Typography>
-        </Paper>
-      ) : view === 'calendar' ? (
-        <WorkRouteCalendar
-          routes={data.items}
-          onDayClick={() => setSlideOpen(true)}
-          onRouteClick={(route) => navigate(`/work-routes/${route.id}`)}
-        />
+        emptyState
       ) : (
         <>
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
