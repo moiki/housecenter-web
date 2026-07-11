@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sessionsApi } from '@/api/modules/sessions.api'
 import type {
   AttentionType,
@@ -23,6 +23,7 @@ export function useSessions(
     queryKey: keys.list(patientId, filters),
     queryFn: () => sessionsApi.list(patientId, filters),
     enabled: !!patientId,
+    placeholderData: keepPreviousData,
   })
 }
 

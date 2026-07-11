@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { consultationsApi } from '@/api/modules/consultations.api'
 import type {
   ConsultationStatus,
@@ -20,6 +20,7 @@ export function useConsultations(
   return useQuery({
     queryKey: keys.list(filters),
     queryFn: () => consultationsApi.list(filters),
+    placeholderData: keepPreviousData,
   })
 }
 
