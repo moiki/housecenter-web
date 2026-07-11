@@ -161,10 +161,12 @@ function TreatmentFormPanel({
 
 function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentResponse; patientId: string }) {
   const patchStatus = usePatchTreatmentStatus(patientId, treatment.id)
-  const { data: details, isLoading: detailsLoading } = useTreatmentDetails(treatment.id)
+  const [detailsPage, setDetailsPage] = useState(1)
+  const { data: details, isLoading: detailsLoading } = useTreatmentDetails(treatment.id, detailsPage)
   const createDetail = useCreateTreatmentDetail(treatment.id, patientId)
   const deleteDetail = useDeleteTreatmentDetail(treatment.id, patientId)
-  const { data: comments, isLoading: commentsLoading } = useTreatmentComments(treatment.id)
+  const [commentsPage, setCommentsPage] = useState(1)
+  const { data: comments, isLoading: commentsLoading } = useTreatmentComments(treatment.id, commentsPage)
   const createComment = useCreateTreatmentComment(treatment.id, patientId)
   const deleteComment = useDeleteTreatmentComment(treatment.id, patientId)
 
@@ -282,6 +284,18 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
               ))}
             </Stack>
           )}
+
+          {details && details.totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+              <Pagination
+                size="small"
+                count={details.totalPages}
+                page={detailsPage}
+                onChange={(_, p) => setDetailsPage(p)}
+                color="primary"
+              />
+            </Box>
+          )}
         </Box>
 
         {/* Comments section */}
@@ -340,6 +354,18 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
                 </Paper>
               ))}
             </Stack>
+          )}
+
+          {comments && comments.totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+              <Pagination
+                size="small"
+                count={comments.totalPages}
+                page={commentsPage}
+                onChange={(_, p) => setCommentsPage(p)}
+                color="primary"
+              />
+            </Box>
           )}
         </Box>
       </Stack>
