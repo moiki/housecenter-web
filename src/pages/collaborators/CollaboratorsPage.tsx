@@ -7,6 +7,7 @@ import {
   Button,
   Chip,
   IconButton,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
@@ -32,6 +33,7 @@ import {
 } from '@/hooks/collaborators/useCollaborators'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
+import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -47,8 +49,9 @@ function CollaboratorForm({
   onSubmit: (data: CollaboratorFormData) => Promise<void>
   submitLabel: string
 }) {
-  const { data: clinics } = useClinics()
-  const { data: routes } = useWorkRoutes()
+  // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
+  const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
+  const { data: routesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
 
   const {
     control,
@@ -85,11 +88,11 @@ function CollaboratorForm({
     name: 'positions',
   })
 
-  const clinicOptions = (clinics ?? []).map((c) => ({ value: c.id, label: c.name }))
+  const clinicOptions = (clinicsData?.items ?? []).map((c) => ({ value: c.id, label: c.name }))
   // Empty-string option => Zod transforms '' -> null (replaces the legacy '__none__' sentinel).
   const routeOptions = [
     { value: '', label: 'No route assigned' },
-    ...(routes ?? []).map((r) => ({ value: r.id, label: r.routeName })),
+    ...(routesData?.items ?? []).map((r) => ({ value: r.id, label: r.routeName })),
   ]
 
   return (
@@ -152,7 +155,8 @@ function CollaboratorForm({
 }
 
 export function CollaboratorsPage() {
-  const { data: collaborators, isLoading } = useCollaborators()
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useCollaborators(page)
   const createCollaborator = useCreateCollaborator()
   const deactivateCollaborator = useDeactivateCollaborator()
 
@@ -200,71 +204,88 @@ export function CollaboratorsPage() {
             <Skeleton key={i} variant="rounded" height={64} />
           ))}
         </Stack>
-      ) : !collaborators?.length ? (
+      ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <WorkOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>No collaborators yet. Add the first one.</Typography>
         </Paper>
       ) : (
-        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Collaborators</Typography>
-            <Chip label={collaborators.length} size="small" />
-          </Box>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Clinic</TableCell>
-                  <TableCell>Positions</TableCell>
-                  <TableCell>Contact</TableCell>
-                  <TableCell align="right" />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {collaborators.map((c) => (
-                  <TableRow key={c.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
-                          {c.firstName[0]}{c.lastName[0]}
-                        </Avatar>
-                        <Box>
-                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
-                            {c.firstName} {c.lastName}
-                          </Typography>
-                          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{c.email}</Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: 'text.secondary' }}>{c.clinicName}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {c.positions.map((p) => (
-                          <Chip key={p.id} label={p.name} size="small" color="primary" variant="outlined" />
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: 'text.secondary', fontSize: 13 }}>{c.phoneNumber}</TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => openEdit(c)} aria-label="Edit">
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Deactivate">
-                        <IconButton size="small" color="error" onClick={() => setToDeactivate(c)} aria-label="Deactivate">
-                          <DeleteOutlineOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+        <>
+          <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Collaborators</Typography>
+              <Chip label={data.totalCount} size="small" />
+            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Clinic</TableCell>
+                    <TableCell>Positions</TableCell>
+                    <TableCell>Contact</TableCell>
+                    <TableCell align="right" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {data.items.map((c) => (
+                    <TableRow key={c.id} hover>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
+                            {c.firstName[0]}{c.lastName[0]}
+                          </Avatar>
+                          <Box>
+                            <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                              {c.firstName} {c.lastName}
+                            </Typography>
+                            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{c.email}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>{c.clinicName}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {c.positions.map((p) => (
+                            <Chip key={p.id} label={p.name} size="small" color="primary" variant="outlined" />
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: 'text.secondary', fontSize: 13 }}>{c.phoneNumber}</TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => openEdit(c)} aria-label="Edit">
+                            <EditOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Deactivate">
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(c)} aria-label="Deactivate">
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+
+          {data.totalPages > 1 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                {data.totalCount} collaborators — page {data.page} of {data.totalPages}
+              </Typography>
+              <Pagination
+                count={data.totalPages}
+                page={page}
+                onChange={(_, p) => setPage(p)}
+                size="small"
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
       )}
 
       <SlideOver
