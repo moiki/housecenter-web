@@ -56,10 +56,36 @@ export const lightTheme = createTheme(shared, {
   },
 })
 
+// Dark mode uses the "Kanagawa" palette (Hokusai-inspired): warm sumi-ink backgrounds,
+// soft fuji-white foreground, and a muted oni-violet accent (brand-adjacent). This is far
+// higher-contrast and less glary than raw MUI-dark-on-near-black — the previous darkTheme
+// only set primary+background, so text/dividers fell back to MUI defaults that read muddy
+// on the near-black surfaces. Light mode keeps the brand violet unchanged.
 export const darkTheme = createTheme(shared, {
   palette: {
     mode: 'dark',
-    primary: { main: brandViolet },
-    background: { default: '#0d0d12', paper: '#18181f' },
+    primary: { main: '#957fb8', contrastText: '#16161d' }, // oniViolet
+    secondary: { main: '#7e9cd8' }, // crystalBlue
+    success: { main: '#98bb6c' }, // springGreen
+    warning: { main: '#e6c384' }, // carpYellow
+    error: { main: '#e46876' }, // waveRed
+    info: { main: '#7fb4ca' }, // springBlue
+    background: { default: '#1f1f28', paper: '#2a2a37' }, // sumiInk1 / sumiInk2
+    text: {
+      primary: '#dcd7ba', // fujiWhite
+      secondary: '#c8c093', // oldWhite
+      disabled: '#727169', // fujiGray
+    },
+    divider: '#363646', // sumiInk3 — visible-but-subtle grid/table borders
+    action: {
+      // At-rest icon color: ListItemIcon, Select arrows, DatePicker buttons all default to
+      // action.active. MUI does NOT backfill the dark default when action is partially set, so
+      // without this it stays at the light-mode near-black and icons vanish on dark surfaces.
+      active: '#c8c093', // oldWhite
+      hover: 'rgba(220, 215, 186, 0.06)',
+      selected: 'rgba(149, 127, 184, 0.18)', // oniViolet tint
+      disabled: 'rgba(220, 215, 186, 0.3)',
+      disabledBackground: 'rgba(220, 215, 186, 0.08)',
+    },
   },
 })
