@@ -1,3 +1,4 @@
+import { Box, Paper, Skeleton, Typography } from '@mui/material'
 import { useAuthStore } from '@/store/auth.store'
 import { useSummaryReport, useSessionPeriodReport } from '@/hooks/reports/useReports'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -15,13 +16,26 @@ function MetricCard({
   accent?: boolean
 }) {
   return (
-    <div className="bg-primary rounded-xl ring-1 ring-secondary shadow-xs p-5 flex flex-col gap-1">
-      <p className="text-xs font-medium text-quaternary uppercase tracking-wide">{label}</p>
-      <p className={`text-3xl font-semibold tabular-nums ${accent ? 'text-brand-600' : 'text-primary'}`}>
+    <Paper variant="outlined" sx={{ borderRadius: 2, p: 2.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Typography
+        sx={{ fontSize: 12, fontWeight: 500, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.4 }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        sx={{
+          fontSize: 30,
+          fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums',
+          color: accent ? 'primary.main' : 'text.primary',
+        }}
+      >
         {typeof value === 'number' ? value.toLocaleString() : value}
-      </p>
-      {sub && <p className="text-xs text-tertiary">{sub}</p>}
-    </div>
+      </Typography>
+      {sub && (
+        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{sub}</Typography>
+      )}
+    </Paper>
   )
 }
 
@@ -51,20 +65,20 @@ export function DashboardPage() {
   })()
 
   return (
-    <div className="space-y-6">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <PageHeader
         title={`${greeting}, ${user?.firstName}`}
         description="Here's what's happening across HouseCenter."
       />
 
       {summaryLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-24 rounded-xl bg-secondary animate-pulse" />
+            <Skeleton key={i} variant="rounded" height={96} />
           ))}
-        </div>
+        </Box>
       ) : summary ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
           <MetricCard label="Active patients" value={summary.activePatients} sub={`${summary.totalPatients} total`} accent />
           <MetricCard label="Sessions this month" value={summary.sessionsThisMonth} />
           <MetricCard label="Collaborators" value={summary.collaborators} />
@@ -78,22 +92,26 @@ export function DashboardPage() {
               value={count}
             />
           ))}
-        </div>
+        </Box>
       ) : null}
 
-      <div className="bg-primary rounded-xl ring-1 ring-secondary shadow-xs p-6">
-        <div className="mb-4">
-          <h2 className="text-md font-semibold text-primary">Sessions — last 8 weeks</h2>
-          <p className="text-sm text-tertiary mt-0.5">Weekly breakdown by attention type</p>
-        </div>
+      <Paper variant="outlined" sx={{ borderRadius: 2, p: 3 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Sessions — last 8 weeks</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>
+            Weekly breakdown by attention type
+          </Typography>
+        </Box>
         {chartLoading ? (
-          <div className="h-48 bg-secondary rounded-lg animate-pulse" />
+          <Skeleton variant="rounded" height={192} />
         ) : period ? (
           <SessionsBarChart weeks={period.weeks} />
         ) : (
-          <p className="text-sm text-tertiary text-center py-12">No session data available.</p>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', textAlign: 'center', py: 6 }}>
+            No session data available.
+          </Typography>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   )
 }

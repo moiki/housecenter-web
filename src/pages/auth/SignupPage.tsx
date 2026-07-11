@@ -4,10 +4,12 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { authApi } from '@/api/modules/auth.api'
 import { invitationsApi } from '@/api/modules/invitations.api'
 import { useAuthStore } from '@/store/auth.store'
 import { isApiError } from '@/types/common.types'
+import { RHFTextField } from '@/components/shared/form'
 
 const schema = z
   .object({
@@ -36,11 +38,14 @@ export function SignupPage() {
   })
 
   const {
-    register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { firstName: '', lastName: '', password: '', confirmPassword: '' },
+  })
 
   const signup = useMutation({
     mutationFn: (data: FormData) =>
@@ -64,68 +69,52 @@ export function SignupPage() {
 
   if (validation.isPending) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress size={24} />
+      </Box>
     )
   }
 
   if (validation.isError) {
     return (
-      <div className="text-center space-y-3">
-        <p className="text-red-500 font-medium">Invalid or expired invitation</p>
-        <p className="text-sm text-[var(--hc-text-secondary)]">
+      <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Typography sx={{ fontWeight: 600, color: 'error.main' }}>Invalid or expired invitation</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
           Ask an administrator to send you a new invite.
-        </p>
-      </div>
+        </Typography>
+      </Box>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit((d) => signup.mutate(d))} className="space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-[var(--hc-text-primary)] mb-1">Create your account</h2>
-        <p className="text-sm text-[var(--hc-text-secondary)]">Complete your registration</p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box>
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+          Create your account
+        </Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Complete your registration</Typography>
+      </Box>
 
-      <div className="grid grid-cols-2 gap-3">
-        {(['firstName', 'lastName'] as const).map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">
-              {field === 'firstName' ? 'First name' : 'Last name'}
-            </label>
-            <input
-              {...register(field)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-[var(--hc-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors[field] && <p className="mt-1 text-xs text-red-500">{errors[field]?.message}</p>}
-          </div>
-        ))}
-      </div>
-
-      {(['password', 'confirmPassword'] as const).map((field) => (
-        <div key={field}>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {field === 'password' ? 'Password' : 'Confirm password'}
-          </label>
-          <input
-            {...register(field)}
-            type="password"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-[var(--hc-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors[field] && <p className="mt-1 text-xs text-red-500">{errors[field]?.message}</p>}
-        </div>
-      ))}
-
-      {errors.root && <p className="text-sm text-red-500 text-center">{errors.root.message}</p>}
-
-      <button
-        type="submit"
-        disabled={isSubmitting || signup.isPending}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+      <Box
+        component="form"
+        onSubmit={handleSubmit((d) => signup.mutate(d))}
+        noValidate
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
-        {signup.isPending ? 'Creating account…' : 'Create account'}
-      </button>
-    </form>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+          <RHFTextField control={control} name="firstName" label="First name" autoComplete="given-name" />
+          <RHFTextField control={control} name="lastName" label="Last name" autoComplete="family-name" />
+        </Box>
+
+        <RHFTextField control={control} name="password" label="Password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
+        <RHFTextField control={control} name="confirmPassword" label="Confirm password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
+
+        {errors.root && <Alert severity="error">{errors.root.message}</Alert>}
+
+        <Button type="submit" variant="contained" fullWidth loading={isSubmitting || signup.isPending}>
+          Create account
+        </Button>
+      </Box>
+    </Box>
   )
 }
