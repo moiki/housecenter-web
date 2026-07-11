@@ -32,6 +32,7 @@ import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { FormSection } from '@/components/shared/FormSection'
 import { RHFTextField, RHFSelect, RHFDatePicker } from '@/components/shared/form'
 import type { PatientResponse } from '@/types/patient.types'
 
@@ -45,21 +46,6 @@ const TYPE_OPTIONS = [
   { value: 'Medical', label: 'Medical' },
   { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
 ]
-
-// Groups related fields under a quiet uppercase micro-label. Turns a flat wall of
-// inputs into a scannable form with hierarchy — part of the elevate-ui design language.
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Typography
-        sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}
-      >
-        {title}
-      </Typography>
-      {children}
-    </Box>
-  )
-}
 
 // The submit button lives in the SlideOver footer (a DOM sibling), so the form is
 // tagged with `id` and the button links to it via its `form` attribute — validation
