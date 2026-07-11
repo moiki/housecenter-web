@@ -1,3 +1,12 @@
+export type Weekday =
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday'
+
 export interface DestinationPointDto {
   name: string
   description: string
@@ -14,6 +23,10 @@ export interface WorkRouteResponse {
   clinicName: string
   destinations: DestinationPointDto[]
   isActive: boolean
+  recurrenceDays: Weekday[]
+  recurrenceStartDate: string
+  recurrenceEndDate: string | null
+  isRecurrenceIndefinite: boolean
 }
 
 export interface CreateWorkRouteRequest {
@@ -22,6 +35,10 @@ export interface CreateWorkRouteRequest {
   featuredImage: string | null
   clinicId: string
   destinations: DestinationPointDto[]
+  recurrenceDays: Weekday[]
+  recurrenceStartDate: string
+  recurrenceEndDate: string | null
+  isRecurrenceIndefinite: boolean
 }
 
 export interface UpdateWorkRouteRequest {
@@ -29,4 +46,8 @@ export interface UpdateWorkRouteRequest {
   description: string
   featuredImage: string | null
   destinations: DestinationPointDto[]
+  recurrenceDays: Weekday[]
+  recurrenceStartDate: string
+  recurrenceEndDate: string | null
+  isRecurrenceIndefinite: boolean
 }

@@ -16,6 +16,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -23,24 +25,30 @@ import AddOutlined from '@mui/icons-material/AddOutlined'
 import EditOutlined from '@mui/icons-material/EditOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import RouteOutlined from '@mui/icons-material/RouteOutlined'
+import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined'
+import ViewListOutlined from '@mui/icons-material/ViewListOutlined'
 import { workRouteSchema, type WorkRouteFormData } from '@/schemas/workroute.schema'
 import { useWorkRoutes, useCreateWorkRoute, useDeactivateWorkRoute } from '@/hooks/workroutes/useWorkRoutes'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { RHFTextField, RHFSelect } from '@/components/shared/form'
+import { FormSection } from '@/components/shared/FormSection'
+import { RHFTextField } from '@/components/shared/form'
+import { WorkRouteFormFields } from '@/pages/work-routes/WorkRouteFormFields'
+import { WorkRouteCalendar } from '@/pages/work-routes/WorkRouteCalendar'
 import type { WorkRouteResponse } from '@/types/workroute.types'
 
+const NEW_ROUTE_FORM_ID = 'new-work-route-form'
 const EMPTY_DESTINATION = { name: '', description: '', picture: null, googleMapUrl: null }
 
-function WorkRouteForm({ onSubmit }: { onSubmit: (data: WorkRouteFormData) => Promise<void> }) {
+function WorkRouteForm({ formId, onSubmit }: { formId: string; onSubmit: (data: WorkRouteFormData) => Promise<void> }) {
   const { data: clinics } = useClinics()
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<WorkRouteFormData>({
     resolver: zodResolver(workRouteSchema),
     defaultValues: {
@@ -49,6 +57,10 @@ function WorkRouteForm({ onSubmit }: { onSubmit: (data: WorkRouteFormData) => Pr
       featuredImage: null,
       clinicId: '',
       destinations: [EMPTY_DESTINATION],
+      recurrenceDays: [],
+      recurrenceStartDate: '',
+      recurrenceEndDate: null,
+      isRecurrenceIndefinite: true,
     },
   })
 
@@ -58,24 +70,22 @@ function WorkRouteForm({ onSubmit }: { onSubmit: (data: WorkRouteFormData) => Pr
   return (
     <Box
       component="form"
+      id={formId}
       onSubmit={handleSubmit(onSubmit)}
-      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}
     >
-      <RHFTextField control={control} name="routeName" label="Route name" placeholder="e.g. North District" />
-      <RHFTextField control={control} name="description" label="Description" placeholder="Brief description of this route" multiline rows={2} />
-      <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />
-      <RHFTextField control={control} name="featuredImage" label="Featured image URL (optional)" placeholder="https://..." />
+      <WorkRouteFormFields control={control} isCreate clinicOptions={clinicOptions} />
 
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>Destinations</Typography>
+      <FormSection title="Destinations">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: -0.5 }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Stops visited along this route</Typography>
           <Button size="small" startIcon={<AddOutlined />} onClick={() => append(EMPTY_DESTINATION)}>
             Add destination
           </Button>
         </Box>
 
         {errors.destinations?.root && (
-          <Typography color="error" sx={{ fontSize: 12, mb: 1 }}>
+          <Typography color="error" sx={{ fontSize: 12 }}>
             {errors.destinations.root.message}
           </Typography>
         )}
@@ -101,11 +111,7 @@ function WorkRouteForm({ onSubmit }: { onSubmit: (data: WorkRouteFormData) => Pr
             </Paper>
           ))}
         </Stack>
-      </Box>
-
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        Create work route
-      </Button>
+      </FormSection>
     </Box>
   )
 }
@@ -116,6 +122,7 @@ export function WorkRoutesPage() {
   const createRoute = useCreateWorkRoute()
   const deactivateRoute = useDeactivateWorkRoute()
 
+  const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [slideOpen, setSlideOpen] = useState(false)
   const [toDeactivate, setToDeactivate] = useState<WorkRouteResponse | null>(null)
 
@@ -136,9 +143,26 @@ export function WorkRoutesPage() {
         title="Work Routes"
         description="Routes assigned to home-visit teams."
         action={
-          <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setSlideOpen(true)}>
-            New Route
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <ToggleButtonGroup
+              value={view}
+              exclusive
+              size="small"
+              onChange={(_, next: 'calendar' | 'list' | null) => next && setView(next)}
+            >
+              <ToggleButton value="calendar" aria-label="Calendar view">
+                <CalendarMonthOutlined fontSize="small" sx={{ mr: 0.75 }} />
+                Calendar
+              </ToggleButton>
+              <ToggleButton value="list" aria-label="List view">
+                <ViewListOutlined fontSize="small" sx={{ mr: 0.75 }} />
+                List
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setSlideOpen(true)}>
+              New Route
+            </Button>
+          </Box>
         }
       />
 
@@ -153,6 +177,12 @@ export function WorkRoutesPage() {
           <RouteOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>No work routes yet. Create the first one.</Typography>
         </Paper>
+      ) : view === 'calendar' ? (
+        <WorkRouteCalendar
+          routes={routes}
+          onDayClick={() => setSlideOpen(true)}
+          onRouteClick={(route) => navigate(`/work-routes/${route.id}`)}
+        />
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
@@ -165,6 +195,7 @@ export function WorkRoutesPage() {
                 <TableRow>
                   <TableCell>Route</TableCell>
                   <TableCell>Clinic</TableCell>
+                  <TableCell>Recurrence</TableCell>
                   <TableCell>Destinations</TableCell>
                   <TableCell align="right" />
                 </TableRow>
@@ -181,6 +212,16 @@ export function WorkRoutesPage() {
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ color: 'text.secondary' }}>{route.clinicName}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary' }}>
+                      {route.recurrenceDays.length === 0 ? (
+                        <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Not scheduled</Typography>
+                      ) : (
+                        <Typography sx={{ fontSize: 12 }}>
+                          {route.recurrenceDays.map((d) => d.slice(0, 3)).join(', ')}
+                          {route.isRecurrenceIndefinite ? ' · ongoing' : ` · until ${route.recurrenceEndDate}`}
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell sx={{ color: 'text.secondary' }}>
                       {route.destinations.length} stop{route.destinations.length !== 1 ? 's' : ''}
                     </TableCell>
@@ -204,8 +245,23 @@ export function WorkRoutesPage() {
         </Paper>
       )}
 
-      <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="New Work Route">
-        <WorkRouteForm onSubmit={handleCreate} />
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title="New Work Route"
+        description="Assign a route and set its weekly recurrence."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={NEW_ROUTE_FORM_ID} variant="contained" loading={createRoute.isPending}>
+              Create work route
+            </Button>
+          </>
+        }
+      >
+        <WorkRouteForm formId={NEW_ROUTE_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
 
       <ConfirmDialog
