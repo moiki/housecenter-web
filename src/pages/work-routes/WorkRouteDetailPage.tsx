@@ -8,11 +8,13 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import { updateWorkRouteSchema, type UpdateWorkRouteFormData } from '@/schemas/workroute.schema'
 import { useWorkRoute, useUpdateWorkRoute } from '@/hooks/workroutes/useWorkRoutes'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { FormSection } from '@/components/shared/FormSection'
 import { RHFTextField } from '@/components/shared/form'
+import { WorkRouteFormFields } from '@/pages/work-routes/WorkRouteFormFields'
 
 const EMPTY_DESTINATION = { name: '', description: '', picture: null, googleMapUrl: null }
 
-function DestinationsEditor({ routeId }: { routeId: string }) {
+function WorkRouteEditor({ routeId }: { routeId: string }) {
   const { data: route } = useWorkRoute(routeId)
   const updateRoute = useUpdateWorkRoute(routeId)
   const [saved, setSaved] = useState(false)
@@ -29,6 +31,10 @@ function DestinationsEditor({ routeId }: { routeId: string }) {
           description: route.description,
           featuredImage: route.featuredImage,
           destinations: route.destinations,
+          recurrenceDays: route.recurrenceDays,
+          recurrenceStartDate: route.recurrenceStartDate,
+          recurrenceEndDate: route.recurrenceEndDate,
+          isRecurrenceIndefinite: route.isRecurrenceIndefinite,
         }
       : undefined,
   })
@@ -42,16 +48,12 @@ function DestinationsEditor({ routeId }: { routeId: string }) {
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-        <RHFTextField control={control} name="routeName" label="Route name" />
-        <RHFTextField control={control} name="featuredImage" label="Featured image URL (optional)" placeholder="https://..." />
-      </Box>
-      <RHFTextField control={control} name="description" label="Description" multiline rows={2} />
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+      <WorkRouteFormFields control={control} isCreate={false} />
 
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Destination Points</Typography>
+      <FormSection title="Destination Points">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: -0.5 }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Stops visited along this route</Typography>
           <Button size="small" startIcon={<AddOutlined />} onClick={() => append(EMPTY_DESTINATION)}>
             Add destination
           </Button>
@@ -82,7 +84,7 @@ function DestinationsEditor({ routeId }: { routeId: string }) {
             </Paper>
           ))}
         </Stack>
-      </Box>
+      </FormSection>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Button type="submit" variant="contained" disabled={!isDirty} loading={isSubmitting}>
@@ -114,7 +116,7 @@ export function WorkRouteDetailPage() {
         </Stack>
       ) : (
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-          {id && <DestinationsEditor routeId={id} />}
+          {id && <WorkRouteEditor routeId={id} />}
         </Paper>
       )}
     </Box>
