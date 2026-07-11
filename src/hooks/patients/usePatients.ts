@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { patientsApi } from '@/api/modules/patients.api'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { CreatePatientRequest, UpdatePatientRequest } from '@/types/patient.types'
 
 export const patientKeys = {
@@ -9,7 +10,7 @@ export const patientKeys = {
   summary: (id: string) => [...patientKeys.all, 'summary', id] as const,
 }
 
-export function usePatients(page: number, pageSize = 20) {
+export function usePatients(page: number, pageSize = DEFAULT_PAGE_SIZE) {
   return useQuery({
     queryKey: patientKeys.list(page, pageSize),
     queryFn: () => patientsApi.list(page, pageSize),

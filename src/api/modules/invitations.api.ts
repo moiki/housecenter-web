@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/client'
+import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
 import type { PagedResult } from '@/types/common.types'
 import type { InvitationResponse, CreateInvitationRequest } from '@/types/invitation.types'
 
@@ -7,7 +8,7 @@ import type { InvitationResponse, CreateInvitationRequest } from '@/types/invita
 const BASE = '/invitations'
 
 export const invitationsApi = {
-  list: (page = 1, pageSize = 20) =>
+  list: (page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
     apiClient.get<PagedResult<InvitationResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
 
   create: (data: CreateInvitationRequest) =>
