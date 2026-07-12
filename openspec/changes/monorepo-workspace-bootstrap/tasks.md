@@ -25,56 +25,56 @@ regenerated `pnpm-lock.yaml` are excluded by convention. Single PR keeps the mov
 atomic — per design decision #1, workspace files and the moved tree are only ever correct together.
 
 ## Phase 1: Pre-flight — PR1
-- [ ] 1.1 `git status` + `git log --oneline -1` on `feat/monorepo-workspace-bootstrap` — confirm clean/expected tree, abort otherwise (R8)
-- [ ] 1.2 `git branch --show-current` — confirm correct branch
+- [x] 1.1 `git status` + `git log --oneline -1` on `feat/monorepo-workspace-bootstrap` — confirm clean/expected tree, abort otherwise (R8)
+- [x] 1.2 `git branch --show-current` — confirm correct branch
 
 **Phase 1 done when:** branch + clean tree confirmed.
 
 ## Phase 2: Root scaffolding — PR1
-- [ ] 2.1 `package.json` — private, `name:"housecenter"`, `engines.node` Vite floor, `packageManager` pnpm 9.15.9 pin (moved from app), `scripts.build/lint/dev`→`turbo run <task>`, devDep `turbo ^2.10.4` (R5, R9)
-- [ ] 2.2 `pnpm-workspace.yaml` — `packages: ["apps/*","packages/*"]` (R1)
-- [ ] 2.3 `.npmrc` — `node-linker=hoisted` (R4)
-- [ ] 2.4 `turbo.json` — `build`(`^build`,`dist/**`), `lint`(no deps), `dev`(`cache:false`,`persistent:true`) (R5)
-- [ ] 2.5 `tsconfig.base.json` — shared compilerOptions per spec.md R6 list (R6)
-- [ ] 2.6 Root `CLAUDE.md` — monorepo shape + pointer to `apps/web/CLAUDE.md` (R10)
-- [ ] 2.7 Add `.turbo` to root `.gitignore` (design risk — cache dir currently unignored)
+- [x] 2.1 `package.json` — private, `name:"housecenter"`, `engines.node` Vite floor, `packageManager` pnpm 9.15.9 pin (moved from app), `scripts.build/lint/dev`→`turbo run <task>`, devDep `turbo ^2.10.4` (R5, R9)
+- [x] 2.2 `pnpm-workspace.yaml` — `packages: ["apps/*","packages/*"]` (R1)
+- [x] 2.3 `.npmrc` — `node-linker=hoisted` (R4)
+- [x] 2.4 `turbo.json` — `build`(`^build`,`dist/**`), `lint`(no deps), `dev`(`cache:false`,`persistent:true`) (R5)
+- [x] 2.5 `tsconfig.base.json` — shared compilerOptions per spec.md R6 list (R6)
+- [x] 2.6 Root `CLAUDE.md` — monorepo shape + pointer to `apps/web/CLAUDE.md` (R10)
+- [x] 2.7 Add `.turbo` to root `.gitignore` (design risk — cache dir currently unignored)
 
 **Phase 2 done when:** 6 root files match config contracts; `.turbo` ignored.
 
 ## Phase 3: Placeholders — PR1
-- [ ] 3.1 `packages/core/package.json` — `{name:"core",version:"0.0.0",private:true}` (R7)
-- [ ] 3.2 `apps/mobile/package.json` — `{name:"mobile",version:"0.0.0",private:true}` (R7)
+- [x] 3.1 `packages/core/package.json` — `{name:"core",version:"0.0.0",private:true}` (R7)
+- [x] 3.2 `apps/mobile/package.json` — `{name:"mobile",version:"0.0.0",private:true}` (R7)
 
 **Phase 3 done when:** both minimal placeholders exist, no src/tsconfig/build script.
 
 ## Phase 4: Move web → apps/web — PR1
-- [ ] 4.1 `mkdir -p apps/web`; `git mv src public index.html vite.config.ts eslint.config.js tsconfig.json tsconfig.app.json tsconfig.node.json package.json .env.example README.md CLAUDE.md docs apps/web/` (R2, R8)
-- [ ] 4.2 Plain `mv .env apps/web/.env` — untracked, `git mv` can't move it (R8)
-- [ ] 4.3 `git mv .claude apps/web/.claude` — 4 skills relocate unedited (R10)
+- [x] 4.1 `mkdir -p apps/web`; `git mv src public index.html vite.config.ts eslint.config.js tsconfig.json tsconfig.app.json tsconfig.node.json package.json .env.example README.md CLAUDE.md docs apps/web/` (R2, R8)
+- [x] 4.2 Plain `mv .env apps/web/.env` — untracked, `git mv` can't move it (R8)
+- [x] 4.3 `git mv .claude apps/web/.claude` — 4 skills relocate unedited (R10)
 
 **Phase 4 done when:** `apps/web/` holds the full tree via renames; `node_modules/`, `dist/`, `pnpm-lock.yaml`, `openspec/`, `.gitignore`, `.git` untouched.
 
 ## Phase 5: Edits in apps/web — PR1
-- [ ] 5.1 `apps/web/package.json` — drop `packageManager`, rename `"housecenter-web"`→`"web"` (R9)
-- [ ] 5.2 `apps/web/tsconfig.app.json` — add `"extends":"../../tsconfig.base.json"`, trim hoisted keys, keep `lib/types/jsx/noEmit/baseUrl/paths/include/tsBuildInfoFile` (R6)
-- [ ] 5.3 `apps/web/tsconfig.node.json` — same extends + trim, keep `lib/types/noEmit/include/tsBuildInfoFile` (R6)
+- [x] 5.1 `apps/web/package.json` — drop `packageManager`, rename `"housecenter-web"`→`"web"` (R9)
+- [x] 5.2 `apps/web/tsconfig.app.json` — add `"extends":"../../tsconfig.base.json"`, trim hoisted keys, keep `lib/types/jsx/noEmit/baseUrl/paths/include/tsBuildInfoFile` (R6)
+- [x] 5.3 `apps/web/tsconfig.node.json` — same extends + trim, keep `lib/types/noEmit/include/tsBuildInfoFile` (R6)
 
 **Phase 5 done when:** exactly 3 files diff; `vite.config.ts` alias + tsconfig `baseUrl`/`paths` untouched (R2).
 
 ## Phase 6: Install + verify — PR1
-- [ ] 6.1 `pnpm install` (root) — exit 0, one lockfile, importers `{.,apps/web,packages/core,apps/mobile}` (R1)
-- [ ] 6.2 Inspect `node_modules/` — flat/hoisted, not symlink-only `.pnpm` store (R4)
-- [ ] 6.3 `pnpm --filter web build` — exit 0, `apps/web/dist/` produced (R2)
-- [ ] 6.4 `pnpm --filter web lint` — exit 0, 0 new findings vs baseline (R3)
-- [ ] 6.5 `pnpm -w build` — exit 0; web builds, core/mobile skipped not failed (R5)
-- [ ] 6.6 `pnpm list -r --depth -1` — lists web, core, mobile (R1, R7)
+- [x] 6.1 `pnpm install` (root) — exit 0, one lockfile, importers `{.,apps/web,packages/core,apps/mobile}` (R1)
+- [x] 6.2 Inspect `node_modules/` — flat/hoisted, not symlink-only `.pnpm` store (R4)
+- [x] 6.3 `pnpm --filter web build` — exit 0, `apps/web/dist/` produced (R2)
+- [x] 6.4 `pnpm --filter web lint` — exit 0, 0 new findings vs baseline (R3)
+- [x] 6.5 `pnpm -w build` — exit 0; web builds, core/mobile skipped not failed (R5)
+- [x] 6.6 `pnpm list -r --depth -1` — lists web, core, mobile (R1, R7)
 
 **Phase 6 done when:** all 6 checks pass per spec.md's verification table.
 
 ## Phase 7: History + manual checks — PR1
-- [ ] 7.1 `git log --follow apps/web/package.json` — shows pre-move commits (R8)
-- [ ] 7.2 `git diff --stat` / `git status` — only renames + 3 edits + new root files (R2, R3, R8, R9)
-- [ ] 7.3 Manual, non-blocking: `.claude/skills` invocation from root and `apps/web` cwd (R10)
-- [ ] 7.4 Manual, non-blocking: `pnpm --filter web dev` smoke test (R2)
+- [x] 7.1 `git log --follow apps/web/package.json` — pre-move history confirmed present under old path (`git log --oneline -- vite.config.ts` shows commits back to "first commit"); `git diff --cached -M --stat` shows the moved tree as pure renames (0 insertions/0 deletions). `git log --follow` on the *new* path returns empty ONLY because the rename is staged, not committed yet — apply intentionally does not commit (orchestrator's responsibility). Will resolve automatically once committed. (R8)
+- [x] 7.2 `git diff --stat` / `git status` — confirmed: 208 files as pure renames (`{old => apps/web/...}`, 0/0 lines) + 4 deliberate edits with real line diffs (`apps/web/package.json`, `apps/web/tsconfig.app.json`, `apps/web/tsconfig.node.json`, `.gitignore` +1 line) + new untracked root files (`package.json`, `pnpm-workspace.yaml`, `.npmrc`, `turbo.json`, `tsconfig.base.json`, `CLAUDE.md`, `packages/core/package.json`, `apps/mobile/package.json`) + regenerated `pnpm-lock.yaml` (excluded by convention). No `src` content churn. (R2, R3, R8, R9)
+- [ ] 7.3 Manual, non-blocking: `.claude/skills` invocation from root and `apps/web` cwd — NOT executed (requires interactive skill invocation outside apply's scope); flagged as residual manual follow-up per design.md risk #7 (R10)
+- [ ] 7.4 Manual, non-blocking: `pnpm --filter web dev` smoke test — NOT executed (persistent process unsuitable for this apply run); `pnpm --filter web build` (tsc -b + vite build) passing is treated as the stronger, non-persistent proxy (R2)
 
 **PR1 done when:** `pnpm install` clean · `pnpm --filter web build` + `lint` green · `pnpm -w build` green · `git log --follow` shows preserved history · web behavior unchanged.
