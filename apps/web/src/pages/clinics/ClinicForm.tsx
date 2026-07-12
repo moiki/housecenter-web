@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Box, Button } from '@mui/material'
 import { RHFTextField } from '@/components/shared/form'
-import { clinicSchema, type ClinicFormData } from '@/schemas/clinic.schema'
+import { clinicSchema, type ClinicFormData } from 'core/schemas/clinic.schema'
 import type { ClinicResponse } from 'core/types/clinic.types'
 
 interface Props {

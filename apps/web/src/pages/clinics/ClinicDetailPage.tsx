@@ -4,7 +4,7 @@ import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import { useClinic, useUpdateClinic } from 'core/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
-import type { ClinicFormData } from '@/schemas/clinic.schema'
+import type { ClinicFormData } from 'core/schemas/clinic.schema'
 
 export function ClinicDetailPage() {
   const { id } = useParams<{ id: string }>()

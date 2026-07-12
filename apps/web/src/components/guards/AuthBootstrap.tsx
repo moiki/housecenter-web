@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '@/store/auth.store'
+import { getOrCreateDeviceId } from '@/lib/deviceId'
 
 interface Props {
   children: React.ReactNode
@@ -33,7 +34,7 @@ export function AuthBootstrap({ children }: Props) {
     if (!needsSilentRefresh || refreshAttempted) return
 
     authApi
-      .refresh({ refreshToken: refreshToken! })
+      .refresh({ refreshToken: refreshToken!, deviceId: getOrCreateDeviceId() })
       .then(async (tokens) => {
         // Store tokens before calling me() so the request interceptor picks them up
         useAuthStore.getState().setTokens(tokens.accessToken, tokens.refreshToken)

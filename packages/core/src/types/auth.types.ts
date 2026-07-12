@@ -1,10 +1,20 @@
+// Device-bound sessions (device-bound-sessions API change): the API now requires a
+// stable deviceId on login/refresh/signup; deviceName/platform are optional metadata.
+export type DevicePlatform = 'Android' | 'iOS' | 'Web'
+
 export interface LoginRequest {
   email: string
   password: string
+  deviceId: string
+  deviceName?: string
+  platform?: DevicePlatform
 }
 
 export interface RefreshRequest {
   refreshToken: string
+  deviceId: string
+  deviceName?: string
+  platform?: DevicePlatform
 }
 
 export interface TokenPairResponse {
@@ -34,6 +44,9 @@ export interface SignupRequest {
   firstName: string
   lastName: string
   password: string
+  deviceId: string
+  deviceName?: string
+  platform?: DevicePlatform
 }
 
 export interface PasswordResetRequestDto {
