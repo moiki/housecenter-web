@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { attachmentsApi } from '@/api/modules/attachments.api'
+import { attachmentsApi } from 'core/api/modules/attachments.api'
 import type { AttachmentOwnerType } from 'core/types/attachment.types'
 
 const keys = {

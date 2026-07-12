@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { rolesApi } from '@/api/modules/roles.api'
+import { rolesApi } from 'core/api/modules/roles.api'
 
 export const roleKeys = {
   all: ['roles'] as const,

@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { consultationsApi } from '@/api/modules/consultations.api'
+import { consultationsApi } from 'core/api/modules/consultations.api'
 import type {
   ConsultationStatus,
   CreateConsultationRequest,

@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/client'
+import { getApiClient } from 'core/api/http/registry'
 import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
 import type { PagedResult } from 'core/types/common.types'
 import type { InvitationResponse, CreateInvitationRequest } from 'core/types/invitation.types'
@@ -9,17 +9,17 @@ const BASE = '/invitations'
 
 export const invitationsApi = {
   list: (page = 1, pageSize = DEFAULT_PAGE_SIZE) =>
-    apiClient.get<PagedResult<InvitationResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
+    getApiClient().get<PagedResult<InvitationResponse>>(BASE, { params: { page, pageSize } }).then(r => r.data),
 
   create: (data: CreateInvitationRequest) =>
-    apiClient.post<InvitationResponse>(BASE, data).then(r => r.data),
+    getApiClient().post<InvitationResponse>(BASE, data).then(r => r.data),
 
   resend: (id: string) =>
-    apiClient.post<void>(`${BASE}/${id}/resend`).then(r => r.data),
+    getApiClient().post<void>(`${BASE}/${id}/resend`).then(r => r.data),
 
   delete: (id: string) =>
-    apiClient.delete<void>(`${BASE}/${id}`).then(r => r.data),
+    getApiClient().delete<void>(`${BASE}/${id}`).then(r => r.data),
 
   validate: (token: string) =>
-    apiClient.get<InvitationResponse>(`${BASE}/validate`, { params: { token } }).then(r => r.data),
+    getApiClient().get<InvitationResponse>(`${BASE}/validate`, { params: { token } }).then(r => r.data),
 }

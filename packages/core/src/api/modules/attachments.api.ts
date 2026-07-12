@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/client'
+import { getApiClient } from 'core/api/http/registry'
 import type { AttachmentResponse, AttachmentOwnerType } from 'core/types/attachment.types'
 
 // Unversioned, like /auth/* and /notifications — see the CLAUDE.md route-versioning gotcha.
@@ -6,12 +6,12 @@ const BASE = '/attachments'
 
 export const attachmentsApi = {
   list: (ownerType: AttachmentOwnerType, ownerId: string) =>
-    apiClient.get<AttachmentResponse[]>(BASE, { params: { ownerType, ownerId } }).then((r) => r.data),
+    getApiClient().get<AttachmentResponse[]>(BASE, { params: { ownerType, ownerId } }).then((r) => r.data),
 
   upload: (ownerType: AttachmentOwnerType, ownerId: string, file: File, onProgress?: (percent: number) => void) => {
     const formData = new FormData()
     formData.append('file', file)
-    return apiClient
+    return getApiClient()
       .post<AttachmentResponse>(BASE, formData, {
         params: { ownerType, ownerId },
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -22,10 +22,10 @@ export const attachmentsApi = {
       .then((r) => r.data)
   },
 
-  delete: (id: string) => apiClient.delete<void>(`${BASE}/${id}`).then((r) => r.data),
+  delete: (id: string) => getApiClient().delete<void>(`${BASE}/${id}`).then((r) => r.data),
 
   // Downloading requires the Bearer token, so <img>/<a href> can't hit this directly —
-  // fetch as a blob through apiClient and hand callers an object URL instead.
+  // fetch as a blob through getApiClient() and hand callers an object URL instead.
   downloadBlob: (id: string) =>
-    apiClient.get<Blob>(`${BASE}/${id}`, { responseType: 'blob' }).then((r) => r.data),
+    getApiClient().get<Blob>(`${BASE}/${id}`, { responseType: 'blob' }).then((r) => r.data),
 }

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { helpApi } from '@/api/modules/help.api'
+import { helpApi } from 'core/api/modules/help.api'
 
 const HELP_STALE_TIME = 24 * 60 * 60 * 1000 // 24h — help content changes rarely
 

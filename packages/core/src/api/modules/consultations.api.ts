@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/client'
+import { getApiClient } from 'core/api/http/registry'
 import type { PagedResult } from 'core/types/common.types'
 import type {
   ConsultationResponse,
@@ -14,21 +14,21 @@ const BASE = '/consultations'
 
 export const consultationsApi = {
   list: (params: { page?: number; pageSize?: number; status?: ConsultationStatus } = {}) =>
-    apiClient.get<PagedResult<ConsultationResponse>>(BASE, { params }).then((r) => r.data),
+    getApiClient().get<PagedResult<ConsultationResponse>>(BASE, { params }).then((r) => r.data),
 
   getDetail: (id: string) =>
-    apiClient.get<ConsultationDetailResponse>(`${BASE}/${id}`).then((r) => r.data),
+    getApiClient().get<ConsultationDetailResponse>(`${BASE}/${id}`).then((r) => r.data),
 
   create: (data: CreateConsultationRequest) =>
-    apiClient.post<ConsultationResponse>(BASE, data).then((r) => r.data),
+    getApiClient().post<ConsultationResponse>(BASE, data).then((r) => r.data),
 
   postMessage: (id: string, data: PostMessageRequest) =>
-    apiClient
+    getApiClient()
       .post<ConsultationMessageResponse>(`${BASE}/${id}/messages`, data)
       .then((r) => r.data),
 
   updateStatus: (id: string, data: UpdateConsultationStatusRequest) =>
-    apiClient
+    getApiClient()
       .patch<ConsultationResponse>(`${BASE}/${id}/status`, data)
       .then((r) => r.data),
 }

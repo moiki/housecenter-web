@@ -10,7 +10,7 @@ import { useUsers } from '@/hooks/users/useUsers'
 import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { AttachmentThumbnail } from '@/components/attachments/AttachmentThumbnail'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { attachmentsApi } from '@/api/modules/attachments.api'
+import { attachmentsApi } from 'core/api/modules/attachments.api'
 import { isApiError } from 'core/types/common.types'
 import type { AttachmentResponse } from 'core/types/attachment.types'
 

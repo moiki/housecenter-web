@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { treatmentsApi } from '@/api/modules/treatments.api'
+import { treatmentsApi } from 'core/api/modules/treatments.api'
 import { patientKeys } from './usePatients'
 
 export const treatmentKeys = {

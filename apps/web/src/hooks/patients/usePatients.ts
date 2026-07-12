@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { patientsApi } from '@/api/modules/patients.api'
+import { patientsApi } from 'core/api/modules/patients.api'
 import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
 import type { CreatePatientRequest, UpdatePatientRequest } from 'core/types/patient.types'
 

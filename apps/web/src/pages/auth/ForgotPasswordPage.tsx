@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Box, Button, Link, Typography } from '@mui/material'
-import { authApi } from '@/api/modules/auth.api'
+import { authApi } from 'core/api/modules/auth.api'
 import { RHFTextField } from '@/components/shared/form'
 
 const schema = z.object({ email: z.string().email('Invalid email') })

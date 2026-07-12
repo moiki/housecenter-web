@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { authApi } from '@/api/modules/auth.api'
+import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 
 interface Props {

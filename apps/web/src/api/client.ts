@@ -23,9 +23,9 @@ const tokenStore: TokenStore = {
   clear: () => useAuthStore.getState().logout(),
 }
 
-// api modules still `import { apiClient } from '@/api/client'` until they migrate to
-// `getApiClient()` in PR2 — keep exporting the concrete instance for now.
-export const apiClient = createApiClient({
+// All 15 api modules now read the client via `getApiClient()` (core/api/http/registry) —
+// no consumer needs a concrete export of this instance, so it stays module-local.
+const apiClient = createApiClient({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   tokenStore,
   deviceIdProvider: getDeviceId,
