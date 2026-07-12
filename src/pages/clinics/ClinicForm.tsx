@@ -8,10 +8,13 @@ import type { ClinicResponse } from '@/types/clinic.types'
 interface Props {
   defaultValues?: ClinicResponse
   onSubmit: (data: ClinicFormData) => Promise<void>
-  submitLabel: string
+  /** Renders an inline full-width submit button (standalone usage, e.g. ClinicDetailPage). */
+  submitLabel?: string
+  /** Set when used inside a SlideOver — tags the form so a pinned footer button can submit via `form={formId}`. */
+  formId?: string
 }
 
-export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
+export function ClinicForm({ defaultValues, onSubmit, submitLabel, formId }: Props) {
   const {
     control,
     handleSubmit,
@@ -26,6 +29,7 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
   return (
     <Box
       component="form"
+      id={formId}
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
     >
@@ -38,9 +42,11 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel }: Props) {
         multiline
         rows={3}
       />
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        {submitLabel}
-      </Button>
+      {submitLabel && (
+        <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
+          {submitLabel}
+        </Button>
+      )}
     </Box>
   )
 }

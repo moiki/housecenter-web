@@ -45,29 +45,31 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
+const INVITE_FORM_ID = 'invite-form'
+
 function InviteForm({
+  formId,
   roleOptions,
   onSubmit,
 }: {
+  formId: string
   roleOptions: { value: string; label: string }[]
   onSubmit: (data: FormData) => Promise<void>
 }) {
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<FormData>({
+  const { control, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', roleId: '' },
   })
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+    <Box
+      component="form"
+      id={formId}
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+    >
       <RHFTextField control={control} name="email" label="Email" type="email" placeholder="colleague@example.com" />
       <RHFSelect control={control} name="roleId" label="Role" options={roleOptions} />
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        Send invitation
-      </Button>
     </Box>
   )
 }
@@ -178,8 +180,23 @@ export function InvitationsPage() {
         </Box>
       )}
 
-      <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="Invite user">
-        <InviteForm roleOptions={roleOptions} onSubmit={handleCreate} />
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title="Invite user"
+        description="Send an email invitation to join the organization."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={INVITE_FORM_ID} variant="contained" loading={createInvitation.isPending}>
+              Send invitation
+            </Button>
+          </>
+        }
+      >
+        <InviteForm formId={INVITE_FORM_ID} roleOptions={roleOptions} onSubmit={handleCreate} />
       </SlideOver>
 
       <ConfirmDialog

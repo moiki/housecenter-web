@@ -40,14 +40,16 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { CollaboratorResponse } from '@/types/collaborator.types'
 
+const COLLABORATOR_FORM_ID = 'collaborator-form'
+
 function CollaboratorForm({
   defaultValues,
   onSubmit,
-  submitLabel,
+  formId,
 }: {
   defaultValues?: CollaboratorResponse
   onSubmit: (data: CollaboratorFormData) => Promise<void>
-  submitLabel: string
+  formId: string
 }) {
   // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
   const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
@@ -56,7 +58,7 @@ function CollaboratorForm({
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CollaboratorFormData>({
     resolver: zodResolver(collaboratorSchema),
     defaultValues: defaultValues
@@ -96,7 +98,7 @@ function CollaboratorForm({
   ]
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box component="form" id={formId} onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
         <RHFTextField control={control} name="firstName" label="First name" placeholder="Jane" />
         <RHFTextField control={control} name="lastName" label="Last name" placeholder="Smith" />
@@ -146,10 +148,6 @@ function CollaboratorForm({
           ))}
         </Stack>
       </Box>
-
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        {submitLabel}
-      </Button>
     </Box>
   )
 }
@@ -292,11 +290,31 @@ export function CollaboratorsPage() {
         open={slideMode !== null}
         onClose={closeSlide}
         title={slideMode === 'edit' ? `Edit — ${selected?.firstName} ${selected?.lastName}` : 'New Collaborator'}
+        description={
+          slideMode === 'edit'
+            ? "Update this collaborator's details."
+            : 'Add a new team member to the staff directory.'
+        }
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={closeSlide}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form={COLLABORATOR_FORM_ID}
+              variant="contained"
+              loading={slideMode === 'edit' ? updateCollaborator.isPending : createCollaborator.isPending}
+            >
+              {slideMode === 'edit' ? 'Save changes' : 'Create collaborator'}
+            </Button>
+          </>
+        }
       >
         {slideMode === 'edit' && selected ? (
-          <CollaboratorForm defaultValues={selected} onSubmit={handleUpdate} submitLabel="Save changes" />
+          <CollaboratorForm formId={COLLABORATOR_FORM_ID} defaultValues={selected} onSubmit={handleUpdate} />
         ) : (
-          <CollaboratorForm onSubmit={handleCreate} submitLabel="Create collaborator" />
+          <CollaboratorForm formId={COLLABORATOR_FORM_ID} onSubmit={handleCreate} />
         )}
       </SlideOver>
 

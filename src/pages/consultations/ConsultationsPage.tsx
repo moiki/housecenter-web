@@ -51,21 +51,20 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+const NEW_CONSULTATION_FORM_ID = 'new-consultation-form'
+
 // ── Create form ───────────────────────────────────────────────────────────────
-function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
+// The mutation lives in the page component (below) so the SlideOver's pinned footer
+// button can read its `isPending` state; this form only owns the fields + validation.
+function CreateConsultationForm({ formId, onSubmit }: { formId: string; onSubmit: (data: CreateForm) => Promise<void> }) {
   // NOTE: usePatients(1, 200) is a pre-existing, separately-tracked bug — the backend
   // clamps pageSize to 100, so this silently drops patients beyond row 100 in orgs with
   // >100 patients. Out of scope for this change; left as-is intentionally.
   const { data: patients } = usePatients(1, 200)
   // Dropdown needs the full user list; capped at the backend's clamp max (100 rows).
   const { data: usersData } = useUsers(1, DROPDOWN_PAGE_SIZE)
-  const createConsultation = useCreateConsultation()
 
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<CreateForm>({
+  const { control, handleSubmit } = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
     defaultValues: { patientId: '', assignedDoctorId: '', title: '', firstMessage: '', treatmentId: '' },
   })
@@ -75,27 +74,17 @@ function CreateConsultationForm({ onSuccess }: { onSuccess: () => void }) {
     .filter((u) => u.roles.includes('Doctor'))
     .map((u) => ({ value: u.id, label: `${u.firstName} ${u.lastName}` }))
 
-  const onSubmit = async (data: CreateForm) => {
-    await createConsultation.mutateAsync({
-      patientId: data.patientId,
-      assignedDoctorId: data.assignedDoctorId,
-      title: data.title,
-      firstMessage: data.firstMessage,
-      treatmentId: data.treatmentId || null,
-      attachmentUrl: null,
-    })
-    onSuccess()
-  }
-
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      component="form"
+      id={formId}
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
       <RHFSelect control={control} name="patientId" label="Patient" options={patientOptions} />
       <RHFSelect control={control} name="assignedDoctorId" label="Assigned Doctor" options={doctorOptions} />
       <RHFTextField control={control} name="title" label="Title" placeholder="Subject of the consultation" />
       <RHFRichText control={control} name="firstMessage" label="First Message" placeholder="Describe the case…" />
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        Open Consultation
-      </Button>
     </Box>
   )
 }
@@ -106,11 +95,24 @@ export function ConsultationsPage() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<ConsultationStatus | undefined>()
   const [createOpen, setCreateOpen] = useState(false)
+  const createConsultation = useCreateConsultation()
 
   const { data, isLoading } = useConsultations({ page, pageSize: 15, status: statusFilter })
 
   const consultations = data?.items ?? []
   const totalPages = data?.totalPages ?? 1
+
+  const handleCreate = async (data: CreateForm) => {
+    await createConsultation.mutateAsync({
+      patientId: data.patientId,
+      assignedDoctorId: data.assignedDoctorId,
+      title: data.title,
+      firstMessage: data.firstMessage,
+      treatmentId: data.treatmentId || null,
+      attachmentUrl: null,
+    })
+    setCreateOpen(false)
+  }
 
   return (
     <Box>
@@ -201,8 +203,23 @@ export function ConsultationsPage() {
       </Stack>
 
       {/* Create slide-over */}
-      <SlideOver title="New Consultation" open={createOpen} onClose={() => setCreateOpen(false)}>
-        <CreateConsultationForm onSuccess={() => setCreateOpen(false)} />
+      <SlideOver
+        title="New Consultation"
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        description="Start a new consultation thread and assign it to a doctor."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={NEW_CONSULTATION_FORM_ID} variant="contained" loading={createConsultation.isPending}>
+              Open Consultation
+            </Button>
+          </>
+        }
+      >
+        <CreateConsultationForm formId={NEW_CONSULTATION_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
     </Box>
   )
