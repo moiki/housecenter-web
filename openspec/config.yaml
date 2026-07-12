@@ -1,0 +1,65 @@
+schema: spec-driven
+
+context: |
+  HouseCenter frontend MONOREPO (this repo, converted in-place from the former standalone
+  housecenter-web). pnpm workspaces + Turborepo. Layout:
+    - packages/core   -> UI-agnostic shared layer: TS types (API DTOs), api modules (axios
+                         transport), TanStack Query hooks + query-key factories, Zod schemas,
+                         role constants. Consumed by BOTH apps. (Populated in the core-extraction change.)
+    - apps/web        -> the existing React 19 + Vite 8 + TypeScript(strict) + MUI v9 SPA,
+                         moved here unchanged in the bootstrap change; later rewired to consume core.
+    - apps/mobile     -> HouseCenter Mobile, Expo (managed) SDK 52+; iOS 15.1+ / Android 7 (API 24)+
+                         (added in a later change). Online-first + persistent READ cache only.
+  Server state: TanStack Query v5 (+ MMKV/async-storage persister on mobile). Session state: Zustand.
+  Forms: React Hook Form + Zod. Transport: single axios instance with a device-bound refresh-rotation
+  interceptor (lives in core, storage injected per app: localStorage on web, expo-secure-store on mobile).
+  i18n: react-i18next (es default) on mobile. Navigation: React Navigation v7 on mobile; React Router 7 on web.
+  Backend: HouseCenter.Api (.NET 10 minimal API) — SEPARATE repo, not in this monorepo. Device-bound
+  sessions, mostly-UNVERSIONED routes (only /api/v1/clinics is versioned — grep the real route before
+  writing a BASE), RFC 7807 ProblemDetails, PascalCase enums, GUID ids.
+  Enum source-of-truth is the API (CommentType = Route/Medical/Simple; TreatmentStatus = Active/Completed/Paused);
+  the current web type files are wrong (Note/Alert/Observation, Cancelled) and must be corrected during core-extraction.
+  Package manager: pnpm (workspace: protocol for internal deps). Node/tooling versions pinned at the root.
+
+strict_tdd: false   # frontend precedent: the web app has no test runner today. Testing (Jest + jest-expo +
+                    # @testing-library/react-native) is introduced for packages/core + apps/mobile in later
+                    # changes; the bootstrap + web-move changes verify via build + lint only.
+
+testing:
+  test_runner:
+    command: pnpm -w test
+    framework: "Jest (jest-expo) + @testing-library/react-native — introduced with core/mobile (not yet present at bootstrap)"
+  layers:
+    unit:        { available: false, note: "added in core-extraction / mobile changes" }
+    integration: { available: false, note: "hooks vs MSW/mock added with core" }
+    e2e:         { available: false, note: "Maestro flows optional, non-gating v1" }
+  quality:
+    linter: "eslint (typescript-eslint; react-native config on mobile)"
+    type_checker: "tsc -b (strict) per package/app"
+    formatter: prettier
+    build: "pnpm -w build (turbo) — web: tsc -b && vite build"
+
+rules:
+  proposal:
+    - Include a rollback plan for risky changes (esp. the in-place web restructure)
+    - Identify affected packages (root / packages/core / apps/web / apps/mobile)
+    - Note OS-floor / tooling-version risk where relevant
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST/SHALL/SHOULD/MAY)
+    - DTO enums MUST match the API source-of-truth
+  design:
+    - Document architecture decisions with rationale
+    - Include a directory tree for structural changes
+    - Prefer git mv (preserve history) when relocating existing files
+  tasks:
+    - Phase = one PR, target <=400 changed lines (exclude lockfile churn from the human-review budget)
+    - Hierarchical numbering with spec back-refs
+    - Keep root / core / web / mobile changes in separate PRs where feasible
+  apply:
+    - Reuse core; no business logic in screens/pages; respect the four-layer boundary (types -> api -> hooks -> UI)
+    - Verify the web app still builds + lints from its new location after any move
+    - Spanish-first strings on mobile
+  archive:
+    - Warn before destructive deltas
+    - Confirm the web app still builds from apps/web before closing
