@@ -3,9 +3,9 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
-phase: tasks
-status: planning-complete
-completed_phases: [explore, propose, spec, design, tasks]
+phase: verified
+status: verified-ready-for-pr
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
 chain_strategy: stacked-to-main
 chain_slice: 1 of 1
 current_slice: null
@@ -33,6 +33,21 @@ notes: |
   CLAUDE.md pointer; engines node ^20.19||^22.12||>=24.
 
   Review Workload Guard: chained PRs NOT recommended, decision_needed=false -> no stop before apply.
-  HARD apply precondition: verify clean working tree before any git mv.
-  NEXT: sdd-apply (single PR). strict_tdd:false -> verify via pnpm install + build + lint + -w build.
-  Blocks core-extraction (#3) and mobile-app-foundation (#4).
+
+  2026-07-12 — APPLY complete (single PR, committed locally, not pushed):
+  - docs commit 5be33cc (SDD artifacts + config.yaml).
+  - feat commit d30c994 — 205 renames (git mv web -> apps/web, history preserved) + 9 new
+    (root package.json/pnpm-workspace.yaml/.npmrc/turbo.json/tsconfig.base.json/root CLAUDE.md,
+    placeholders core/mobile) + 5 edits (apps/web package.json name->web/drop packageManager,
+    2 tsconfig extends+trim, .gitignore +.turbo +.vite). 25/27 tasks (2 manual non-blocking).
+  Verified in apply: pnpm install (4 projects), node-linker=hoisted confirmed, pnpm --filter web
+  build green, lint 0 new, pnpm -w build green.
+
+  2026-07-12 — VERIFY complete: PASS WITH WARNINGS (0 CRITICAL, 1 WARNING, 2 SUGGESTION),
+  engram obs 525 + verify-report.md. Independently re-ran all 6 gates green. WARNING: 2 tsconfig
+  leaf files lose git --follow history at default rename threshold (hoist-and-trim >50% same-commit;
+  recoverable via -M30%, accepted tradeoff, auditable, config-only). .vite/ resolved (gitignored).
+
+  NEXT: push branch + open 1 PR (issue-first) on moiki/housecenter-web when user requests
+  (gh: switch to moiki account first). sdd-archive after merge. Then core-extraction (#3).
+  strict_tdd:false. Blocks core-extraction (#3) and mobile-app-foundation (#4).
