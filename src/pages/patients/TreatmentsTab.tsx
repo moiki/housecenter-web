@@ -92,21 +92,19 @@ const COMMENT_TYPE_OPTIONS = [
 
 const COMMENT_TYPE_COLOR: Record<string, ChipColor> = { Simple: 'default', Medical: 'info', Route: 'primary' }
 
+const TREATMENT_FORM_ID = 'treatment-form'
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 function TreatmentFormPanel({
+  formId,
   defaultValues,
   onSubmit,
-  submitLabel,
 }: {
+  formId: string
   defaultValues?: TreatmentResponse
   onSubmit: (d: TreatmentForm) => Promise<void>
-  submitLabel: string
 }) {
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<TreatmentForm>({
+  const { control, handleSubmit } = useForm<TreatmentForm>({
     resolver: zodResolver(treatmentSchema),
     defaultValues: defaultValues
       ? {
@@ -121,7 +119,7 @@ function TreatmentFormPanel({
   })
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box component="form" id={formId} onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <RHFTextField control={control} name="name" label="Name" placeholder="Treatment name" />
       <RHFTextField control={control} name="description" label="Description" placeholder="Brief description" multiline minRows={2} />
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
@@ -152,9 +150,6 @@ function TreatmentFormPanel({
           </TextField>
         )}
       />
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        {submitLabel}
-      </Button>
     </Box>
   )
 }
@@ -532,11 +527,31 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
         open={slideMode !== null}
         onClose={closeSlide}
         title={slideMode === 'edit' ? 'Edit Treatment' : 'New Treatment'}
+        description={
+          slideMode === 'edit'
+            ? "Update this treatment's details."
+            : 'Create a new treatment plan for this patient.'
+        }
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={closeSlide}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form={TREATMENT_FORM_ID}
+              variant="contained"
+              loading={slideMode === 'edit' ? updateTreatment.isPending : createTreatment.isPending}
+            >
+              {slideMode === 'edit' ? 'Save changes' : 'Create treatment'}
+            </Button>
+          </>
+        }
       >
         {slideMode === 'edit' && editing ? (
-          <TreatmentFormPanel defaultValues={editing} onSubmit={handleUpdate} submitLabel="Save changes" />
+          <TreatmentFormPanel formId={TREATMENT_FORM_ID} defaultValues={editing} onSubmit={handleUpdate} />
         ) : (
-          <TreatmentFormPanel onSubmit={handleCreate} submitLabel="Create treatment" />
+          <TreatmentFormPanel formId={TREATMENT_FORM_ID} onSubmit={handleCreate} />
         )}
       </SlideOver>
 
