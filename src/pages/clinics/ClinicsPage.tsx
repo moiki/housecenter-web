@@ -30,6 +30,8 @@ import { ClinicForm } from '@/pages/clinics/ClinicForm'
 import type { ClinicResponse } from '@/types/clinic.types'
 import type { ClinicFormData } from '@/schemas/clinic.schema'
 
+const NEW_CLINIC_FORM_ID = 'new-clinic-form'
+
 export function ClinicsPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
@@ -131,8 +133,23 @@ export function ClinicsPage() {
         </>
       )}
 
-      <SlideOver open={slideOpen} onClose={() => setSlideOpen(false)} title="New Clinic">
-        <ClinicForm onSubmit={handleCreate} submitLabel="Create clinic" />
+      <SlideOver
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        title="New Clinic"
+        description="Add a new clinic location to the system."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={NEW_CLINIC_FORM_ID} variant="contained" loading={createClinic.isPending}>
+              Create clinic
+            </Button>
+          </>
+        }
+      >
+        <ClinicForm formId={NEW_CLINIC_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
 
       <ConfirmDialog
