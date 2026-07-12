@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { RoleResponse } from '@/types/role.types'
+import type { RoleResponse } from 'core/types/role.types'
 
 // Unversioned, like /auth, /notifications, /attachments, /invitations.
 const BASE = '/roles'

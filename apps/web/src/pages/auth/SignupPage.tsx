@@ -8,7 +8,7 @@ import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { authApi } from '@/api/modules/auth.api'
 import { invitationsApi } from '@/api/modules/invitations.api'
 import { useAuthStore } from '@/store/auth.store'
-import { isApiError } from '@/types/common.types'
+import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
 
 const schema = z

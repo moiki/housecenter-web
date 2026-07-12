@@ -1,12 +1,12 @@
 import { apiClient } from '@/api/client'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { PagedResult } from '@/types/common.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { PagedResult } from 'core/types/common.types'
 import type {
   PatientResponse,
   PatientFullSummaryResponse,
   CreatePatientRequest,
   UpdatePatientRequest,
-} from '@/types/patient.types'
+} from 'core/types/patient.types'
 
 const BASE = '/patients'
 

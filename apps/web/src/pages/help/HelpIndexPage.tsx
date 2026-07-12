@@ -17,7 +17,7 @@ import {
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
 import SearchOutlined from '@mui/icons-material/SearchOutlined'
 import { useHelpTopics } from '@/hooks/help/useHelpTopics'
-import type { HelpTopicSummary } from '@/types/help.types'
+import type { HelpTopicSummary } from 'core/types/help.types'
 
 function groupByCategory(topics: HelpTopicSummary[]) {
   const groups = new Map<string, HelpTopicSummary[]>()

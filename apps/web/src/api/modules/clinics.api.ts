@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { PagedResult } from '@/types/common.types'
-import type { ClinicResponse, CreateClinicRequest, UpdateClinicRequest } from '@/types/clinic.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { PagedResult } from 'core/types/common.types'
+import type { ClinicResponse, CreateClinicRequest, UpdateClinicRequest } from 'core/types/clinic.types'
 
 const BASE = '/api/v1/clinics'
 

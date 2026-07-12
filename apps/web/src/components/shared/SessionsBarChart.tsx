@@ -1,4 +1,4 @@
-import type { WeeklySessionBucket } from '@/types/report.types'
+import type { WeeklySessionBucket } from 'core/types/report.types'
 
 interface Props {
   weeks: WeeklySessionBucket[]

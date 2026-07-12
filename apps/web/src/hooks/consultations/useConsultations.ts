@@ -5,7 +5,7 @@ import type {
   CreateConsultationRequest,
   PostMessageRequest,
   UpdateConsultationStatusRequest,
-} from '@/types/consultation.types'
+} from 'core/types/consultation.types'
 
 const keys = {
   all: ['consultations'] as const,

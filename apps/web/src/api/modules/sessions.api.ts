@@ -1,12 +1,12 @@
 import { apiClient } from '@/api/client'
-import type { PagedResult } from '@/types/common.types'
+import type { PagedResult } from 'core/types/common.types'
 import type {
   AttentionSessionResponse,
   CreateAttentionSessionRequest,
   UpdateSessionStatusRequest,
   AttentionType,
   SessionStatus,
-} from '@/types/session.types'
+} from 'core/types/session.types'
 
 const base = (patientId: string) => `/patients/${patientId}/sessions`
 

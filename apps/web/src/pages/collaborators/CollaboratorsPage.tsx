@@ -33,12 +33,12 @@ import {
 } from '@/hooks/collaborators/useCollaborators'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
-import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
+import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
-import type { CollaboratorResponse } from '@/types/collaborator.types'
+import type { CollaboratorResponse } from 'core/types/collaborator.types'
 
 const COLLABORATOR_FORM_ID = 'collaborator-form'
 

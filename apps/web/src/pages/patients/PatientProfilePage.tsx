@@ -9,7 +9,7 @@ import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutl
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined'
 import { usePatientFullSummary } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
-import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
+import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { useAssignDoctor, useRemoveDoctor } from '@/hooks/patients/useTreatments'
 import { useAuthStore } from '@/store/auth.store'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -18,7 +18,7 @@ import { TreatmentsTab } from './TreatmentsTab'
 import { SessionsTab } from './SessionsTab'
 import { CommentsTab } from './CommentsTab'
 import { AttachmentsTab } from './AttachmentsTab'
-import type { DoctorSummaryDto } from '@/types/patient.types'
+import type { DoctorSummaryDto } from 'core/types/patient.types'
 
 type TabId = 'overview' | 'treatments' | 'sessions' | 'comments' | 'attachments'
 

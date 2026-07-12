@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { HelpTopic, HelpTopicSummary } from '@/types/help.types'
+import type { HelpTopic, HelpTopicSummary } from 'core/types/help.types'
 
 const BASE = '/help'
 

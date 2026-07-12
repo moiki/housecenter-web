@@ -1,6 +1,6 @@
 import { apiClient } from '@/api/client'
-import type { PagedResult } from '@/types/common.types'
-import type { NotificationResponse, UnreadCountResponse } from '@/types/notification.types'
+import type { PagedResult } from 'core/types/common.types'
+import type { NotificationResponse, UnreadCountResponse } from 'core/types/notification.types'
 
 // Unversioned, like /auth/* — see the CLAUDE.md route-versioning gotcha.
 const BASE = '/notifications'

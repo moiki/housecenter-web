@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import type { WorkRouteResponse, Weekday } from '@/types/workroute.types'
+import type { WorkRouteResponse, Weekday } from 'core/types/workroute.types'
 
 // dayjs `.day()`: 0=Sun..6=Sat. Index this array — Sunday at 0 (off-by-one guard).
 export const DAYJS_INDEX_TO_WEEKDAY: Weekday[] = [

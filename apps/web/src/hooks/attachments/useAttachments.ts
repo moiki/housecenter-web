@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { attachmentsApi } from '@/api/modules/attachments.api'
-import type { AttachmentOwnerType } from '@/types/attachment.types'
+import type { AttachmentOwnerType } from 'core/types/attachment.types'
 
 const keys = {
   all: (ownerType: AttachmentOwnerType, ownerId: string) => ['attachments', ownerType, ownerId] as const,

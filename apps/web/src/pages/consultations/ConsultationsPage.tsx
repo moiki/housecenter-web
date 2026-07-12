@@ -20,11 +20,11 @@ import ChevronRightOutlined from '@mui/icons-material/ChevronRightOutlined'
 import { useConsultations, useCreateConsultation } from '@/hooks/consultations/useConsultations'
 import { usePatients } from '@/hooks/patients/usePatients'
 import { useUsers } from '@/hooks/users/useUsers'
-import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
+import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { RHFTextField, RHFSelect, RHFRichText } from '@/components/shared/form'
-import type { ConsultationStatus } from '@/types/consultation.types'
+import type { ConsultationStatus } from 'core/types/consultation.types'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 const createSchema = z.object({

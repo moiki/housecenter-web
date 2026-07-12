@@ -30,7 +30,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
-import type { InvitationResponse } from '@/types/invitation.types'
+import type { InvitationResponse } from 'core/types/invitation.types'
 
 type ChipColor = 'default' | 'warning' | 'success'
 const STATUS_COLOR: Record<string, ChipColor> = {

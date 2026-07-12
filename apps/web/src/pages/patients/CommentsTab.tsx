@@ -12,7 +12,7 @@ import { useCreatePatientComment, useDeletePatientComment } from '@/hooks/patien
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFRichText, RHFSelect } from '@/components/shared/form'
-import type { PatientCommentDto } from '@/types/patient.types'
+import type { PatientCommentDto } from 'core/types/patient.types'
 
 const COMMENT_TYPE_OPTIONS = [
   { value: 'Simple', label: 'Simple' },

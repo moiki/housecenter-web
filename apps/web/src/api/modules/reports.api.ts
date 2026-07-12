@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { SummaryReportResponse, SessionPeriodReportResponse } from '@/types/report.types'
+import type { SummaryReportResponse, SessionPeriodReportResponse } from 'core/types/report.types'
 
 const BASE = '/reports'
 

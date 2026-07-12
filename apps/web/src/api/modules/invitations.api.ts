@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { PagedResult } from '@/types/common.types'
-import type { InvitationResponse, CreateInvitationRequest } from '@/types/invitation.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { PagedResult } from 'core/types/common.types'
+import type { InvitationResponse, CreateInvitationRequest } from 'core/types/invitation.types'
 
 // Unversioned, like /auth, /notifications, /attachments — was wrongly "/api/v1/invitations"
 // before, which 404'd against the real backend (HouseCenter.Api registers "/invitations").

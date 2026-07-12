@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { workRoutesApi } from '@/api/modules/workroutes.api'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { CreateWorkRouteRequest, UpdateWorkRouteRequest } from '@/types/workroute.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { CreateWorkRouteRequest, UpdateWorkRouteRequest } from 'core/types/workroute.types'
 
 export const workRouteKeys = {
   all: ['workroutes'] as const,

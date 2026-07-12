@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { PagedResult } from '@/types/common.types'
+import type { PagedResult } from 'core/types/common.types'
 import type {
   ConsultationResponse,
   ConsultationDetailResponse,
@@ -8,7 +8,7 @@ import type {
   PostMessageRequest,
   UpdateConsultationStatusRequest,
   ConsultationStatus,
-} from '@/types/consultation.types'
+} from 'core/types/consultation.types'
 
 const BASE = '/consultations'
 

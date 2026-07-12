@@ -24,8 +24,9 @@ import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOu
 import MailOutlined from '@mui/icons-material/MailOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
-import { NAV_ITEMS } from '@/lib/constants'
-import type { NavItem, RoleName } from '@/lib/constants'
+import { NAV_ITEMS } from '@/lib/nav'
+import type { NavItem } from '@/lib/nav'
+import type { RoleName } from 'core/lib/constants'
 
 const EXPANDED = 224
 const COLLAPSED = 56
