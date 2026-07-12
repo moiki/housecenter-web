@@ -82,19 +82,18 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+const NEW_SESSION_FORM_ID = 'new-session-form'
+
 // ── Create form (inside SlideOver) ────────────────────────────────────────────
-function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSuccess: () => void }) {
+// The mutation lives in the tab component (below) so the SlideOver's pinned footer
+// button can read its `isPending` state; this form only owns the fields + validation.
+function CreateSessionForm({ formId, onSubmit }: { formId: string; onSubmit: (data: CreateForm) => Promise<void> }) {
   // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
   const { data: collaboratorsData } = useCollaborators(1, DROPDOWN_PAGE_SIZE)
   const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
   const { data: workRoutesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
-  const createSession = useCreateSession(patientId)
 
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<CreateForm>({
+  const { control, handleSubmit } = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
     defaultValues: {
       collaboratorId: '',
@@ -114,21 +113,13 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
   const clinicOptions = clinicsData?.items.map((c) => ({ value: c.id, label: c.name })) ?? []
   const workRouteOptions = workRoutesData?.items.map((w) => ({ value: w.id, label: w.routeName })) ?? []
 
-  const onSubmit = async (data: CreateForm) => {
-    await createSession.mutateAsync({
-      collaboratorId: data.collaboratorId,
-      clinicId: data.locationMode === 'clinic' ? data.clinicId || null : null,
-      workRouteId: data.locationMode === 'workRoute' ? data.workRouteId || null : null,
-      attentionType: data.attentionType,
-      sessionDate: new Date(data.sessionDate).toISOString(),
-      durationMinutes: data.durationMinutes ? parseInt(data.durationMinutes, 10) : null,
-      notes: data.notes || null,
-    })
-    onSuccess()
-  }
-
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box
+      component="form"
+      id={formId}
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
       <RHFSelect control={control} name="collaboratorId" label="Collaborator" options={collaboratorOptions} />
       <RHFSelect control={control} name="attentionType" label="Attention Type" options={TYPE_OPTIONS} />
       <RHFTextField
@@ -154,9 +145,6 @@ function CreateSessionForm({ patientId, onSuccess }: { patientId: string; onSucc
       )}
       <RHFTextField control={control} name="durationMinutes" label="Duration (minutes)" type="number" placeholder="Optional" />
       <RHFTextField control={control} name="notes" label="Notes" placeholder="Optional" multiline minRows={2} />
-      <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-        Create Session
-      </Button>
     </Box>
   )
 }
@@ -237,10 +225,24 @@ export function SessionsTab({ patientId }: Props) {
   const [deleteTarget, setDeleteTarget] = useState<AttentionSessionResponse | null>(null)
 
   const { data, isLoading } = useSessions(patientId, { page, pageSize: 10 })
+  const createSession = useCreateSession(patientId)
   const deleteSession = useDeleteSession(patientId)
 
   const sessions = data?.items ?? []
   const totalPages = data?.totalPages ?? 1
+
+  const handleCreate = async (data: CreateForm) => {
+    await createSession.mutateAsync({
+      collaboratorId: data.collaboratorId,
+      clinicId: data.locationMode === 'clinic' ? data.clinicId || null : null,
+      workRouteId: data.locationMode === 'workRoute' ? data.workRouteId || null : null,
+      attentionType: data.attentionType,
+      sessionDate: new Date(data.sessionDate).toISOString(),
+      durationMinutes: data.durationMinutes ? parseInt(data.durationMinutes, 10) : null,
+      notes: data.notes || null,
+    })
+    setCreateOpen(false)
+  }
 
   return (
     <Stack spacing={2}>
@@ -321,8 +323,23 @@ export function SessionsTab({ patientId }: Props) {
       )}
 
       {/* Create slide-over */}
-      <SlideOver title="New Attention Session" open={createOpen} onClose={() => setCreateOpen(false)}>
-        <CreateSessionForm patientId={patientId} onSuccess={() => setCreateOpen(false)} />
+      <SlideOver
+        title="New Attention Session"
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        description="Record a new attention session for this patient."
+        footer={
+          <>
+            <Button variant="text" color="inherit" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={NEW_SESSION_FORM_ID} variant="contained" loading={createSession.isPending}>
+              Create Session
+            </Button>
+          </>
+        }
+      >
+        <CreateSessionForm formId={NEW_SESSION_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
 
       {/* Delete confirm */}
