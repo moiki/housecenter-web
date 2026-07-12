@@ -3,14 +3,43 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
-phase: tasks
-status: planning-complete
+phase: verified
+status: verified-ready-for-pr
 chain_strategy: stacked-to-main
 chain_slice: null
 current_slice: null
 decision_needed_before_apply: true   # 4 chained PRs, ~800-970 reviewable lines, budget HIGH -> guard stops
 depends_on: monorepo-workspace-bootstrap   # branch feat/core-extraction is stacked on feat/monorepo-workspace-bootstrap
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
+
+apply_verify: |
+  2026-07-12 — APPLY complete (4 PRs, committed locally on feat/core-extraction, not pushed):
+  - docs 662acca (SDD artifacts).
+  - PR1 51a955c feat(core) foundation: packages/core (exports/tsconfig), createApiClient +
+    setApiClient/getApiClient, createAuthStore + TokenStore/AuthStorage + authHydrated, git mv
+    types (+ENUM FIX) + lib recurrence/queryClient + role constants, thin web client/store,
+    bootstrap.ts, core:workspace:*, ~66 import sites, NAV_ITEMS->web lib/nav.ts. (18 renames)
+  - PR2 a63f123 refactor(core) api modules: git mv 15 modules -> core, rewire to getApiClient()
+    (D3), 24 importers migrated. core tsconfig lib += DOM (attachments File/FormData).
+  - PR3 7fe02be refactor(core) hooks + hydration: git mv 13 hook folders -> core, useMe split
+    (dark-mode DOM effect -> AuthBootstrap only, useMe has no callers), authHydrated gate in
+    AuthBootstrap via derived-state form (D5 literal sketch tripped set-state-in-effect lint;
+    derived form proven equivalent), 22 importers. Static proof: web authHydrated=true synchronous
+    before first render -> no behavior regression.
+  - PR4 361ac1f feat(core) schemas + deviceId: git mv 4 schemas + 8 importers; deviceId end-to-end
+    (types + web lib/deviceId.ts UUID + login/signup/refresh threading, one source, platform:'Web').
+  Verified per slice: pnpm --filter core build + web build + lint + pnpm -w build all green.
+
+  2026-07-12 — VERIFY complete: PASS WITH WARNINGS (0 CRITICAL, 3 WARNING, 2 SUGGESTION),
+  engram obs 532 + verify-report.md. Independently re-ran all gates green; adversarial hydration
+  deep-dive confirmed R6 web behavior equivalent. WARNINGS: (1) interactive smokes 3.6/3.7 = human
+  step (need live API + session); (2) core tsconfig DOM lib = mobile-adaptation debt; (3) stale
+  apply-progress metadata (says PR3/4 uncommitted — they are committed).
+
+  NEXT: open 4 stacked PRs on moiki/housecenter-web (stacked on the bootstrap PR #10 chain;
+  gh: switch to moiki). Before merge: human runs interactive smokes; coordinate deviceId deploy
+  with the housecenter-api device-bound-sessions cutover (PRs #20-23). sdd-archive after merge.
+  Then the mobile app track (#4 mobile-app-foundation onward).
 notes: |
   2026-07-12 — Planning fast-forward (auto) complete. SDD change #3 of the HouseCenter Mobile plan:
   extract packages/core (UI-agnostic types/api/hooks/schemas/lib) from apps/web, abstract the axios
