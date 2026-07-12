@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined'
-import { useUsers, useDeactivateUser } from '@/hooks/users/useUsers'
+import { useUsers, useDeactivateUser } from 'core/hooks/users/useUsers'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import type { UserResponse } from 'core/types/user.types'

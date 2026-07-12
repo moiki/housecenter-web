@@ -1,6 +1,6 @@
 import { Box, Paper, Skeleton, Typography } from '@mui/material'
 import { useAuthStore } from '@/store/auth.store'
-import { useSummaryReport, useSessionPeriodReport } from '@/hooks/reports/useReports'
+import { useSummaryReport, useSessionPeriodReport } from 'core/hooks/reports/useReports'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SessionsBarChart } from '@/components/shared/SessionsBarChart'
 

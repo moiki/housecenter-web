@@ -35,7 +35,7 @@ import {
   useTreatmentComments,
   useCreateTreatmentComment,
   useDeleteTreatmentComment,
-} from '@/hooks/patients/useTreatments'
+} from 'core/hooks/patients/useTreatments'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'

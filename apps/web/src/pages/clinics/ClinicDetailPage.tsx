@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { Alert, Box, Button, Paper, Skeleton, Typography } from '@mui/material'
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
-import { useClinic, useUpdateClinic } from '@/hooks/clinics/useClinics'
+import { useClinic, useUpdateClinic } from 'core/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
 import type { ClinicFormData } from '@/schemas/clinic.schema'
