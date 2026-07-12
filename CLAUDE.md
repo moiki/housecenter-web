@@ -70,7 +70,7 @@ To scaffold a new slice, invoke the **`add-feature-slice`** skill. To add one en
 - **Almost nothing is versioned — only Clinics is.** The backend wraps exactly one module in `/api/v1/`: `v1.MapClinicEndpoints()` in the API's `Program.cs`. Every other module (`auth`, `patients`, `treatments` + its nested details/comments/collaborators/doctors, `sessions`, `consultations`, `collaborators`, `workroutes`, `reports`, `users`, `roles`, `invitations`, `notifications`, `attachments`) is mapped directly on `app` with **no prefix**. This bit hard once already: 8 of 14 api modules had `/api/v1/<feature>` hardcoded despite the backend never serving it, 404ing on every real request while `dotnet test` stayed green (C#-to-C# tests don't catch a frontend URL string typo). **Never assume — grep the actual route registration in `Program.cs`/`*Endpoints.cs` in the API repo before writing `BASE`.**
 - **Empty string vs null**: HTML inputs emit `""`, but the .NET API wants `null` for "no value". Zod schemas normalize at the boundary: `.nullable().or(z.literal('')).transform(v => v || null)`. Reuse that for every optional string field.
 - **`VITE_API_BASE_URL`** comes from `.env` (see `.env.example`, default `http://localhost:5000`). The .NET API must be running for the app to work.
-- **No error boundary exists** — an uncaught render error white-screens the app. Keep render code defensive.
+- **Error boundaries ARE wired** — `ErrorBoundary.tsx` (`src/components/shared/`) wraps both the app root (`main.tsx`) and every route (`AppLayout.tsx`, keyed by `location.pathname` so it resets on navigation), so an uncaught render error shows a fallback instead of white-screening. Still, keep render code defensive — the boundary is a safety net, not a license.
 
 ## Skills
 
