@@ -1,6 +1,7 @@
 {
   "nav": {
     "patients": "Pacientes",
+    "consultations": "Consultas",
     "more": "Más"
   },
   "common": {
@@ -148,5 +149,19 @@
     "deleteConfirm": "¿Seguro que deseas eliminar esta foto? Esta acción no se puede deshacer.",
     "permissionDenied": "No se pudo acceder a la cámara o a la galería. Revisa los permisos de la app en Ajustes.",
     "uploading": "Subiendo… {{percent}}%"
+  },
+  "consultations": {
+    "title": "Consultas",
+    "detailTitle": "Detalle de la consulta",
+    "status": {
+      "Open": "Abierta",
+      "UnderReview": "En revisión",
+      "Resolved": "Resuelta"
+    },
+    "empty": "No hay consultas",
+    "messagePlaceholder": "Escribe un mensaje...",
+    "send": "Enviar",
+    "resolve": "Marcar resuelta",
+    "resolvedHint": "Esta consulta ya fue resuelta."
   }
 }

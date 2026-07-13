@@ -1,0 +1,67 @@
+change: mobile-consultations
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # 2 chained PRs, budget Medium
+depends_on: [mobile-patients-progress, mobile-attachments-camera]   # branch feat/mobile-consultations off main (all #1-#7 merged)
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — Planning fast-forward (auto) complete. SDD change #8 of the HouseCenter Mobile plan:
+  escalate a patient's case to an assigned Doctor in apps/mobile — consultations list, create, message
+  thread (read+post+status), attach photos to reply messages. StaffOnly (incl Member). Branch
+  feat/mobile-consultations off main (all #1-#7 merged; 7/11 SDD changes live).
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 570) — core complete; attachmentUrl DTO field is DEAD CODE (web
+             hardcodes null) -> use #7's polymorphic ownerType=ConsultationMessage; no collaborators DTO
+             on frontend (can't gate escalate client-side); web doctor picker is a global-list bug.
+  - propose  proposal.md (engram 571) — 7 positions resolved; 2-PR shape.
+  - spec     spec.md (engram 572) — R1-R10, 15 scenarios (6 Human/EAS-smoke).
+  - design   design.md (engram 573) — 8 ADR decisions; thread/compose sequence; code sketches; caught the
+             rules-of-hooks reply-attach trap.
+  - tasks    tasks.md (engram 574) — Review Workload Forecast: budget Medium, 2 chained PRs (~258/~253),
+             decision=YES.
+
+  RATIFIED DECISIONS:
+  1. NO core hook/api/type changes (consultations layer complete). Add ONE schema consultation.schema.ts
+     (createConsultationSchema + postMessageSchema); leave web inline schemas untouched.
+  2. Attachments: attachmentUrl DTO field is dead code -> always send null; reuse #7's polymorphic
+     ownerType=ConsultationMessage. REPLY-ONLY attach in v1 (OpenConsultation returns no message id;
+     PostMessage returns the message w/ id). attach-on-create deferred (3-call round-trip).
+  3. Doctor picker: RHFSelect from usePatientFullSummary(patientId).assignedDoctors (patient-scoped —
+     corrects web's global useUsers bug); handle zero-assigned-doctors (disable/hide + message).
+  4. Collaborator gating: NONE client-side (no DTO exposes patient.Collaborators) — show the escalate
+     entry point unconditionally, handle the API 403 (consultations.not_patient_collaborator) gracefully.
+  5. Status/resolve: only assigned doctor resolves (Member NEVER); render "Marcar resuelta" only when
+     user.id===assignedDoctorId; never manual Open/UnderReview (API rejects); compose disabled on Resolved;
+     auto Open->UnderReview happens server-side when the doctor replies.
+  6. DOCTOR SCOPED EXCEPTION: a Doctor on mobile can reply + resolve their assigned consultations (master
+     plan grants this for consultations specifically); do NOT generalize Admin/Doctor/Sponsor parity.
+  7. Nav: new 3rd "Consultas" bottom tab (list -> thread); CreateConsultationScreen in PatientsStack (like
+     CreateSession) via "Escalar a Doctor" button on PatientDetailScreen (Option A — no cross-tab typed nav).
+
+  CRITICAL IMPL NOTES (from design, for apply):
+  - Reply-attach RULES-OF-HOOKS: do NOT call useUploadAttachment(...).mutateAsync() inline in the send
+    handler (the hook bakes ownerId at render). Use a uploadTargetId state + a component-level
+    useUploadAttachment('ConsultationMessage', uploadTargetId) + an effect that fires when set.
+  - Staged local preview uses a plain <Image> on the picked uri (NOT AuthedImage — that's for authed
+    historical download URLs). MessageAttachmentThumb (read-only, useAttachments + AuthedImage) for bubbles.
+  - PatientDetailScreen must switch to NativeStackScreenProps to get `navigation` for the escalate button.
+  - Confirm mobile can import isApiError from core for the 403 match.
+
+  2-PR plan (stacked): PR1 (~258) core schema + Consultas tab + list + thread (role-conditional resolve,
+  no attach); PR2 (~253) CreateConsultationScreen (PatientsStack, escalate button, doctor picker, graceful
+  403) + reply attachments (pickPhoto split + MessageAttachmentThumb + uploadTargetId pattern).
+
+  strict_tdd:false. 6/15 scenarios Human/EAS smoke (create/403/doctor-reply-auto-transition/attach/resolve/
+  offline — need a Doctor-role account for the reply/resolve paths). Web renders no consultation attachments
+  -> verify thumbs via API directly.
+
+  Review Workload Guard: chained PRs YES + ask-on-risk + decision=YES -> STOP before apply, confirm.
+  NEXT: user confirms apply -> sdd-apply PR1->PR2. Then #9 notifications/push (incl deferred push lifecycle).
