@@ -7,7 +7,7 @@ import { useLogout } from 'core/hooks/auth/useLogout'
 import { useUnsubscribePush } from 'core/hooks/notifications/usePushSubscription'
 import { useAuthStore } from '../../store/auth.store'
 import { getDeviceId } from '../../lib/deviceId'
-import { clearCache } from '../../lib/mmkv'
+import { clearAllLocalData } from '../../lib/teardown'
 import { clearCachedPushToken, getCachedPushToken } from '../../lib/pushToken'
 import type { MoreStackParamList } from '../../navigation/TabNavigator'
 
@@ -46,10 +46,11 @@ export function MoreScreen() {
       // device's session server-side, clears the auth store, drops the in-memory query cache.
       await logout.mutateAsync(getDeviceId())
     } finally {
-      // Layer 2 (mobile-only, design.md D8): wipe the persisted MMKV blob — core is
-      // platform-agnostic and cannot reach it. `user` -> null (set by layer 1) flips
-      // RootNavigator to Login declaratively; no navigation ref needed.
-      clearCache()
+      // Layer 2 (mobile-only, design.md D1/D8): wipe the persisted caches (MMKV + query cache +
+      // expo-image) via the shared `clearAllLocalData()` helper — core is platform-agnostic and
+      // cannot reach any of these. `user` -> null (set by layer 1) flips RootNavigator to Login
+      // declaratively; no navigation ref needed.
+      await clearAllLocalData()
       setLoggingOut(false)
     }
   }
@@ -70,23 +71,48 @@ export function MoreScreen() {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('RutaDelDia')}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('RutaDelDia')}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.rutaDelDia')}
+      >
         <Text style={styles.rowText}>{t('more.rutaDelDia')}</Text>
       </Pressable>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('WorkRoutes')}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('WorkRoutes')}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.workRoutes')}
+      >
         <Text style={styles.rowText}>{t('more.workRoutes')}</Text>
       </Pressable>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('Reports')}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('Reports')}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.reports')}
+      >
         <Text style={styles.rowText}>{t('more.reports')}</Text>
       </Pressable>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('Devices')}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('Devices')}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.devices')}
+      >
         <Text style={styles.rowText}>{t('more.devices')}</Text>
       </Pressable>
 
-      <Pressable style={styles.row} onPress={() => navigation.navigate('Notifications')}>
+      <Pressable
+        style={styles.row}
+        onPress={() => navigation.navigate('Notifications')}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.notifications')}
+      >
         <Text style={styles.rowText}>{t('more.notifications')}</Text>
       </Pressable>
 
@@ -94,6 +120,8 @@ export function MoreScreen() {
         style={[styles.row, loggingOut && styles.rowDisabled]}
         onPress={confirmLogout}
         disabled={loggingOut}
+        accessibilityRole="button"
+        accessibilityLabel={t('more.logout')}
       >
         <Text style={[styles.rowText, styles.logoutText]}>{t('more.logout')}</Text>
       </Pressable>

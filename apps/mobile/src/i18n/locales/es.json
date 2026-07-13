@@ -10,7 +10,9 @@
     "empty": "No hay datos",
     "cancel": "Cancelar",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "select": "Seleccionar",
+    "selectDate": "Seleccionar fecha"
   },
   "auth": {
     "title": "Iniciar sesión",

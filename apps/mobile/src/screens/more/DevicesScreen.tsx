@@ -76,6 +76,9 @@ export function DevicesScreen() {
             style={styles.revokeButton}
             onPress={() => confirmRevoke(item)}
             disabled={revokingId === item.id}
+            accessibilityRole="button"
+            accessibilityLabel={t('devices.revoke')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.revokeButtonText}>{t('devices.revoke')}</Text>
           </Pressable>
@@ -102,7 +105,12 @@ export function DevicesScreen() {
         )}
       </QueryBoundary>
 
-      <Pressable style={styles.revokeAllButton} onPress={confirmRevokeAll}>
+      <Pressable
+        style={styles.revokeAllButton}
+        onPress={confirmRevokeAll}
+        accessibilityRole="button"
+        accessibilityLabel={t('devices.revokeAll')}
+      >
         <Text style={styles.revokeAllButtonText}>{t('devices.revokeAll')}</Text>
       </Pressable>
     </View>

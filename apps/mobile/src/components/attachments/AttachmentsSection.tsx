@@ -64,6 +64,8 @@ export function AttachmentsSection({ ownerType, ownerId }: { ownerType: Attachme
           style={[styles.actionBtn, captureDisabled && styles.actionBtnDisabled]}
           disabled={captureDisabled}
           onPress={() => handlePick('camera')}
+          accessibilityRole="button"
+          accessibilityLabel={t('attachments.takePhoto')}
         >
           <Text style={styles.actionBtnText}>{t('attachments.takePhoto')}</Text>
         </Pressable>
@@ -71,6 +73,8 @@ export function AttachmentsSection({ ownerType, ownerId }: { ownerType: Attachme
           style={[styles.actionBtn, captureDisabled && styles.actionBtnDisabled]}
           disabled={captureDisabled}
           onPress={() => handlePick('library')}
+          accessibilityRole="button"
+          accessibilityLabel={t('attachments.chooseFromLibrary')}
         >
           <Text style={styles.actionBtnText}>{t('attachments.chooseFromLibrary')}</Text>
         </Pressable>
@@ -105,6 +109,9 @@ export function AttachmentsSection({ ownerType, ownerId }: { ownerType: Attachme
                   style={[styles.deleteBtn, (!online || deletingId === a.id) && styles.deleteBtnDisabled]}
                   disabled={!online || deletingId === a.id}
                   onPress={() => confirmDelete(a)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('attachments.delete')}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Text style={styles.deleteBtnText}>{t('attachments.delete')}</Text>
                 </Pressable>

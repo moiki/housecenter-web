@@ -25,6 +25,8 @@ export function RHFTextInput<T extends FieldValues>({ control, name, label, styl
             value={field.value ?? ''}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
+            accessibilityLabel={label}
+            accessibilityHint={rest.placeholder}
             {...rest}
           />
           {fieldState.error && <Text style={styles.error}>{fieldState.error.message}</Text>}

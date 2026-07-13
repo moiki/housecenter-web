@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form'
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 export interface RHFPickerOption {
   value: string
@@ -30,11 +31,15 @@ export function RHFPickerField<T extends FieldValues>({
   control,
   name,
   label,
-  placeholder = 'Seleccionar',
+  placeholder,
   useOptions,
 }: Props<T>) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { data: options = [], isLoading } = useOptions()
+  // Hooks can't be called inside a default-param expression (`t` must resolve after
+  // `useTranslation()` runs), so the i18n'd fallback is computed here instead (design.md D4, R4).
+  const resolvedPlaceholder = placeholder ?? t('common.select')
 
   return (
     <Controller
@@ -45,9 +50,15 @@ export function RHFPickerField<T extends FieldValues>({
         return (
           <View style={styles.container}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <Pressable style={styles.trigger} onPress={() => setOpen(true)} disabled={isLoading}>
+            <Pressable
+              style={styles.trigger}
+              onPress={() => setOpen(true)}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={label ?? resolvedPlaceholder}
+            >
               <Text style={selected ? styles.triggerText : styles.triggerPlaceholder}>
-                {selected?.label ?? placeholder}
+                {selected?.label ?? resolvedPlaceholder}
               </Text>
             </Pressable>
             {fieldState.error && <Text style={styles.error}>{fieldState.error.message}</Text>}
@@ -65,6 +76,8 @@ export function RHFPickerField<T extends FieldValues>({
                           field.onChange(item.value)
                           setOpen(false)
                         }}
+                        accessibilityRole="button"
+                        accessibilityLabel={item.label}
                       >
                         <Text style={styles.optionText}>{item.label}</Text>
                       </Pressable>

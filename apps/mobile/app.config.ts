@@ -20,8 +20,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'HouseCenter Mobile',
   slug: 'housecenter-mobile',
   scheme: 'housecenter',
-  version: '0.0.0',
+  version: '1.0.0',
   orientation: 'portrait',
+  // Release/config hardening (design.md D5, R5). Placeholder artwork committed under
+  // apps/mobile/assets/ — real branded artwork is a Human/ops step (see docs/eas-release-runbook.md,
+  // PR2). icon/android.adaptiveIcon stay top-level ExpoConfig fields; splash is NOT a top-level
+  // field in SDK 50+ (deprecated) — it's wired via the expo-splash-screen plugin below instead.
+  icon: './assets/icon.png',
+  runtimeVersion: { policy: 'appVersion' },
   // Native-only: apps/web already owns the web target in this monorepo (Vite SPA). Without this,
   // `expo export`/`expo-doctor` default to also bundling web and fail on missing react-native-web.
   platforms: ['ios', 'android'],
@@ -35,6 +41,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Conditional (see googleServicesFile above) — omitted entirely when the file isn't present
     // so expo-doctor/expo export/EAS builds stay green without ops-provided Firebase credentials.
     ...(googleServicesFile ? { googleServicesFile } : {}),
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: '#2563eb',
+    },
   },
   // @react-native-community/datetimepicker (D5, R5/R9/R10) needs its config plugin registered so
   // `expo prebuild`/EAS builds link the native picker module.
@@ -44,6 +54,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // expo-notifications (mobile-notifications-push PR2b, design.md D8) needs its config plugin for
   // the notification icon/color used on Android; iOS notification sound bundling is optional and
   // omitted here (no custom sound asset shipped in this change).
+  // expo-splash-screen (design.md D5, R5): SDK 50+ deprecated the legacy top-level `splash`
+  // ExpoConfig key in favor of this config plugin — matches this file's own plugins-array
+  // convention for every other native-asset-touching package.
   plugins: [
     'expo-localization',
     '@react-native-community/datetimepicker',
@@ -58,6 +71,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         color: '#2563eb',
+      },
+    ],
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/splash.png',
+        resizeMode: 'contain',
+        backgroundColor: '#2563eb',
       },
     ],
   ],

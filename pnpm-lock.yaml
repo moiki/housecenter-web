@@ -80,9 +80,15 @@ importers:
       expo-notifications:
         specifier: ~55.0.24
         version: 55.0.24(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      expo-screen-capture:
+        specifier: ~55.0.15
+        version: 55.0.15(expo@55.0.27)(react@19.2.7)
       expo-secure-store:
         specifier: ~55.0.15
         version: 55.0.15(expo@55.0.27)
+      expo-splash-screen:
+        specifier: ~55.0.22
+        version: 55.0.22(expo@55.0.27)(typescript@6.0.3)
       i18next:
         specifier: ^26.0.0
         version: 26.3.6(typescript@6.0.3)
@@ -2524,6 +2530,12 @@ packages:
       react: ^19.2.6
       react-native: '*'
 
+  expo-screen-capture@55.0.15:
+    resolution: {integrity: sha512-G23euI2wwEz652bQDktFUSzxaBuQsBuyfHjJh35q/OuwCbbwNYB32UooZ0bxrVKDiGsGTkRAacycs1LwezxHZQ==}
+    peerDependencies:
+      expo: '*'
+      react: ^19.2.6
+
   expo-secure-store@55.0.15:
     resolution: {integrity: sha512-w2T76G6U6A7NRDSTXn/9CarXMCDw+YFP4aEux+vskA0SrJGyMQXP+onJVAu2nGNaUvvW0RqIqxkxdW1bgSSjvQ==}
     peerDependencies:
@@ -2532,6 +2544,11 @@ packages:
   expo-server@55.0.11:
     resolution: {integrity: sha512-AxRdHqcv0H1g4s923vu+5n1Nrhne23bjXbP+Vl7+Lwfpe7MG9PuU1IS95IJK6a+7BVV1mRN6QlZvs8Yv7EEXNQ==}
     engines: {node: '>=20.16.0'}
+
+  expo-splash-screen@55.0.22:
+    resolution: {integrity: sha512-uvGybuDlYjVa33eTTeZlwEL6hZagRv64v+OxQVRuKOKZXImatxdE6ZGwHUXz/JxZkntZKYD8p9hBIjlupNLpAQ==}
+    peerDependencies:
+      expo: '*'
 
   expo-updates-interface@55.1.6:
     resolution: {integrity: sha512-evxNpagCkjT3lE6bGV570TFzRtKuIuLY8I37RYHoriXCJ+ZKCN1hbmklK29uAixya+BxGpeTI2K4FqYeJLvfrw==}
@@ -6824,11 +6841,24 @@ snapshots:
       - supports-color
       - typescript
 
+  expo-screen-capture@55.0.15(expo@55.0.27)(react@19.2.7):
+    dependencies:
+      expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(react-dom@19.2.7(react@19.2.7))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      react: 19.2.7
+
   expo-secure-store@55.0.15(expo@55.0.27):
     dependencies:
       expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(react-dom@19.2.7(react@19.2.7))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
 
   expo-server@55.0.11: {}
+
+  expo-splash-screen@55.0.22(expo@55.0.27)(typescript@6.0.3):
+    dependencies:
+      '@expo/prebuild-config': 55.0.19(expo@55.0.27)(typescript@6.0.3)
+      expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(react-dom@19.2.7(react@19.2.7))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   expo-updates-interface@55.1.6(expo@55.0.27):
     dependencies:

@@ -32,6 +32,10 @@ export function RHFSelect<T extends FieldValues>({ control, name, options, label
                   key={opt.value}
                   onPress={() => field.onChange(opt.value)}
                   style={[styles.pill, active && styles.pillActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel={opt.label}
+                  accessibilityState={{ selected: active }}
+                  hitSlop={{ top: 8, bottom: 8 }}
                 >
                   <Text style={active ? styles.pillTextActive : styles.pillText}>{opt.label}</Text>
                 </Pressable>
