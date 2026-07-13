@@ -11,10 +11,12 @@ import { clearCache } from '../../lib/mmkv'
 import { clearCachedPushToken, getCachedPushToken } from '../../lib/pushToken'
 import type { MoreStackParamList } from '../../navigation/TabNavigator'
 
-// "Más" tab landing/menu screen (R11): a profile stub, a link into the device list
-// (`DevicesScreen`), a link into the Notificaciones list (`NotificationsScreen`, R7, PR1), and the
-// "Cerrar sesión" action. Kept as the entry point of the tab so logging out doesn't require first
-// opening the device list.
+// "Más" tab landing/menu screen (R11): a profile stub, a link into "Ruta del día"
+// (`RutaDelDiaScreen`, R6/R8, mobile-reports-workroutes PR1b), a link into "Rutas de trabajo"
+// (`WorkRoutesListScreen`, R4/R8, PR1a), a link into "Reportes" (`ReportsScreen`, R7/R8, PR2), a
+// link into the device list (`DevicesScreen`), a link into the Notificaciones list
+// (`NotificationsScreen`, R7, PR1), and the "Cerrar sesión" action. Kept as the entry point of the
+// tab so logging out doesn't require first opening the device list.
 export function MoreScreen() {
   const { t } = useTranslation()
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>()
@@ -68,8 +70,16 @@ export function MoreScreen() {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
+      <Pressable style={styles.row} onPress={() => navigation.navigate('RutaDelDia')}>
+        <Text style={styles.rowText}>{t('more.rutaDelDia')}</Text>
+      </Pressable>
+
       <Pressable style={styles.row} onPress={() => navigation.navigate('WorkRoutes')}>
         <Text style={styles.rowText}>{t('more.workRoutes')}</Text>
+      </Pressable>
+
+      <Pressable style={styles.row} onPress={() => navigation.navigate('Reports')}>
+        <Text style={styles.rowText}>{t('more.reports')}</Text>
       </Pressable>
 
       <Pressable style={styles.row} onPress={() => navigation.navigate('Devices')}>

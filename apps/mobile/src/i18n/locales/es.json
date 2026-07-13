@@ -21,7 +21,9 @@
   },
   "more": {
     "title": "Más",
+    "rutaDelDia": "Ruta del día",
     "workRoutes": "Rutas de trabajo",
+    "reports": "Reportes",
     "devices": "Dispositivos",
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
@@ -179,6 +181,25 @@
       "Friday": "Viernes",
       "Saturday": "Sábado",
       "Sunday": "Domingo"
+    }
+  },
+  "rutaDelDia": {
+    "title": "Ruta del día",
+    "noProfile": "No encontramos tu ficha de colaborador. Contactá a un administrador si esto no es correcto.",
+    "noRoute": "No tenés una ruta de trabajo asignada.",
+    "noOccurrenceToday": "No hay ruta programada para hoy.",
+    "noPatients": "No hay pacientes en esta ruta."
+  },
+  "reports": {
+    "title": "Reportes",
+    "empty": "No hay datos de sesiones para este período",
+    "sessionsTitle": "Sesiones por semana",
+    "byCollaboratorTitle": "Sesiones por colaborador",
+    "preset": {
+      "d28": "Últimas 4 semanas",
+      "d56": "Últimas 8 semanas",
+      "d91": "Últimos 3 meses",
+      "d182": "Últimos 6 meses"
     }
   },
   "consultations": {
