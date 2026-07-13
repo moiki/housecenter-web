@@ -10,8 +10,9 @@ import { clearCache } from '../../lib/mmkv'
 import type { MoreStackParamList } from '../../navigation/TabNavigator'
 
 // "Más" tab landing/menu screen (R11): a profile stub, a link into the device list
-// (`DevicesScreen`), and the "Cerrar sesión" action. Kept as the entry point of the tab so
-// logging out doesn't require first opening the device list.
+// (`DevicesScreen`), a link into the Notificaciones list (`NotificationsScreen`, R7, PR1), and the
+// "Cerrar sesión" action. Kept as the entry point of the tab so logging out doesn't require first
+// opening the device list.
 export function MoreScreen() {
   const { t } = useTranslation()
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>()
@@ -52,6 +53,10 @@ export function MoreScreen() {
 
       <Pressable style={styles.row} onPress={() => navigation.navigate('Devices')}>
         <Text style={styles.rowText}>{t('more.devices')}</Text>
+      </Pressable>
+
+      <Pressable style={styles.row} onPress={() => navigation.navigate('Notifications')}>
+        <Text style={styles.rowText}>{t('more.notifications')}</Text>
       </Pressable>
 
       <Pressable
