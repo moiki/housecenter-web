@@ -56,10 +56,17 @@ export interface UserResponse {
 }
 
 export interface SignupRequest {
-  token: string
+  // Backend record is SignupRequest { InvitationToken, ..., Address (required), PhoneNumber?, Country?,
+  // State?, City? } — see HouseCenter.Api Features/Auth/AuthDtos.cs + AuthValidators.cs.
+  invitationToken: string
   firstName: string
   lastName: string
   password: string
+  address: string
+  phoneNumber?: string
+  country?: string
+  state?: string
+  city?: string
   deviceId: string
   deviceName?: string
   platform?: DevicePlatform
