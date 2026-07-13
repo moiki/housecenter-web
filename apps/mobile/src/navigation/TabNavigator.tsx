@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { MoreScreen } from '../screens/more/MoreScreen'
 import { DevicesScreen } from '../screens/more/DevicesScreen'
 import { PatientsStackNavigator } from './PatientsStack'
+import { ConsultationsStackNavigator } from './ConsultationsStack'
 
 const Tab = createBottomTabNavigator()
 const MoreStack = createNativeStackNavigator<MoreStackParamList>()
@@ -28,10 +29,12 @@ function MoreStackNavigator() {
   )
 }
 
-// Two tabs: "Pacientes" (patient browse + progress, R6/D8 — repurposes the former `Home`
-// placeholder now that auth #5 and the patient core hooks exist) + "Más" (device-mgmt, R11).
-// `headerShown: false` on both tab screens avoids a double header bar — each nested stack's own
-// native-stack headers own the chrome for their screens.
+// Three tabs (order: Pacientes / Consultas / More): "Pacientes" (patient browse + progress,
+// R6/D8 — repurposes the former `Home` placeholder now that auth #5 and the patient core hooks
+// exist), "Consultas" (escalate-to-doctor threaded consultations, R2/D2 — 3rd tab added in
+// mobile-consultations PR1), and "Más" (device-mgmt, R11). `headerShown: false` on every tab
+// screen avoids a double header bar — each nested stack's own native-stack headers own the chrome
+// for their screens.
 export function TabNavigator() {
   const { t } = useTranslation()
   return (
@@ -40,6 +43,11 @@ export function TabNavigator() {
         name="Pacientes"
         component={PatientsStackNavigator}
         options={{ title: t('nav.patients'), headerShown: false }}
+      />
+      <Tab.Screen
+        name="Consultas"
+        component={ConsultationsStackNavigator}
+        options={{ title: t('nav.consultations'), headerShown: false }}
       />
       <Tab.Screen
         name="More"

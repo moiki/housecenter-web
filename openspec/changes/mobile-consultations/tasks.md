@@ -41,34 +41,36 @@ apply, split PR2 into **2a** (create screen + escalate button) and **2b** (reply
 
 ## Phase 1: Core schema + Consultas tab + list + thread — PR1
 
-- [ ] 1.1 `packages/core/src/schemas/consultation.schema.ts` — new: `createConsultationSchema`
+- [x] 1.1 `packages/core/src/schemas/consultation.schema.ts` — new: `createConsultationSchema`
       (title/firstMessage/assignedDoctorId all `.trim().min(1)`, `treatmentId: z.null()`) +
       `postMessageSchema` (body `.trim().min(1)`); web's inline schemas untouched (R1)
-- [ ] 1.2 Gate: `pnpm --filter core exec tsc -b` exits 0 (R1)
-- [ ] 1.3 **Mandatory** gate: `pnpm --filter web build` + `pnpm --filter web lint` green — shared
+- [x] 1.2 Gate: `pnpm --filter core exec tsc -b` exits 0 (R1)
+- [x] 1.3 **Mandatory** gate: `pnpm --filter web build` + `pnpm --filter web lint` green — shared
       core regression, non-negotiable since `packages/core` is consumed by web (R1, R10)
-- [ ] 1.4 `apps/mobile/src/navigation/TabNavigator.tsx` — add `ConsultationsStackParamList`,
+- [x] 1.4 `apps/mobile/src/navigation/TabNavigator.tsx` — add `ConsultationsStackParamList`,
       `ConsultationsStackNavigator` (List→Detail), 3rd bottom tab "Consultas" (order:
-      Pacientes/Consultas/More) (R2)
-- [ ] 1.5 `apps/mobile/src/screens/consultations/ConsultationsListScreen.tsx` — new:
+      Pacientes/Consultas/More) (R2) — implemented as a standalone `ConsultationsStack.tsx`
+      (mirrors `PatientsStack.tsx`'s file idiom) rather than inline in `TabNavigator.tsx` like
+      `MoreStack`; `TabNavigator.tsx` imports and wires it. See Deviations.
+- [x] 1.5 `apps/mobile/src/screens/consultations/ConsultationsListScreen.tsx` — new:
       `useConsultations(filters)` (server role-filters, no client re-filter), wrapped in
       `QueryBoundary`/`EmptyState`, row tap → `navigate('ConsultationDetail', {consultationId})`,
       no standalone "+" (R3)
-- [ ] 1.6 `apps/mobile/src/screens/consultations/ConsultationDetailScreen.tsx` — new:
+- [x] 1.6 `apps/mobile/src/screens/consultations/ConsultationDetailScreen.tsx` — new:
       `useConsultationDetail(id)` thread rendered oldest-first (author, timestamp, body); NO
       attachments/thumbs yet — added in PR2 (R4)
-- [ ] 1.7 Same file — compose bar wired to `usePostMessage(id)`, disabled when
+- [x] 1.7 Same file — compose bar wired to `usePostMessage(id)`, disabled when
       `consultation.status === 'Resolved'`; no manual Open/UnderReview control anywhere (R4)
-- [ ] 1.8 Same file — "Marcar resuelta" wired to `useUpdateConsultationStatus(id)` rendered
+- [x] 1.8 Same file — "Marcar resuelta" wired to `useUpdateConsultationStatus(id)` rendered
       ONLY when `useAuthStore().user.id === consultation.assignedDoctorId` (R4, R8 — scoped
       exception, do NOT generalize to other Doctor mobile capabilities)
-- [ ] 1.9 Same file — gate compose-submit and resolve actions on `useOnline()` +
+- [x] 1.9 Same file — gate compose-submit and resolve actions on `useOnline()` +
       `OfflineBanner` (reads still render from persisted cache while offline) (R9)
-- [ ] 1.10 `apps/mobile/src/i18n/locales/es.json` — add `nav.consultations` +
+- [x] 1.10 `apps/mobile/src/i18n/locales/es.json` — add `nav.consultations` +
       `consultations.{title,detailTitle,status.*,empty,messagePlaceholder,send,resolve,
       resolvedHint}`, Spanish-first (R10)
-- [ ] 1.11 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
-      (R2–R4, R8, R9)
+- [x] 1.11 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
+      (R2–R4, R8, R9) — all green, see apply-progress for full output.
 
 **PR1 done when:** core `tsc -b` + web build/lint + mobile `tsc --noEmit`/`expo-doctor`/
 `expo export` all green; code trace confirms "Marcar resuelta" gated on
