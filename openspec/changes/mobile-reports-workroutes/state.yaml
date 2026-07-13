@@ -1,0 +1,90 @@
+change: mobile-reports-workroutes
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # tasks split PR1 -> PR1a/PR1b; High risk if kept single-PR1, ask-on-risk -> STOP before apply
+pr_forecast:
+  PR0: { estimate_lines: "100-130", risk: Low, repo: moiki/housecenter-api }
+  PR1a: { estimate_lines: "245-320", risk: Medium, notes: "core additive (first core touch) + Rutas de trabajo list+detail" }
+  PR1b: { estimate_lines: "100-150", risk: Low, notes: "Ruta del dia; depends on PR1a's useMyCollaboratorProfile()" }
+  PR2: { estimate_lines: "140-190", risk: Low-Medium, notes: "Reportes; depends on PR1a nav pattern only" }
+cross_repo: true   # backend PR0 in moiki/housecenter-api (like #1 device-bound-sessions) + mobile PRs in monorepo
+depends_on: [mobile-patients-progress]   # branch off main (all #1-#9 merged)
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — SDD change #10 of the HouseCenter Mobile plan (9/11 done). Read-only Reports + read-only
+  Work Routes / "Ruta del día" in apps/mobile. CROSS-REPO (like #1): a small backend endpoint unblocks the
+  Member-first "Ruta del día". Branch off main (all #1-#9 merged).
+
+  explore  exploration.md (engram obs #587 — sdd/mobile-reports-workroutes/explore) — HIGH confidence.
+
+  RATIFIED USER DECISIONS (2026-07-13):
+  1. "Ruta del día" resolution -> **backend /collaborators/me FIRST** (email-match server-side; xUnit test;
+     API repo moiki/housecenter-api; strict_tdd:true). Robust vs the client email-heuristic (not 100-clamped;
+     collaborator data stays server-side). Then mobile builds Ruta del día on it.
+  2. UI placement -> **nest Ruta del día + Rutas de trabajo + Reportes under the "Más" tab** (matches #9;
+     avoids a sometimes-empty dedicated tab feeling broken).
+
+  KEY FINDINGS:
+  - CRITICAL GAP: Collaborator (carries workRouteId/clinicId) has NO FK to User (auth account); no
+    /collaborators/me today. Collaborator DOES have an email field -> the new endpoint matches
+    User.Email == Collaborator.Email server-side. Honest empty state if no match.
+  - Recurrence is 100% client-side via core/lib/recurrence.ts expandOccurrences() -> "today's route" =
+    expandOccurrences([route], today, today) with device-local dayjs(). No server routes-for-date query.
+  - "Sessions due today" NOT deliverable server-side (no cross-patient session query) -> reframe to
+    "patients on today's route" = usePatients filtered client-side by workRouteId (Patient.workRouteId exists).
+  - Reports: only summary (UNSCOPED for all roles) + session-period (role-scoped: Member=own) are wired in
+    core. v1 mobile reports = session-period ONLY (port ReportsPage chart; sessionsByCollaborator guard already
+    handles Sponsor/Member). Exclude summary + clinic/work-route reports (unwired, marginal).
+  - Work-routes read = ANY authenticated role incl Member (unversioned route); mutations Admin+. Mobile =
+    list + original read-only detail (stops + Open-in-Maps + recurrence); NO calendar grid v1.
+  - Core touch: ADDITIVE ONLY — collaboratorsApi.getMe() + useMyCollaboratorProfile() (wrapping the new
+    endpoint). Reuse workroutes/recurrence/useSessionPeriodReport unchanged. Web byte-unchanged.
+  - BONUS: AttentionSession.CollaboratorId is actually a User.Id -> resolves #6's open D6 risk (note back to #6).
+
+  SUGGESTED PR SHAPE (cross-repo, stacked):
+  - PR0 [API] GET /collaborators/me (moiki/housecenter-api; email-match; xUnit test; strict_tdd:true) — MERGE
+    FIRST so the API is live for mobile.
+  - PR1 [MONO] core additive getMe()/useMyCollaboratorProfile() + mobile work-routes read-only (list+detail) +
+    Ruta del día (Más-nested). Watch 400-line budget (drop calendar).
+  - PR2 [MONO] mobile reports read-only (session-period, Más-nested).
+
+  strict_tdd: API=true (xUnit), mobile/core=false. Verify: [API] dotnet test; [MONO] core tsc + web build/lint
+  (core additive) + mobile tsc + expo-doctor + expo export. Ruta-del-día runtime + report rendering = Human/EAS
+  smoke (needs a Member whose email matches a Collaborator with a workRouteId).
+
+  NEXT: sdd-propose -> spec -> design -> tasks (auto fast-forward), then Review Workload Guard, then apply
+  (PR0 backend first).
+
+  --- TASKS PHASE (2026-07-13) ---
+  tasks.md (32 tasks, 4 phases) — engram sdd/mobile-reports-workroutes/tasks.
+
+  RESOLVED spec/design conflict: email match for /collaborators/me MUST be case-insensitive (spec
+  R1's intent) — design D1 had picked exact case-sensitive `==` (no prior precedent in the codebase).
+  Resolved via `c.Email.ToLower() == userEmail.ToLower()` (EF -> SQL LOWER()); FirstOrDefaultAsync
+  stays mandatory (no unique index on Collaborator.Email). Added an explicit differently-cased-email
+  xUnit test (task 1.2) to lock this in. PR0 tasks structured RED->GREEN->REFACTOR (strict_tdd:true).
+
+  REVIEW WORKLOAD GUARD TRIPPED: the ratified single-PR1 shape forecasts ~352 lines by terse-sketch
+  math, but mobile-consultations' PR2 (closest precedent: new RN screens+styles+picker) came in 63%
+  over its own estimate (253->412 actual). Applying that inflation risk puts combined PR1 over 400 ->
+  400-line budget risk: High for the single-PR1 shape. RECOMMENDED: split PR1 into PR1a (core wrapper
+  + Rutas de trabajo list+detail, ~245-320 lines) + PR1b (Ruta del día alone, ~100-150 lines, depends
+  on PR1a's useMyCollaboratorProfile()). Final PR shape: PR0 [API] -> PR1a [MONO] -> PR1b [MONO] ->
+  PR2 [MONO] (Reportes, ~140-190 lines, depends only on PR1a's nav pattern — could parallelize with
+  PR1b if the team wants). decision_needed_before_apply: true (delivery_strategy=ask-on-risk) ->
+  ORCHESTRATOR MUST STOP AND ASK before sdd-apply: confirm the 4-way stacked-PR split (or accept
+  size:exception on the original single PR1).
+
+  Directory-path note: followed spec R4/R6/R7's dedicated-folder paths (screens/workroutes/,
+  screens/rutadeldia/, screens/reports/) over design's Target Structure (screens/more/) — spec is
+  the ratified MUST-level source; MoreScreen/TabNavigator stay the nav hub only.
+
+  NEXT: orchestrator resolves the Review Workload Guard decision (stacked 4-PR split vs. size:exception),
+  then sdd-apply PR0 first (merge+deploy gate per D7), then PR1a -> PR1b -> PR2.
