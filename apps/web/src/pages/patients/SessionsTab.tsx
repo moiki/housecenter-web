@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import {
   Box,
   Button,
@@ -28,35 +27,16 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
 import type { AttentionSessionResponse, SessionStatus } from 'core/types/session.types'
+import {
+  createSessionSchema,
+  sessionStatusSchema,
+  type CreateSessionFormData,
+  type SessionStatusFormData,
+} from 'core/schemas/session.schema'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
-const createSchema = z
-  .object({
-    collaboratorId: z.string().min(1, 'Collaborator is required'),
-    attentionType: z.enum(['Medical', 'EducationalReinforcement']),
-    sessionDate: z.string().min(1, 'Date is required'),
-    durationMinutes: z.string().optional(),
-    notes: z.string().optional(),
-    locationMode: z.enum(['clinic', 'workRoute']),
-    clinicId: z.string().optional(),
-    workRouteId: z.string().optional(),
-  })
-  .superRefine((d, ctx) => {
-    if (d.locationMode === 'clinic' && !d.clinicId) {
-      ctx.addIssue({ code: 'custom', path: ['clinicId'], message: 'Clinic is required' })
-    }
-    if (d.locationMode === 'workRoute' && !d.workRouteId) {
-      ctx.addIssue({ code: 'custom', path: ['workRouteId'], message: 'Work route is required' })
-    }
-  })
-type CreateForm = z.infer<typeof createSchema>
-
-const statusSchema = z.object({
-  status: z.enum(['Scheduled', 'Completed', 'Missed']),
-  durationMinutes: z.string().optional(),
-  notes: z.string().optional(),
-})
-type StatusForm = z.infer<typeof statusSchema>
+type CreateForm = CreateSessionFormData
+type StatusForm = SessionStatusFormData
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 type ChipColor = 'default' | 'info' | 'success' | 'error'
@@ -94,7 +74,7 @@ function CreateSessionForm({ formId, onSubmit }: { formId: string; onSubmit: (da
   const { data: workRoutesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
 
   const { control, handleSubmit } = useForm<CreateForm>({
-    resolver: zodResolver(createSchema),
+    resolver: zodResolver(createSessionSchema),
     defaultValues: {
       collaboratorId: '',
       attentionType: 'Medical',
@@ -166,7 +146,7 @@ function StatusPatchForm({
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<StatusForm>({
-    resolver: zodResolver(statusSchema),
+    resolver: zodResolver(sessionStatusSchema),
     defaultValues: {
       status: session.status,
       durationMinutes: session.durationMinutes?.toString() ?? '',

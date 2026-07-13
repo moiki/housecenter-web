@@ -48,13 +48,13 @@ locked in design.md.
 
 ## Phase 1: Core schema hoisting — PR1 (R1–R4)
 
-- [ ] 1.1 Create `packages/core/src/schemas/treatmentDetail.schema.ts` — export `createSchema` (`name`/`description` `min(1)`, `treatmentDate` `min(1)`, `profile` `""→null`), byte-identical move of `TreatmentsTab.tsx`'s `detailSchema` (R1)
-- [ ] 1.2 Create `packages/core/src/schemas/session.schema.ts` — export `createSchema` (`locationMode` discriminator + `superRefine` on `clinicId`/`workRouteId`) + `statusSchema`, byte-identical move of `SessionsTab.tsx:33-59` (R2)
-- [ ] 1.3 Create `packages/core/src/schemas/comment.schema.ts` — export one schema (`body` `min(1)`, `type: Route|Medical|Simple`), de-dupes `TreatmentsTab.tsx`'s `commentSchema` + `CommentsTab.tsx:27-31` (R3)
-- [ ] 1.4 Rewire `apps/web/src/pages/patients/TreatmentsTab.tsx` — drop inline `detailSchema`+`commentSchema`, import both from core; `treatmentSchema` stays inline (R4)
-- [ ] 1.5 Rewire `apps/web/src/pages/patients/SessionsTab.tsx` — drop inline `createSchema`/`statusSchema` (lines 33-59), import from `core/schemas/session.schema` (R4)
-- [ ] 1.6 Rewire `apps/web/src/pages/patients/CommentsTab.tsx` — drop inline `schema` (lines 27-31), import from `core/schemas/comment.schema` (R4)
-- [ ] 1.7 Run `pnpm --filter core exec tsc -b`, `pnpm --filter web build`, `pnpm --filter web lint`, `pnpm -w build` — all green (R1-R4, R14)
+- [x] 1.1 Create `packages/core/src/schemas/treatmentDetail.schema.ts` — export `createSchema` (`name`/`description` `min(1)`, `treatmentDate` `min(1)`, `profile` `""→null`), byte-identical move of `TreatmentsTab.tsx`'s `detailSchema` (R1)
+- [x] 1.2 Create `packages/core/src/schemas/session.schema.ts` — export `createSchema` (`locationMode` discriminator + `superRefine` on `clinicId`/`workRouteId`) + `statusSchema`, byte-identical move of `SessionsTab.tsx:33-59` (R2)
+- [x] 1.3 Create `packages/core/src/schemas/comment.schema.ts` — export one schema (`body` `min(1)`, `type: Route|Medical|Simple`), de-dupes `TreatmentsTab.tsx`'s `commentSchema` + `CommentsTab.tsx:27-31` (R3)
+- [x] 1.4 Rewire `apps/web/src/pages/patients/TreatmentsTab.tsx` — drop inline `detailSchema`+`commentSchema`, import both from core; `treatmentSchema` stays inline (R4)
+- [x] 1.5 Rewire `apps/web/src/pages/patients/SessionsTab.tsx` — drop inline `createSchema`/`statusSchema` (lines 33-59), import from `core/schemas/session.schema` (R4)
+- [x] 1.6 Rewire `apps/web/src/pages/patients/CommentsTab.tsx` — drop inline `schema` (lines 27-31), import from `core/schemas/comment.schema` (R4)
+- [x] 1.7 Run `pnpm --filter core exec tsc -b`, `pnpm --filter web build`, `pnpm --filter web lint`, `pnpm -w build` — all green (R1-R4, R14)
 
 *Parallel: 1.1-1.3 independent of each other; 1.4-1.6 each depend only on their matching 1.1/1.2/1.3 and can run in parallel with each other. 1.7 is sequential, last.*
 
