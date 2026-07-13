@@ -1,0 +1,53 @@
+change: monorepo-workspace-bootstrap
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-12
+phase: verified
+status: verified-ready-for-pr
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
+chain_strategy: stacked-to-main
+chain_slice: 1 of 1
+current_slice: null
+decision_needed_before_apply: false   # single PR, ~100-130 reviewable lines, under 400 budget
+notes: |
+  2026-07-12 — Planning fast-forward (auto) complete. SDD change #2 of the HouseCenter Mobile
+  plan: convert housecenter-web IN-PLACE into a pnpm-workspaces + Turborepo monorepo (git mv web
+  -> apps/web preserving history; placeholder packages/core + apps/mobile). Web behavior unchanged
+  by contract. Master plan: ~/.claude/plans/hola-analiza-los-proyectos-frolicking-puzzle.md.
+  Repo root = housecenter-web/ (the monorepo root); openspec tree lives here.
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 519) — @/* alias survives git mv unedited (vite __dirname,
+             tsconfig baseUrl:"."); node-linker=hoisted de-risks Metro; pnpm 9.15.9 is EOL (keep,
+             upgrade separately); .claude/skills Option A relocation.
+  - propose  proposal.md (engram 520) — 6 positions resolved; recommends SINGLE PR.
+  - spec     spec.md (engram 521) — R1-R10, 11 scenarios, config contracts, verification table.
+  - design   design.md (engram 522) — 8 decisions + migration sequence + config sketches; flagged
+             .turbo->.gitignore, .env is plain mv (untracked), tsconfig leaf edits = hoist-and-trim.
+  - tasks    tasks.md (engram) — Review Workload Forecast: ~100-130 reviewable lines (renames +
+             lockfile excluded), budget risk LOW, chained PRs NO, single PR, 27 tasks / 7 phases.
+
+  Key decisions: node-linker=hoisted; Turborepo 2.10.4 (`tasks` key); tsconfig.base.json hoist;
+  minimal unscoped placeholders web/core/mobile; keep pnpm 9.15.9 (EOL) pinned at root; new root
+  CLAUDE.md pointer; engines node ^20.19||^22.12||>=24.
+
+  Review Workload Guard: chained PRs NOT recommended, decision_needed=false -> no stop before apply.
+
+  2026-07-12 — APPLY complete (single PR, committed locally, not pushed):
+  - docs commit 5be33cc (SDD artifacts + config.yaml).
+  - feat commit d30c994 — 205 renames (git mv web -> apps/web, history preserved) + 9 new
+    (root package.json/pnpm-workspace.yaml/.npmrc/turbo.json/tsconfig.base.json/root CLAUDE.md,
+    placeholders core/mobile) + 5 edits (apps/web package.json name->web/drop packageManager,
+    2 tsconfig extends+trim, .gitignore +.turbo +.vite). 25/27 tasks (2 manual non-blocking).
+  Verified in apply: pnpm install (4 projects), node-linker=hoisted confirmed, pnpm --filter web
+  build green, lint 0 new, pnpm -w build green.
+
+  2026-07-12 — VERIFY complete: PASS WITH WARNINGS (0 CRITICAL, 1 WARNING, 2 SUGGESTION),
+  engram obs 525 + verify-report.md. Independently re-ran all 6 gates green. WARNING: 2 tsconfig
+  leaf files lose git --follow history at default rename threshold (hoist-and-trim >50% same-commit;
+  recoverable via -M30%, accepted tradeoff, auditable, config-only). .vite/ resolved (gitignored).
+
+  NEXT: push branch + open 1 PR (issue-first) on moiki/housecenter-web when user requests
+  (gh: switch to moiki account first). sdd-archive after merge. Then core-extraction (#3).
+  strict_tdd:false. Blocks core-extraction (#3) and mobile-app-foundation (#4).
