@@ -6,5 +6,12 @@
     "offline": "Sin conexión",
     "error": "Ocurrió un error",
     "empty": "No hay datos"
+  },
+  "auth": {
+    "title": "Iniciar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión",
+    "invalidCredentials": "Correo o contraseña incorrectos"
   }
 }

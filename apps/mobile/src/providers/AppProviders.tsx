@@ -7,13 +7,15 @@ import { queryClient } from '../lib/queryClient'
 import { persister } from '../lib/persister'
 import i18n from '../i18n'
 import { initConnectivity } from './connectivity'
+import { AuthBootstrap } from '../components/AuthBootstrap'
 
 // Provider tree per design.md:
 //   SafeAreaProvider
 //   └── PersistQueryClientProvider (client=queryClient, persistOptions={persister, maxAge:24h})
 //       └── I18nextProvider (i18n)
 //           └── NavigationContainer
-//               └── {children}  ← RootNavigator lands in PR3
+//               └── AuthBootstrap (render gate: deviceIdReady && authHydrated && ...)
+//                   └── {children}  ← RootNavigator
 export function AppProviders({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Runs once at bootstrap: NetInfo -> onlineManager, AppState -> focusManager.
@@ -28,7 +30,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
         persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }}
       >
         <I18nextProvider i18n={i18n}>
-          <NavigationContainer>{children}</NavigationContainer>
+          <NavigationContainer>
+            <AuthBootstrap>{children}</AuthBootstrap>
+          </NavigationContainer>
         </I18nextProvider>
       </PersistQueryClientProvider>
     </SafeAreaProvider>
