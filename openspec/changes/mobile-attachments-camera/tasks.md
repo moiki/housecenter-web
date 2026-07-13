@@ -78,8 +78,12 @@ until the core fix lands (same tsc compile unit) — that *dependency* is preser
 
 ## Phase 3 (optional stretch): Treatment-level attachments — PR2 (~10–20 lines)
 
-- [ ] 3.1 `apps/mobile/src/screens/patients/TreatmentsTab.tsx` — nest `<AttachmentsSection ownerType="Treatment" ownerId={treatment.id} />` inside the expanded-treatment section (R12 stretch, D5 reuse)
-- [ ] 3.2 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
+- [x] 3.1 `apps/mobile/src/screens/patients/TreatmentsTab.tsx` — nest `<AttachmentsSection ownerType="Treatment" ownerId={treatment.id} />` inside the expanded-treatment section (R12 stretch, D5 reuse)
+- [x] 3.2 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
 - [ ] 3.3 Human/EAS smoke: attach + view a photo on a treatment row — **needs dev/CI env**
 
 **PR2 done when:** typecheck/doctor/export green; treatment attach+view smoke passes. Only attempt if PR1a+PR1b already landed comfortably under budget on their own (they should — this stretch is a near-zero-code reuse of `AttachmentsSection`).
+
+**PR2 status (2026-07-13 apply batch):** 2/3 tasks complete. Task 3.3 (Human/EAS smoke) is explicitly BLOCKED-ON-ENV — requires a real device + running API at `:5080`, not automatable under `strict_tdd:false`. Not skipped silently; reported as pending in apply-progress. Actual diff: 23 insertions + 2 deletions = 25 changed lines across `TreatmentsTab.tsx` (+22/-1) and `es.json` (+1 net, 3 lines touched) — well under the ~10–20 line estimate's ballpark and the 400-line budget. All automatable gates green: mobile `tsc --noEmit` clean, `expo-doctor` 19/19, `expo export` succeeded twice consecutively with an identical iOS+Android bundle hash (`index-16126492a86ead2eaa52c4ee7803e585.hbc`), confirming deterministic output despite Metro's iOS module-count progress display varying slightly (1126→1118) between runs — a known cold/warm-cache reporter quirk, not a regression (Android held steady at 1202 both times, and both counts already reflect PR1b's `AttachmentsSection` module, which is not double-counted since this batch adds a second usage site of the same module, not a new module). Web build reconfirmed green at 1465 modules, byte-identical to PR1b's report (no core files touched this batch). Code-trace: `grep -rn "AttachmentsSection"` shows exactly 2 usage sites (Patient in PR1b, Treatment in this batch) and zero `AttentionSession` attachment affordance anywhere.
+
+**Implementation status: COMPLETE.** All of PR1a (10/10) + PR1b (6/7, task 2.7 blocked-on-env) + PR2 (2/3, task 3.3 blocked-on-env) are done. 18/20 automatable tasks complete; the only 2 remaining items (2.7, 3.3) are Human/EAS on-device smokes explicitly out of scope for `strict_tdd:false` automated apply — both reported as pending, never fabricated. Ready for `sdd-verify`.

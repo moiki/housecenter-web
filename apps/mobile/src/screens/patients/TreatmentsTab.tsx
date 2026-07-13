@@ -17,6 +17,7 @@ import type { TreatmentResponse, TreatmentStatus } from 'core/types/patient.type
 import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { RHFTextInput, RHFSelect, RHFDateField, type RHFSelectOption } from '../../components/shared/form'
 import { useOnline } from '../../hooks/useOnline'
+import { AttachmentsSection } from '../../components/attachments/AttachmentsSection'
 
 const STATUS_VALUES: TreatmentStatus[] = ['Active', 'Completed', 'Paused']
 const STATUS_BADGE: Record<TreatmentStatus, { bg: string; text: string }> = {
@@ -30,7 +31,9 @@ const COMMENT_TYPES: CommentFormData['type'][] = ['Simple', 'Medical', 'Route']
 // + status patch + an inline create-detail panel + an inline treatment-comment panel per expanded
 // treatment. Every mutation gates on `useOnline()` (D7); reads render from the persisted MMKV
 // cache automatically via #4's `PersistQueryClientProvider` — no special offline branch needed
-// here beyond disabling submit buttons.
+// here beyond disabling submit buttons. A "Fotos" nested section (mobile-attachments-camera PR2,
+// R12 stretch, D5) reuses the owner-agnostic `AttachmentsSection` with `ownerType="Treatment"` —
+// near-zero-code reuse of the component already wired for the Patient Fotos tab in PR1b.
 export function TreatmentsTab({ patientId }: { patientId: string }) {
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
@@ -305,6 +308,16 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
           </View>
         )}
       </View>
+
+      {/* Fotos (mobile-attachments-camera PR2, R12 stretch): reuses the owner-agnostic
+          AttachmentsSection with ownerType="Treatment" — same component instance wired for the
+          Patient Fotos tab in PR1b, no new upload/list/delete logic needed here (D5). */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>{t('treatments.photosLabel')}</Text>
+        <View style={styles.photosPanel}>
+          <AttachmentsSection ownerType="Treatment" ownerId={treatment.id} />
+        </View>
+      </View>
     </View>
   )
 }
@@ -337,6 +350,13 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 10,
     backgroundColor: '#fff',
+  },
+  photosPanel: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   saveBtn: { backgroundColor: '#2563eb', borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
   saveBtnDisabled: { opacity: 0.5 },
