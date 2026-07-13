@@ -13,13 +13,29 @@ export interface LoginRequest {
 export interface RefreshRequest {
   refreshToken: string
   deviceId: string
-  deviceName?: string
-  platform?: DevicePlatform
 }
 
 export interface TokenPairResponse {
   accessToken: string
   refreshToken: string
+}
+
+// Device-bound session management (device-bound-sessions API change). The backend
+// DTO is `SessionResponse` (AuthDtos.cs), but the TS mirror is renamed
+// `DeviceSessionResponse` to disambiguate from the unrelated AttentionSessions
+// domain (`session.types.ts`'s `AttentionSessionResponse` + `useSessions` in
+// `hooks/patients/useSessions.ts`) — both happen to use the word "session".
+export interface DeviceSessionResponse {
+  id: string
+  deviceId: string
+  deviceName?: string | null
+  platform: DevicePlatform
+  lastUsedAt: string
+  createdDate: string
+}
+
+export interface LogoutRequest {
+  deviceId: string
 }
 
 export interface UserResponse {
