@@ -52,17 +52,21 @@ needs dev/CI environment," never faked as passing.
 
 **PR1 done when:** gates 1.10–1.14 pass or are honestly reported as "needs dev/CI env"; `apps/mobile` boots a blank dev-client screen. **All 5 gates ran for real and passed — none were env-blocked.** Native on-device dev-client boot (an actual screen render) was NOT performed — that requires an EAS build or a physical/simulator device run, out of scope for this headless apply environment; `expo export`'s successful bundle is the closest automatable proxy.
 
-## Phase 2: Providers — PR2 (~130–160 lines)
-- [ ] 2.1 `apps/mobile/src/lib/queryClient.ts` — `QueryClient` seeded from `core/lib/queryClient`'s `getDefaultOptions().queries` (`staleTime 30_000`, `retry 1`, `refetchOnWindowFocus false`) + local `gcTime: 24h`; this value-import from `core` is the Metro package-exports resolution proof (Q4) (R2, R3)
-- [ ] 2.2 `apps/mobile/src/lib/mmkv.ts` — encrypted `new MMKV({ id: 'housecenter-cache', encryptionKey })`; `// TODO(#5): source key from expo-secure-store` (R3)
-- [ ] 2.3 `apps/mobile/src/lib/persister.ts` — AsyncStorage-shaped `{getItem,setItem,removeItem}` adapter over `mmkv.ts` → `createAsyncStoragePersister` (R3)
-- [ ] 2.4 `apps/mobile/src/providers/connectivity.ts` — `onlineManager.setEventListener` bridging `@react-native-community/netinfo`; `focusManager.setFocused` bridging RN `AppState` (R4)
-- [ ] 2.5 `apps/mobile/src/i18n/index.ts` + `src/i18n/locales/es.json` — `i18next`+`react-i18next`+`expo-localization` init; `lng`/`fallbackLng: 'es'` (R5)
-- [ ] 2.6 `apps/mobile/src/providers/AppProviders.tsx` — compose `SafeAreaProvider` → `PersistQueryClientProvider` (`persister`, `maxAge: 24h`) → `I18nextProvider` → `NavigationContainer`; `useEffect` runs `initConnectivity()` once (R3, R4, R5)
-- [ ] 2.7 `apps/mobile/App.tsx` — wrap root in `AppProviders` (supersedes PR1's placeholder) (R3)
-- [ ] 2.8 Gate: `tsc --noEmit`; `expo-doctor`; `expo export` (now proves `core` resolves via 2.1's value-import, Q4); `pnpm --filter web build` regression (R2, R10)
+## Phase 2: Providers — PR2 (~130–160 lines) — **COMPLETE (2026-07-13)**
+- [x] 2.1 `apps/mobile/src/lib/queryClient.ts` — `QueryClient` seeded from `core/lib/queryClient`'s `getDefaultOptions().queries` (`staleTime 30_000`, `retry 1`, `refetchOnWindowFocus false`) + local `gcTime: 24h`; this value-import from `core` is the Metro package-exports resolution proof (Q4) (R2, R3)
+- [x] 2.2 `apps/mobile/src/lib/mmkv.ts` — encrypted `new MMKV({ id: 'housecenter-cache', encryptionKey })`; `// TODO(#5): source key from expo-secure-store` (R3)
+- [x] 2.3 `apps/mobile/src/lib/persister.ts` — AsyncStorage-shaped `{getItem,setItem,removeItem}` adapter over `mmkv.ts` → `createAsyncStoragePersister` (R3)
+- [x] 2.4 `apps/mobile/src/providers/connectivity.ts` — `onlineManager.setEventListener` bridging `@react-native-community/netinfo`; `focusManager.setFocused` bridging RN `AppState` (R4)
+- [x] 2.5 `apps/mobile/src/i18n/index.ts` + `src/i18n/locales/es.json` — `i18next`+`react-i18next`+`expo-localization` init; `lng`/`fallbackLng: 'es'` (R5) — es.json seeded with `nav.home`/`common.offline` keys for PR3's TabNavigator/OfflineBanner.
+- [x] 2.6 `apps/mobile/src/providers/AppProviders.tsx` — compose `SafeAreaProvider` → `PersistQueryClientProvider` (`persister`, `maxAge: 24h`) → `I18nextProvider` → `NavigationContainer`; `useEffect` runs `initConnectivity()` once (R3, R4, R5)
+- [x] 2.7 `apps/mobile/App.tsx` — wrap root in `AppProviders` (supersedes PR1's placeholder) (R3)
+- [x] 2.8 Gate: `tsc --noEmit`; `expo-doctor`; `expo export` (now proves `core` resolves via 2.1's value-import, Q4); `pnpm --filter web build` regression (R2, R10) — **all 4 ran for real and PASSED, none env-blocked.**
 
-**PR2 done when:** gates pass (or honestly reported as env-blocked); a dev-harness reload restores a pre-seeded MMKV cache entry before any fetch (query-persister-hydrates scenario — manual/dev-harness check, no automated test runner).
+DEVIATION: `apps/mobile/tsconfig.json` gained `resolveJsonModule: true` (not in design's tsconfig sketch) — required for `i18n/index.ts`'s `import es from './locales/es.json'` to typecheck; no repo tsconfig had this set before (web has no JSON imports).
+
+**PR2 done when:** gates pass (or honestly reported as env-blocked); a dev-harness reload restores a pre-seeded MMKV cache entry before any fetch (query-persister-hydrates scenario — manual/dev-harness check, no automated test runner). **Gates ran; the dev-harness MMKV-reload smoke itself is a manual/on-device check, not automatable headlessly — not performed this batch, consistent with PR1's precedent for on-device-only checks.**
+
+Full detail (line counts, exact gate output, deviation rationale): engram `sdd/mobile-app-foundation/apply-progress` (updated).
 
 ## Phase 3: Navigation Shell + UI Primitives — PR3 (~130–160 lines)
 - [ ] 3.1 `apps/mobile/src/navigation/RootNavigator.tsx` — `native-stack` wrapping `TabNavigator`, `headerShown: false` (R6)

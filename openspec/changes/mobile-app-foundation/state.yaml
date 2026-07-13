@@ -4,10 +4,10 @@ execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
 phase: apply
-status: apply-in-progress-pr1-of-3-complete
+status: apply-in-progress-pr2-of-3-complete
 chain_strategy: stacked-to-main
-chain_slice: PR1 of 3 (Scaffold + workspace wiring) — complete, uncommitted
-current_slice: PR2 (Providers) — not started
+chain_slice: PR2 of 3 (Providers) — complete, uncommitted
+current_slice: PR3 (Navigation shell + UI primitives) — not started
 decision_needed_before_apply: false   # user pre-authorized implementing #4; 3 PRs each under budget
 depends_on: core-extraction   # branch feat/mobile-app-foundation is stacked on feat/core-extraction
 completed_phases: [explore, propose, spec, design, tasks]
@@ -25,8 +25,23 @@ apply_progress: |
   All 5 gates (1.10-1.14) ran for REAL and PASSED — none env-blocked: pnpm install + single-React
   dedup, tsc --noEmit, expo-doctor (19/19), expo export (ios 428 + android 567 modules), pnpm
   --filter web build. Full detail: engram sdd/mobile-app-foundation/apply-progress + tasks.md.
-  NEXT: sdd-apply PR2 (Providers: queryClient/mmkv/persister/connectivity/i18n/AppProviders) — this
-  is also where the genuine core-resolves-through-Metro proof (Q4) completes via 2.1's value import.
+
+  2026-07-13 — PR2 (Providers) apply complete, NOT committed (per instructions). 8/8 tasks done
+  (2.1-2.8). Files created under apps/mobile/src/: lib/{mmkv.ts, persister.ts, queryClient.ts},
+  providers/{connectivity.ts, AppProviders.tsx}, i18n/{index.ts, locales/es.json}. Modified:
+  App.tsx (wraps root in AppProviders), tsconfig.json (+resolveJsonModule:true, DEVIATION — needed
+  for the es.json import, not in design's sketch). No package.json/lockfile changes — all PR2 deps
+  were already installed in PR1. ~129 new lines + 10 net diff lines, well within the ~130-160 forecast.
+  queryClient.ts does a genuine VALUE import of `queryClient` from `core/lib/queryClient` (not just
+  a type) — this is the real Metro package-exports resolution proof (Q4), now confirmed by `expo
+  export` bundling successfully (ios 818 / android 816 modules, up from PR1's 428/567 baseline with
+  no unresolved-module error). All 4 gates (tsc --noEmit, expo-doctor 19/19, expo export, pnpm
+  --filter web build) ran for REAL and PASSED — none env-blocked. `grep -rn "setApiClient\|expo-secure-store"
+  apps/mobile/src` has exactly one hit — a TODO comment in mmkv.ts (per design/tasks' own required
+  annotation), not real auth wiring; attachments.api.ts confirmed zero diff. Full detail: engram
+  sdd/mobile-app-foundation/apply-progress (updated) + tasks.md.
+  NEXT: sdd-apply PR3 (Navigation shell + UI primitives: RootNavigator/TabNavigator,
+  components/shared/{QueryBoundary,OfflineBanner,LoadingState,EmptyState}).
 notes: |
   2026-07-12 — Planning fast-forward (auto) complete. SDD change #4 of the HouseCenter Mobile plan:
   scaffold the Expo React Native app in apps/mobile/ — FOUNDATION only (scaffold+config, nav shell,
