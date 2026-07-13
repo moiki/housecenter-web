@@ -68,6 +68,10 @@ export function MoreScreen() {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
+      <Pressable style={styles.row} onPress={() => navigation.navigate('WorkRoutes')}>
+        <Text style={styles.rowText}>{t('more.workRoutes')}</Text>
+      </Pressable>
+
       <Pressable style={styles.row} onPress={() => navigation.navigate('Devices')}>
         <Text style={styles.rowText}>{t('more.devices')}</Text>
       </Pressable>

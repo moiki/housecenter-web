@@ -21,6 +21,7 @@
   },
   "more": {
     "title": "Más",
+    "workRoutes": "Rutas de trabajo",
     "devices": "Dispositivos",
     "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
@@ -156,6 +157,29 @@
     "deleteConfirm": "¿Seguro que deseas eliminar esta foto? Esta acción no se puede deshacer.",
     "permissionDenied": "No se pudo acceder a la cámara o a la galería. Revisa los permisos de la app en Ajustes.",
     "uploading": "Subiendo… {{percent}}%"
+  },
+  "workRoutes": {
+    "title": "Rutas de trabajo",
+    "detailTitle": "Detalle de la ruta",
+    "today": "Hoy",
+    "emptyList": "No hay rutas de trabajo",
+    "destinationsTitle": "Paradas",
+    "openInMaps": "Abrir en Maps",
+    "recurrence": {
+      "noDays": "Sin días configurados",
+      "from": "Desde {{date}}",
+      "to": "hasta {{date}}",
+      "indefinite": "indefinida"
+    },
+    "weekday": {
+      "Monday": "Lunes",
+      "Tuesday": "Martes",
+      "Wednesday": "Miércoles",
+      "Thursday": "Jueves",
+      "Friday": "Viernes",
+      "Saturday": "Sábado",
+      "Sunday": "Domingo"
+    }
   },
   "consultations": {
     "title": "Consultas",

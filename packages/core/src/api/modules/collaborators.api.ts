@@ -12,6 +12,13 @@ export const collaboratorsApi = {
   getById: (id: string) =>
     getApiClient().get<CollaboratorResponse>(`${BASE}/${id}`).then(r => r.data),
 
+  // Additive (R2, mobile-reports-workroutes PR1a): resolves the authenticated caller's own
+  // Collaborator record via the API's email-match `/collaborators/me`. A 404 (no match) surfaces
+  // as a rejected promise here — no client-side swallowing at this layer, that's the hook's job
+  // (see `useMyCollaboratorProfile` in `hooks/collaborators/useCollaborators.ts`).
+  getMe: () =>
+    getApiClient().get<CollaboratorResponse>(`${BASE}/me`).then(r => r.data),
+
   create: (data: CreateCollaboratorRequest) =>
     getApiClient().post<CollaboratorResponse>(BASE, data).then(r => r.data),
 
