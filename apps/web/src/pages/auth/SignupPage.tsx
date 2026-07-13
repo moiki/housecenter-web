@@ -16,6 +16,7 @@ const schema = z
   .object({
     firstName: z.string().min(1, 'Required').max(100),
     lastName: z.string().min(1, 'Required').max(100),
+    address: z.string().min(1, 'Required').max(500),
     password: z.string().min(8, 'Minimum 8 characters'),
     confirmPassword: z.string(),
   })
@@ -45,15 +46,16 @@ export function SignupPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { firstName: '', lastName: '', password: '', confirmPassword: '' },
+    defaultValues: { firstName: '', lastName: '', address: '', password: '', confirmPassword: '' },
   })
 
   const signup = useMutation({
     mutationFn: (data: FormData) =>
       authApi.signup({
-        token,
+        invitationToken: token,
         firstName: data.firstName,
         lastName: data.lastName,
+        address: data.address,
         password: data.password,
         deviceId: getOrCreateDeviceId(),
         platform: 'Web',
@@ -113,6 +115,8 @@ export function SignupPage() {
           <RHFTextField control={control} name="firstName" label="First name" autoComplete="given-name" />
           <RHFTextField control={control} name="lastName" label="Last name" autoComplete="family-name" />
         </Box>
+
+        <RHFTextField control={control} name="address" label="Address" autoComplete="street-address" />
 
         <RHFTextField control={control} name="password" label="Password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
         <RHFTextField control={control} name="confirmPassword" label="Confirm password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
