@@ -7,7 +7,9 @@
     "offline": "Sin conexión",
     "error": "Ocurrió un error",
     "empty": "No hay datos",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "auth": {
     "title": "Iniciar sesión",
@@ -46,7 +48,6 @@
       "treatments": "Tratamientos",
       "sessions": "Sesiones",
       "comments": "Comentarios",
-      "treatmentsComingSoon": "Los tratamientos estarán disponibles próximamente.",
       "sessionsComingSoon": "Las sesiones estarán disponibles próximamente.",
       "commentsComingSoon": "Los comentarios estarán disponibles próximamente."
     },
@@ -69,5 +70,35 @@
       "Medical": "Médica",
       "EducationalReinforcement": "Refuerzo educativo"
     }
+  },
+  "treatments": {
+    "noTreatments": "Este paciente no tiene tratamientos.",
+    "statusLabel": "Estado",
+    "status": {
+      "Active": "Activo",
+      "Completed": "Completado",
+      "Paused": "Pausado"
+    },
+    "detailsLabel": "Detalles",
+    "addDetail": "Agregar detalle",
+    "detailName": "Nombre",
+    "detailNamePlaceholder": "Nombre del detalle",
+    "detailDate": "Fecha",
+    "detailDescription": "Descripción",
+    "detailDescriptionPlaceholder": "Describe este detalle...",
+    "saveDetail": "Guardar detalle",
+    "noDetails": "Aún no hay detalles registrados.",
+    "commentsLabel": "Comentarios",
+    "addComment": "Agregar comentario",
+    "commentTypeLabel": "Tipo",
+    "commentType": {
+      "Simple": "Simple",
+      "Medical": "Médico",
+      "Route": "Ruta"
+    },
+    "commentBody": "Comentario",
+    "commentBodyPlaceholder": "Escribe tu comentario...",
+    "saveComment": "Publicar comentario",
+    "noComments": "Aún no hay comentarios."
   }
 }
