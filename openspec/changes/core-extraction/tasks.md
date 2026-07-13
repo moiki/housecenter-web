@@ -52,9 +52,9 @@ lines) is well over the single-PR 400-line budget, confirming the 4-way split al
 **PR1 done when:** `pnpm install` + `pnpm --filter core build` + `pnpm --filter web build` + `pnpm --filter web lint` all green; app boots and logs in identically.
 
 ## Phase 2: api modules — PR2 (~120-150 lines)
-- [ ] 2.1 `git mv apps/web/src/api/modules/*.api.ts` (15 files) → `packages/core/src/api/modules/` (R2)
-- [ ] 2.2 Swap each moved module's import `apiClient` from `'@/api/client'` → `getApiClient` from `'core/api/http/registry'`; update call sites to `getApiClient().<verb>(...)` (R4)
-- [ ] 2.3 Migrate ~24 web importers `@/api/modules/x` → `core/api/modules/x` (incl. the 9 convention-drift files) (R2, R10)
+- [x] 2.1 `git mv apps/web/src/api/modules/*.api.ts` (15 files) → `packages/core/src/api/modules/` (R2)
+- [x] 2.2 Swap each moved module's import `apiClient` from `'@/api/client'` → `getApiClient` from `'core/api/http/registry'`; update call sites to `getApiClient().<verb>(...)` (R4)
+- [x] 2.3 Migrate ~24 web importers `@/api/modules/x` → `core/api/modules/x` (incl. the 9 convention-drift files) (R2, R10)
 
 **PR2 done when:** `pnpm --filter web build` + `lint` green; no `@/api/modules` imports remain; `grep -rln "from '@/api/client'" packages/core/src/api/modules` is empty.
 

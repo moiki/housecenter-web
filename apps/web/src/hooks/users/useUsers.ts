@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { usersApi } from '@/api/modules/users.api'
+import { usersApi } from 'core/api/modules/users.api'
 import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
 import type { UpdateUserRequest, AssignRolesRequest } from 'core/types/user.types'
 

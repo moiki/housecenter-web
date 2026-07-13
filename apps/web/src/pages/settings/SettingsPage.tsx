@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Avatar, Box, Chip, Paper, Stack, Switch, Typography } from '@mui/material'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useAuthStore } from '@/store/auth.store'
-import { usersApi } from '@/api/modules/users.api'
+import { usersApi } from 'core/api/modules/users.api'
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (

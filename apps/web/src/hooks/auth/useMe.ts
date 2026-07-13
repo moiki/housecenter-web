@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { authApi } from '@/api/modules/auth.api'
+import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { useEffect } from 'react'
 

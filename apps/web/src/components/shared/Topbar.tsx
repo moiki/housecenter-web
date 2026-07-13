@@ -25,7 +25,7 @@ import DarkModeOutlined from '@mui/icons-material/DarkModeOutlined'
 import LogoutOutlined from '@mui/icons-material/LogoutOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import { useAuthStore } from '@/store/auth.store'
-import { usersApi } from '@/api/modules/users.api'
+import { usersApi } from 'core/api/modules/users.api'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 
 interface Props {

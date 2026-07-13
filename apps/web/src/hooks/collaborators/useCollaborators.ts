@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { collaboratorsApi } from '@/api/modules/collaborators.api'
+import { collaboratorsApi } from 'core/api/modules/collaborators.api'
 import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
 import type { CreateCollaboratorRequest, UpdateCollaboratorRequest } from 'core/types/collaborator.types'
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { notificationsApi } from '@/api/modules/notifications.api'
+import { notificationsApi } from 'core/api/modules/notifications.api'
 
 const POLL_INTERVAL_MS = 60_000
 

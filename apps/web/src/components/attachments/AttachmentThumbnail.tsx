@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Box, Skeleton } from '@mui/material'
 import InsertDriveFileOutlined from '@mui/icons-material/InsertDriveFileOutlined'
-import { attachmentsApi } from '@/api/modules/attachments.api'
+import { attachmentsApi } from 'core/api/modules/attachments.api'
 
 // Images can't use <img src={downloadUrl}> directly — the endpoint requires a Bearer
 // token that a plain <img> tag has no way to send. Fetch the blob through apiClient

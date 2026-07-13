@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Alert, Box, Button, Typography } from '@mui/material'
-import { authApi } from '@/api/modules/auth.api'
+import { authApi } from 'core/api/modules/auth.api'
 import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
 

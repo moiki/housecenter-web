@@ -1,4 +1,4 @@
-import { apiClient } from '@/api/client'
+import { getApiClient } from 'core/api/http/registry'
 import type { PagedResult } from 'core/types/common.types'
 import type {
   AttentionSessionResponse,
@@ -22,12 +22,12 @@ export const sessionsApi = {
       to?: string
     } = {},
   ) =>
-    apiClient
+    getApiClient()
       .get<PagedResult<AttentionSessionResponse>>(base(patientId), { params })
       .then((r) => r.data),
 
   create: (patientId: string, data: CreateAttentionSessionRequest) =>
-    apiClient
+    getApiClient()
       .post<AttentionSessionResponse>(base(patientId), data)
       .then((r) => r.data),
 
@@ -36,10 +36,10 @@ export const sessionsApi = {
     sessionId: string,
     data: UpdateSessionStatusRequest,
   ) =>
-    apiClient
+    getApiClient()
       .patch<AttentionSessionResponse>(`${base(patientId)}/${sessionId}/status`, data)
       .then((r) => r.data),
 
   delete: (patientId: string, sessionId: string) =>
-    apiClient.delete<void>(`${base(patientId)}/${sessionId}`).then((r) => r.data),
+    getApiClient().delete<void>(`${base(patientId)}/${sessionId}`).then((r) => r.data),
 }

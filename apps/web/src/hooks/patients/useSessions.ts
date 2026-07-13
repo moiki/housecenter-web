@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { sessionsApi } from '@/api/modules/sessions.api'
+import { sessionsApi } from 'core/api/modules/sessions.api'
 import type {
   AttentionType,
   SessionStatus,

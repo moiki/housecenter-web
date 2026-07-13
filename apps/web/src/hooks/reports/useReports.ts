@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { reportsApi } from '@/api/modules/reports.api'
+import { reportsApi } from 'core/api/modules/reports.api'
 
 const keys = {
   summary: () => ['reports', 'summary'] as const,
