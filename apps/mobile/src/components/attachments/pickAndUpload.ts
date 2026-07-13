@@ -2,6 +2,10 @@ import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import type { AttachmentPayload } from 'core/types/attachment.types'
 
+// Outcome discriminator so the caller (AttachmentsSection, PR1b) can show a graceful Spanish
+// alert on permission denial (R7) without duplicating the OS permission dance itself.
+export type PickAndUploadResult = 'uploaded' | 'canceled' | 'permission-denied'
+
 // UI-layer helper: pick → ALWAYS manipulate → build the AttachmentPayload. No apiClient/axios
 // import here — this stays a pure RN pick/manipulate helper; the caller passes in the
 // core `useUploadAttachment` mutation object so nothing under apps/mobile touches
@@ -10,18 +14,18 @@ export async function pickAndUpload(
   source: 'camera' | 'library',
   upload: { mutateAsync: (v: { file: AttachmentPayload; onProgress?: (p: number) => void }) => Promise<unknown> },
   onProgress: (p: number | null) => void,
-): Promise<void> {
+): Promise<PickAndUploadResult> {
   const perm =
     source === 'camera'
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync()
-  if (!perm.granted) return // caller shows a Spanish permission-denied alert (PR1b)
+  if (!perm.granted) return 'permission-denied' // caller shows a Spanish permission-denied alert (PR1b)
 
   const res =
     source === 'camera'
       ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 })
       : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 })
-  if (res.canceled) return
+  if (res.canceled) return 'canceled'
 
   // ALWAYS: force JPEG + downscale to ~1600px regardless of source format (D4).
   // (1) HEIC guard — iOS native photos are HEIC, which the API's content-type allowlist
@@ -43,4 +47,5 @@ export async function pickAndUpload(
   } finally {
     onProgress(null)
   }
+  return 'uploaded'
 }
