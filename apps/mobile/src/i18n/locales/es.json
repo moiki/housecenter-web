@@ -1,11 +1,13 @@
 {
   "nav": {
-    "home": "Inicio"
+    "home": "Inicio",
+    "more": "Más"
   },
   "common": {
     "offline": "Sin conexión",
     "error": "Ocurrió un error",
-    "empty": "No hay datos"
+    "empty": "No hay datos",
+    "cancel": "Cancelar"
   },
   "auth": {
     "title": "Iniciar sesión",
@@ -13,5 +15,22 @@
     "password": "Contraseña",
     "submit": "Iniciar sesión",
     "invalidCredentials": "Correo o contraseña incorrectos"
+  },
+  "more": {
+    "title": "Más",
+    "devices": "Dispositivos",
+    "logout": "Cerrar sesión",
+    "logoutConfirmTitle": "Cerrar sesión",
+    "logoutConfirmMessage": "¿Seguro que deseas cerrar sesión en este dispositivo?"
+  },
+  "devices": {
+    "title": "Dispositivos",
+    "thisDevice": "este dispositivo",
+    "revoke": "Revocar",
+    "revokeConfirmTitle": "Revocar dispositivo",
+    "revokeConfirmMessage": "¿Seguro que deseas cerrar la sesión de este dispositivo?",
+    "revokeAll": "Cerrar todas las demás sesiones",
+    "revokeAllConfirmTitle": "Cerrar todas las demás sesiones",
+    "revokeAllConfirmMessage": "¿Seguro que deseas cerrar la sesión en todos los demás dispositivos?"
   }
 }

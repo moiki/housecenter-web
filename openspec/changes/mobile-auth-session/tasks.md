@@ -179,27 +179,27 @@ planned.
 
 ## Phase 3: Device-mgmt "Más" + MMKV migration — PR3 (~220–280 lines)
 
-- [ ] 3.1 `apps/mobile/src/lib/mmkv.ts` — replace the eager top-level `new MMKV({encryptionKey:
+- [x] 3.1 `apps/mobile/src/lib/mmkv.ts` — replace the eager top-level `new MMKV({encryptionKey:
       'dev-cache-key'})` with a memoized `getCacheStorage(): Promise<MMKV>` that resolves/creates the
       `encryptionKey` from SecureStore key `hc_cache_key` (via `Crypto.randomUUID()` if absent) before
       constructing the instance once; add a sync `clearCache()` (`instance?.clearAll()`) for the logout
       PHI wipe — kills the literal `TODO(#5)` (R6)
-- [ ] 3.2 `apps/mobile/src/lib/persister.ts` — adapter methods (`getItem`/`setItem`/`removeItem`)
+- [x] 3.2 `apps/mobile/src/lib/persister.ts` — adapter methods (`getItem`/`setItem`/`removeItem`)
       `await getCacheStorage()` before each MMKV op; adapter shape unchanged (R6)
-- [ ] 3.3 `apps/mobile/src/screens/more/MoreScreen.tsx` — "Más" tab landing/menu screen (entry point
+- [x] 3.3 `apps/mobile/src/screens/more/MoreScreen.tsx` — "Más" tab landing/menu screen (entry point
       routed from `TabNavigator`, links into the device list) (R11)
-- [ ] 3.4 `apps/mobile/src/screens/more/DevicesScreen.tsx` — `useDeviceSessions()` list; highlight the
+- [x] 3.4 `apps/mobile/src/screens/more/DevicesScreen.tsx` — `useDeviceSessions()` list; highlight the
       row where `session.deviceId === getDeviceId()`; per-row revoke → `useRevokeSession().mutate(id)`;
       "Cerrar sesión" → `useLogout().mutateAsync(getDeviceId())` then `clearCache()`
       (`MMKV.clearAll()`) + `queryClient.clear()` (core's `useLogout` already clears the auth store on
       `onSettled`); "Cerrar todas las sesiones" → `useRevokeAllSessions().mutate()` (R11)
-- [ ] 3.5 `apps/mobile/src/navigation/TabNavigator.tsx` — add the "Más" tab, routing to
+- [x] 3.5 `apps/mobile/src/navigation/TabNavigator.tsx` — add the "Más" tab, routing to
       `MoreScreen`/`DevicesScreen` (R11)
-- [ ] 3.6 `apps/mobile/src/i18n/locales/es.json` — add device-mgmt strings ("Más", "Cerrar sesión",
+- [x] 3.6 `apps/mobile/src/i18n/locales/es.json` — add device-mgmt strings ("Más", "Cerrar sesión",
       "Cerrar todas las sesiones", device-row labels, confirm-dialog copy) (R11)
-- [ ] 3.7 Code-trace check: confirm no top-level `new MMKV(...)` remains anywhere in `mmkv.ts` (only
+- [x] 3.7 Code-trace check: confirm no top-level `new MMKV(...)` remains anywhere in `mmkv.ts` (only
       inside the async getter) (R6)
-- [ ] 3.8 `apps/mobile/src/api/client.ts` — once `lib/mmkv.ts` exports `clearCache()` (task 3.1),
+- [x] 3.8 `apps/mobile/src/api/client.ts` — once `lib/mmkv.ts` exports `clearCache()` (task 3.1),
       extend `onRefreshFail` to also call it (`clearCache(); queryClient.clear()`, per design.md's
       code sketch) — PR2 left it as `queryClient.clear()`-only because `clearCache()` didn't exist yet
       (see PR2 status note above) (R6, R7, R8)
@@ -210,6 +210,44 @@ failing checks · `npx expo export` succeeds (**verify `Crypto.randomUUID()` is 
 `device-list`, `revoke-device`, `revoke-all-and-logout` scenarios against a running local API (`:5080`)
 — confirm the MMKV blob is gone after an app-kill post-logout, and that revoking the current device
 correctly results in a self-logout on the next `401` (accepted-by-design, see Notes).
+
+**PR3 status: DONE (2026-07-13).** All 8 tasks implemented; gates green: `pnpm --filter mobile exec
+tsc --noEmit` (exit 0, no output), `npx expo-doctor` (19/19 checks passed), `npx expo export`
+(iOS 982 modules / Android 954 modules — up from PR2's 974/972 — no unresolved-module errors; this
+run is the DIRECT proof Metro resolves `core/hooks/auth/useDeviceSessions` (`useDeviceSessions`,
+`useRevokeSession`, `useRevokeAllSessions`) and `core/hooks/auth/useLogout`, since `MoreScreen.tsx`/
+`DevicesScreen.tsx` are the first PR3 files to import them — the residual risk PR2 flagged but
+couldn't exercise), `pnpm --filter web build` (1462 modules, unchanged from PR1/PR2 — regression
+guard green). One deliberate deviation from this task list's literal 3.4 wording, following the
+current apply-time PR3 scope instructions (which explicitly place "Cerrar sesión" on `MoreScreen`,
+the tab's landing screen, not `DevicesScreen`): `MoreScreen.tsx` hosts the "Cerrar sesión" action
+(`useLogout().mutateAsync(getDeviceId())` then `clearCache()`); `DevicesScreen.tsx` hosts the list,
+per-row revoke, and "Cerrar todas las demás sesiones" (revoke-all) only. This still satisfies R11 —
+the requirement is that the "Más" **tab** (landing + device-list, a single nested stack) supports
+logout/revoke-all, not that one specific sub-screen must host every action. Sizing: final PR3 diff is
+~362 hand-written lines (5 modified files, 106 lines; 2 new screen files, 256 lines) — above the
+~220–280 forecast (driven mostly by the two new screens' RN `StyleSheet` objects + confirm-dialog
+wiring) but still comfortably under the 400-line budget. Did not add a separate `whenCacheReady`
+export in `mmkv.ts` beyond `getCacheStorage()` itself — the function's returned promise already IS
+the readiness signal `persister.ts` awaits, matching `design.md`'s D4 sketch; adding a second export
+for the same signal would be redundant surface, not scope required by tasks.md's task 3.1 wording.
+**Human/EAS smoke — NOT run, reported honestly as needs-dev/CI-env (not fabricated):**
+`device-list`, `revoke-device`, `revoke-all-and-logout` all require a running local API (`:5080`) +
+an EAS dev-client build on a real device/simulator, including confirming the MMKV encrypted cache
+(new SecureStore-sourced key) actually hydrates/restores on a real device — cannot execute headlessly
+in this environment. This is the PENDING human step before PR3 (and the whole `mobile-auth-session`
+change) can be considered fully verified end-to-end.
+
+---
+
+**Change status: ALL 3 PRs (PR1 + PR2 + PR3) implementation-complete.** All 26 tasks (1.1–1.6, 2.1–2.12,
+3.1–3.8) marked `[x]`. Every automated gate (core `tsc -b`, web `build`/`lint`, mobile `tsc --noEmit`,
+`expo-doctor`, `expo export` ×3 runs across PR1/PR2/PR3, `pnpm -w build`) is green. The only remaining
+work is the Human/EAS smoke pass across all three PRs' **(Human/EAS smoke)** scenarios in `spec.md`
+(login-happy, login-401, cold-start-silent-refresh, device-list, revoke-device,
+revoke-all-and-logout) against a running local API (`:5080`) on a real device/dev-client — this
+cannot be executed in this apply environment and is the sole gate before `sdd-verify`/archive should
+consider this change fully done end-to-end.
 
 ---
 
