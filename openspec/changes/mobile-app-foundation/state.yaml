@@ -3,14 +3,25 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
-phase: apply
-status: apply-complete-all-3-prs
+phase: verified
+status: verified-ready-for-pr
 chain_strategy: stacked-to-main
-chain_slice: PR3 of 3 (Navigation shell + UI primitives) — complete, uncommitted
-current_slice: none — implementation complete, ready for sdd-verify
+chain_slice: 3 of 3 (all PRs committed)
+current_slice: none — implementation complete + verified
 decision_needed_before_apply: false   # user pre-authorized implementing #4; 3 PRs each under budget
 depends_on: core-extraction   # branch feat/mobile-app-foundation is stacked on feat/core-extraction
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
+
+verify: |
+  2026-07-13 — VERIFY complete: PASS WITH WARNINGS (0 CRITICAL, 3 WARNING, 3 SUGGESTION),
+  engram obs 540 + verify-report.md. Independently re-ran all gates green; adversarially confirmed
+  R1 (single React@19.2.7 workspace-wide, root pnpm.overrides holds) and R2 (core resolves via
+  Metro — expo export bundles the core value import, 0 unresolved modules). 30/30 tasks, 10/10 R.
+  WARNINGS non-blocking: module counts not reproducible vs apply report (both bundle OK); scenario
+  count doc mismatch (12 vs 13); 5 scenarios have no runtime evidence (headless — recommend a manual
+  EAS on-device boot before feature work). Committed: PR1 82f44f3, PR2 e4782cd, PR3 43e73a2, docs d98d72c.
+  NEXT: open 3 stacked PRs on moiki/housecenter-web (base = feat/core-extraction-pr4 chain). sdd-archive
+  after merge. #5 mobile-auth-session depends on the housecenter-api device-bound-sessions merge/deploy.
 apply_progress: |
   2026-07-13 — PR1 (Scaffold + workspace wiring) apply complete, NOT committed (per instructions).
   14/14 tasks done (1.1-1.14). Files created under apps/mobile/: package.json, index.ts, App.tsx,
