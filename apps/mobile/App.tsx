@@ -1,13 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { AppProviders } from './src/providers/AppProviders'
 
-// PR1 placeholder root. Providers (QueryClient/persister/i18n/connectivity) land in
-// PR2 (`AppProviders`), navigation shell lands in PR3 (`RootNavigator`).
+// PR2: root now renders through AppProviders (QueryClient/persister/i18n/connectivity).
+// The child below is still a placeholder — the real navigator (`RootNavigator`) lands in PR3.
 // Default export is the one exception to the named-export convention — Expo's entry requires it.
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>HouseCenter Mobile</Text>
-    </View>
+    <AppProviders>
+      <View style={styles.container}>
+        <Text>HouseCenter Mobile</Text>
+      </View>
+    </AppProviders>
   )
 }
 

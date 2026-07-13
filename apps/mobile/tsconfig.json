@@ -5,7 +5,8 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "moduleResolution": "bundler",
-    "types": ["expo/types"]
+    "types": ["expo/types"],
+    "resolveJsonModule": true
   },
   "include": ["src", "App.tsx", "app.config.ts", "index.ts"]
 }
