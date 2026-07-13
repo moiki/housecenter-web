@@ -1,0 +1,87 @@
+change: mobile-release-hardening
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: PR1
+current_slice: PR1
+decision_needed_before_apply: false   # set by tasks (Review Workload Forecast) — Low risk both PRs, no guard STOP
+final_change: true   # 11/11 — closes the HouseCenter Mobile plan (code-readiness)
+depends_on: [all]   # branch off main (all #1-#10 merged)
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — SDD change #11 (FINAL) of the HouseCenter Mobile plan (10/11 done). Release hardening for
+  apps/mobile: version/assets/config, a11y audit, i18n audit, PHI-at-rest review, EAS/release runbook.
+  Mostly config + audit + hardening, NOT new features. Branch off main (all #1-#10 merged).
+
+  explore  exploration.md (engram — sdd/mobile-release-hardening/explore) — HIGH confidence.
+
+  SHARP CODE-vs-HUMAN/OPS LINE (the core scoping insight):
+  CODE-ACTIONABLE (headlessly verifiable, in #11):
+  - version 0.0.0 -> 1.0.0 + placeholder icon/splash/adaptiveIcon + app.config wiring + runtimeVersion policy.
+  - a11y sweep: 4 shared form primitives (RHFTextInput/RHFSelect/RHFPickerField/RHFDateField, reused ~8 screens)
+    + 4 top screens (AttachmentsSection/MoreScreen/DevicesScreen/NotificationsScreen). accessibilityLabel/Role +
+    44px touch targets. (Only 1 of 36 files has a11y today.)
+  - expo-screen-capture (~55.0.14) usePreventScreenCapture() app-wide (FLAG_SECURE + iOS screenshot block).
+  - i18n: fix 2 hardcoded stragglers (RHFPickerField.tsx:33 'Seleccionar', RHFDateField.tsx:36 'Seleccionar fecha').
+    es.json otherwise fully consistent. dayjs es-locale = NON-ISSUE (date math only).
+  - PHI-TEARDOWN HARDENING (highest value, 2 REAL gaps):
+    (a) AuthBootstrap.tsx:34-44 cold-start silent-refresh failure calls bare logout() but NOT clearCache() -> add it.
+    (b) expo-image disk+memory cache (AuthedImage.tsx, patient/consultation photos) never cleared on logout ->
+        add Image.clearMemoryCache()/clearDiskCache() at ALL 3 teardown sites (MoreScreen, api/client onRefreshFail,
+        AuthBootstrap).
+  - DOCS: PHI-at-rest audit + EAS release runbook.
+  ALREADY SOUND (no fix): MMKV cache encrypted w/ SecureStore-sourced key (mmkv.ts:20-33); tokens/deviceId/
+  pushToken in SecureStore only; no PHI/token in logs; clearCache wired on 2/3 teardown paths.
+
+  OUT (Human/EAS/design/ops — runbook, NOT attempted): real branded artwork + store screenshots; EAS credentials
+  (Apple Developer + ASC API key, Google Play service account); actual eas build/submit; device QA on real
+  iOS 15.1/Android 7; store listings; populate submit.production. Plus accumulated #5-#10 Human/EAS smokes +
+  deployed API (incl /collaborators/me + Push:CredentialsJson).
+
+  IMPORTANT FRAMING: "#11 done" = CODE-READINESS, not an actual store release. The real ship is a Human/ops
+  milestone beyond this repo (captured in the runbook).
+
+  SUGGESTED PR SHAPE (stacked): PR1 code hardening (version + placeholder assets + config + a11y sweep +
+  expo-screen-capture + i18n 2-fix + PHI-teardown across 3 files; ~150-250 lines, likely <400) + PR2 docs
+  (PHI-at-rest audit + EAS release runbook; could fold into PR1 if small).
+
+  strict_tdd:false. Verify: core tsc (likely untouched) + web build/lint (unaffected) + mobile tsc + expo-doctor
+  + expo export. FLAG_SECURE/a11y/real-build = Human/EAS smoke.
+
+  propose  proposal.md (openspec/changes/mobile-release-hardening/proposal.md — also engram
+  sdd/mobile-release-hardening/proposal) — ratified the exploration's recommended positions as-is,
+  no re-opening. PR1 code hardening (PHI-teardown + screen-capture + a11y sweep + i18n fix +
+  version/assets/config, recommend one shared teardown helper in apps/mobile lib, packages/core
+  untouched, apps/web unaffected) + PR2 docs (PHI-at-rest audit + EAS release runbook). Explicit
+  framing carried into the proposal: #11 = CODE-READINESS, store shipping = Human/ops milestone.
+
+  NEXT: sdd-spec -> design -> tasks (auto fast-forward), then Review Workload Guard, then apply.
+
+  spec  spec.md (openspec/changes/mobile-release-hardening/spec.md) — R1-R8, 12 scenarios (8
+  headless/code-trace/grep/build, 4 Human/EAS smoke). Release runbook section enumerates the
+  Human/ops items out of scope.
+
+  design  design.md (openspec/changes/mobile-release-hardening/design.md) — D1-D7 + CRITICAL IMPL
+  NOTES. Shared `apps/mobile/src/lib/teardown.ts` `clearAllLocalData()` wired at 3 sites incl. the
+  AuthBootstrap gap; `usePreventScreenCapture()` at AppProviders root; a11y recipe reusing existing
+  strings across 4 RHF primitives + 4 screens; i18n `common.select`/`common.selectDate` via RHF
+  wrappers' own `useTranslation()`; version 1.0.0 + valid placeholder PNGs via a dependency-free
+  generation script + `expo-splash-screen` plugin (not the legacy top-level `splash` key) +
+  `runtimeVersion:{policy:'appVersion'}`; docs under `apps/mobile/docs/`. PR1 [code, ~18 files] ->
+  PR2 [docs].
+
+  tasks  tasks.md (openspec/changes/mobile-release-hardening/tasks.md — also engram
+  sdd/mobile-release-hardening/tasks) — 22 tasks total: Phase 1/PR1 = 19 tasks (teardown wiring x3
+  sites + screen-capture + 8-file a11y sweep + 2-file i18n fix + es.json + PNG generation + app.config
+  + verify); Phase 2/PR2 = 3 tasks (2 docs + verify). Review Workload Forecast: PR1 ~150-280 lines,
+  PR2 ~90-160 lines, both Low risk — kept PR1 as a single PR (no further split of security+config
+  vs. a11y+i18n; the design D7 fallback split was NOT needed). decision_needed_before_apply: No —
+  Review Workload Guard should NOT stop before apply under ask-on-risk; the existing PR1->PR2
+  stacked-to-main sequence is architecture-driven (code vs docs), not a risk-mitigation split.
+
+  NEXT: sdd-apply (PR1 first, then PR2 after PR1 merges — PR2's audit doc documents PR1's shipped
+  teardown coverage).
