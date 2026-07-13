@@ -107,44 +107,44 @@ should only refresh the device list, not wipe the whole app cache.
 
 ## Phase 2: Mobile auth wiring — PR2 (~300–370 lines)
 
-- [ ] 2.1 `apps/mobile/package.json` — add `expo-secure-store`, `expo-crypto`, explicit `axios`
+- [x] 2.1 `apps/mobile/package.json` — add `expo-secure-store`, `expo-crypto`, explicit `axios`
       (+ optional `expo-device` for `deviceName`); `pnpm install` (lockfile diff excluded from the
       review budget) (R4, R5, R10)
-- [ ] 2.2 `apps/mobile/src/lib/secureStore.ts` — async `AuthStorage` adapter (`getItem`/`setItem`/
+- [x] 2.2 `apps/mobile/src/lib/secureStore.ts` — async `AuthStorage` adapter (`getItem`/`setItem`/
       `removeItem`) over `SecureStore.{getItemAsync,setItemAsync,deleteItemAsync}`, injected into
       `createAuthStore` (R4)
-- [ ] 2.3 `apps/mobile/src/lib/deviceId.ts` — `initDeviceId(): Promise<void>` (read-or-create via
+- [x] 2.3 `apps/mobile/src/lib/deviceId.ts` — `initDeviceId(): Promise<void>` (read-or-create via
       `Crypto.randomUUID()` under SecureStore key `hc_device_id`, cached in a module var; key is
       **separate** from the refresh-token key so it survives logout), sync `getDeviceId(): string`
       (throws if called before `initDeviceId()` resolves), `whenDeviceIdReady()` (R5)
-- [ ] 2.4 `apps/mobile/src/store/auth.store.ts` — `useAuthStore = createAuthStore({storage:
+- [x] 2.4 `apps/mobile/src/store/auth.store.ts` — `useAuthStore = createAuthStore({storage:
       secureStoreAuthStorage})` + `setAuthStore(useAuthStore)` (1:1 mirror of web's
       `store/auth.store.ts`) (R4, R7)
-- [ ] 2.5 `apps/mobile/src/api/client.ts` — `tokenStore: TokenStore` derived from the mobile auth store
+- [x] 2.5 `apps/mobile/src/api/client.ts` — `tokenStore: TokenStore` derived from the mobile auth store
       instance (`getAccessToken`/`getRefreshToken`/`setTokens`/`clear`); `createApiClient({baseURL:
       EXPO_PUBLIC_API_URL, tokenStore, deviceIdProvider: getDeviceId, onRefreshFail})` + `setApiClient`
       (`onRefreshFail` = clear cache + `queryClient.clear()` — nav flip to Login is automatic via R9's
       conditional screens, no navigation ref needed) (R7, R8)
-- [ ] 2.6 `apps/mobile/src/bootstrap.ts` — side-effect import order: `./store/auth.store` (runs
+- [x] 2.6 `apps/mobile/src/bootstrap.ts` — side-effect import order: `./store/auth.store` (runs
       `setAuthStore`) → `./api/client` (runs `setApiClient`) → call `initDeviceId()` (R7)
-- [ ] 2.7 `apps/mobile/index.ts` — import `./src/bootstrap` **first**, before `App`, mirroring web's
+- [x] 2.7 `apps/mobile/index.ts` — import `./src/bootstrap` **first**, before `App`, mirroring web's
       `main.tsx:1` (R7)
-- [ ] 2.8 `apps/mobile/src/components/AuthBootstrap.tsx` — render gate: `ready = deviceIdReady &&
+- [x] 2.8 `apps/mobile/src/components/AuthBootstrap.tsx` — render gate: `ready = deviceIdReady &&
       authHydrated && (!needsSilentRefresh || refreshAttempted)`; on `needsSilentRefresh`, call
       `/auth/refresh` → `setTokens` → `/auth/me` → `setAuth`, `.catch(() => logout())`,
       `.finally(() => setRefreshAttempted(true))`; render `ActivityIndicator` while `!ready` (R7, R8)
-- [ ] 2.9 `apps/mobile/src/providers/AppProviders.tsx` — mount `<AuthBootstrap>` wrapping
+- [x] 2.9 `apps/mobile/src/providers/AppProviders.tsx` — mount `<AuthBootstrap>` wrapping
       `NavigationContainer`/`RootNavigator` (R7)
-- [ ] 2.10 `apps/mobile/src/navigation/RootNavigator.tsx` — replace the unconditional `Tabs` screen
+- [x] 2.10 `apps/mobile/src/navigation/RootNavigator.tsx` — replace the unconditional `Tabs` screen
       with React Navigation v7 conditional screens: `<Stack.Screen name="Login">` when `user == null`,
       else `<Stack.Screen name="Tabs">`, reading `user` from `useAuthStore` (R9)
-- [ ] 2.11 `apps/mobile/src/screens/auth/LoginScreen.tsx` — Spanish login form; `onSubmit`:
+- [x] 2.11 `apps/mobile/src/screens/auth/LoginScreen.tsx` — Spanish login form; `onSubmit`:
       `authApi.login({email, password, deviceId: getDeviceId(), platform, deviceName})` →
       `useAuthStore.getState().setTokens(...)` (**before** `/auth/me`) → `authApi.me()` →
       `useAuthStore.getState().setAuth(...)`; `platform` explicit from `Platform.OS`
       (`'ios' → 'iOS'`, else `'Android'`); on `isApiError(err) && err.status === 401` show
       "Correo o contraseña incorrectos" (no `ApiError` widening); other errors → generic message (R10)
-- [ ] 2.12 `apps/mobile/src/i18n/locales/es.json` — add auth strings (`auth.invalidCredentials`, email/
+- [x] 2.12 `apps/mobile/src/i18n/locales/es.json` — add auth strings (`auth.invalidCredentials`, email/
       password labels, submit button, generic error) (R10)
 
 **PR2 done when:** `pnpm --filter mobile exec tsc --noEmit` exits 0 · `npx expo-doctor` (in
@@ -153,6 +153,29 @@ new `hooks/auth/*` here** — see Notes) · `pnpm --filter web build` stays gree
 regression check). All of the above are automated. **Human/EAS smoke (needs dev/CI env — apply reports
 "needs dev/CI env", not pass/fail):** `login-happy`, `login-401`, `cold-start-silent-refresh`,
 `cold-start-no-token` scenarios against a running local API (`:5080`).
+
+**PR2 status: DONE (2026-07-13).** All 12 tasks implemented; gates green: `pnpm --filter mobile exec
+tsc --noEmit` (exit 0), `npx expo-doctor` (19/19 checks passed), `npx expo export` (974 iOS / 972
+Android modules bundled, no unresolved-module errors), `pnpm --filter web build` + `pnpm --filter web
+lint` (both green, no regression from the new mobile deps). Deviations from the literal design.md
+sketch (both intentional, both grounded in the real mobile foundation code, not scope creep):
+(1) `api/client.ts`'s `baseURL` reads `env.API_BASE_URL` from the **already-existing**
+`src/config/env.ts` (sourced from `app.config.ts`'s `extra.API_BASE_URL` via `expo-constants`) rather
+than design's sketch literal `process.env.EXPO_PUBLIC_API_URL!` — the mobile foundation (pre-#5) had
+already built the `expo-constants`-based env plumbing for exactly this purpose (see `env.ts`'s own
+comment: "read at runtime via expo-constants"), so wiring to the existing seam is correct, not a
+regression. (2) `onRefreshFail` calls `queryClient.clear()` only, NOT `clearCache()` — `lib/mmkv.ts`
+doesn't export a `clearCache()` function yet in this PR (that lands with the MMKV migration in PR3);
+calling a not-yet-existing function would break `tsc`. PR3 will extend `onRefreshFail` to also call
+`clearCache()` once it exists (tracked as a PR3 follow-up below).
+**Residual risk carried to PR3:** the Notes section's flagged risk ("Metro resolving core's new
+`hooks/auth/*`") is **not directly exercised by PR2** — no PR2 file imports
+`useDeviceSessions`/`useRevokeSession`/`useRevokeAllSessions`/`useLogout` (those are consumed by PR3's
+`DevicesScreen`). `expo export` in this PR DID prove the same `unstable_enablePackageExports` raw-TS
+wildcard mechanism resolves other core subpaths this PR newly consumes (`core/auth/createAuthStore`,
+`core/auth/registry`, `core/auth/storage`), which is strong positive evidence but not a direct proof
+for the `hooks/auth/*` subpath specifically — re-verify at PR3's `expo export` gate as originally
+planned.
 
 ## Phase 3: Device-mgmt "Más" + MMKV migration — PR3 (~220–280 lines)
 
@@ -176,6 +199,10 @@ regression check). All of the above are automated. **Human/EAS smoke (needs dev/
       "Cerrar todas las sesiones", device-row labels, confirm-dialog copy) (R11)
 - [ ] 3.7 Code-trace check: confirm no top-level `new MMKV(...)` remains anywhere in `mmkv.ts` (only
       inside the async getter) (R6)
+- [ ] 3.8 `apps/mobile/src/api/client.ts` — once `lib/mmkv.ts` exports `clearCache()` (task 3.1),
+      extend `onRefreshFail` to also call it (`clearCache(); queryClient.clear()`, per design.md's
+      code sketch) — PR2 left it as `queryClient.clear()`-only because `clearCache()` didn't exist yet
+      (see PR2 status note above) (R6, R7, R8)
 
 **PR3 done when:** `pnpm --filter mobile exec tsc --noEmit` exits 0 · `npx expo-doctor` reports no
 failing checks · `npx expo export` succeeds (**verify `Crypto.randomUUID()` is an accepted MMKV

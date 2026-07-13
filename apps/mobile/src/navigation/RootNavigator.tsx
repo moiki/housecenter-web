@@ -1,15 +1,25 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { TabNavigator } from './TabNavigator'
+import { LoginScreen } from '../screens/auth/LoginScreen'
+import { useAuthStore } from '../store/auth.store'
 
 const Stack = createNativeStackNavigator()
 
-// Root native-stack per design.md's nav shell sketch (native-stack -> bottom-tabs). A single
-// "Tabs" route wraps the whole tab bar for now; the real public/authenticated stack split lands
-// once auth exists (#5). headerShown:false — the tab bar owns its own chrome.
+// React Navigation v7 conditional screens (design.md D6): the rendered screen SET changes
+// with auth state — `Login` while `user == null`, else `Tabs`. This is the documented v7
+// idiom for auth flows: switching the screen set auto-resets navigation history and
+// animates, so login/logout flip the nav for free — no imperative `navigation.reset()`
+// call to forget. headerShown:false — the tab bar/screens own their own chrome.
 export function RootNavigator() {
+  const user = useAuthStore((s) => s.user)
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Tabs" component={TabNavigator} />
+      {user == null ? (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      ) : (
+        <Stack.Screen name="Tabs" component={TabNavigator} />
+      )}
     </Stack.Navigator>
   )
 }

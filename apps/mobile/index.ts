@@ -1,3 +1,7 @@
+// Side-effect wiring MUST be imported first, before App — mirrors apps/web/src/main.tsx:1.
+// Runs setAuthStore() -> setApiClient() -> initDeviceId() (see src/bootstrap.ts).
+import './src/bootstrap'
+
 import { registerRootComponent } from 'expo'
 
 import App from './App'
