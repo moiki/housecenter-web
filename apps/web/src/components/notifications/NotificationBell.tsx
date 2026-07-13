@@ -7,7 +7,7 @@ import {
   useUnreadCount,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
-} from '@/hooks/notifications/useNotifications'
+} from 'core/hooks/notifications/useNotifications'
 import type { NotificationResponse } from 'core/types/notification.types'
 
 // Only reference types with a standalone detail route can be deep-linked to;

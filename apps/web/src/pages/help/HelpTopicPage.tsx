@@ -3,7 +3,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { Box, Button, Paper, Skeleton, Stack, Typography } from '@mui/material'
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import Markdown from 'markdown-to-jsx'
-import { useHelpTopic } from '@/hooks/help/useHelpTopics'
+import { useHelpTopic } from 'core/hooks/help/useHelpTopics'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 export function HelpTopicPage() {

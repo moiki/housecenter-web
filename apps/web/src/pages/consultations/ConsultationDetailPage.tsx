@@ -21,7 +21,7 @@ import {
   useConsultationDetail,
   usePostMessage,
   useUpdateConsultationStatus,
-} from '@/hooks/consultations/useConsultations'
+} from 'core/hooks/consultations/useConsultations'
 import { useAuthStore } from '@/store/auth.store'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFRichText } from '@/components/shared/form'

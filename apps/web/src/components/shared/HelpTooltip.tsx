@@ -2,7 +2,7 @@ import { useId, useState, type KeyboardEvent, type MouseEvent, type ReactNode } 
 import { Link as RouterLink } from 'react-router-dom'
 import { Box, IconButton, Link, Popover, Typography } from '@mui/material'
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
-import { useHelpTopics } from '@/hooks/help/useHelpTopics'
+import { useHelpTopics } from 'core/hooks/help/useHelpTopics'
 
 interface Props {
   topicKey: string

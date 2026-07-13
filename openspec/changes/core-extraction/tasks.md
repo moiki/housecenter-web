@@ -59,15 +59,16 @@ lines) is well over the single-PR 400-line budget, confirming the 4-way split al
 **PR2 done when:** `pnpm --filter web build` + `lint` green; no `@/api/modules` imports remain; `grep -rln "from '@/api/client'" packages/core/src/api/modules` is empty.
 
 ## Phase 3: hooks + hydration redesign — PR3 (~180-220 lines, highest risk)
-- [ ] 3.1 `git mv` the 13 feature hook folders `apps/web/src/hooks/<feature>/*` → `packages/core/src/hooks/<feature>/` (R2)
-- [ ] 3.2 Split `useMe`: `core/src/hooks/auth/useMe.ts` becomes a pure query hook reading `getAuthStore()`, no DOM reference (R6, R7)
-- [ ] 3.3 Consolidate the dark-mode DOM effect into `apps/web/src/components/guards/AuthBootstrap.tsx` (single effect keyed on `user?.darkMode`) (R7)
-- [ ] 3.4 Finalize `authHydrated` tri-state gate: `AuthBootstrap.tsx` renders on `authHydrated` instead of `!!accessToken || !refreshToken` (R6)
-- [ ] 3.5 Migrate ~22 hook importers `@/hooks/<feature>/x` → `core/hooks/<feature>/x` (R2, R10)
-- [ ] 3.6 Manual smoke: hard reload while authenticated → silent refresh, no `/login` bounce (R6, R10)
-- [ ] 3.7 Manual smoke: logged-out first paint → no spinner flash, straight to `/login` (R6, R10)
+- [x] 3.1 `git mv` the 13 feature hook folders `apps/web/src/hooks/<feature>/*` → `packages/core/src/hooks/<feature>/` (R2)
+- [x] 3.2 Split `useMe`: `core/src/hooks/auth/useMe.ts` becomes a pure query hook reading `getAuthStore()`, no DOM reference (R6, R7)
+- [x] 3.3 Consolidate the dark-mode DOM effect into `apps/web/src/components/guards/AuthBootstrap.tsx` (single effect keyed on `user?.darkMode`) (R7)
+- [x] 3.4 Finalize `authHydrated` tri-state gate: `AuthBootstrap.tsx` renders on `authHydrated` instead of `!!accessToken || !refreshToken` (R6) — implemented as a derived `ready` value (not a sketch-literal `useState(authHydrated && (...))`) to avoid a real `react-hooks/set-state-in-effect` ESLint error; see apply-progress for the exact deviation + equivalence proof.
+- [x] 3.5 Migrate ~22 hook importers `@/hooks/<feature>/x` → `core/hooks/<feature>/x` (R2, R10)
+- [ ] 3.6 Manual smoke: hard reload while authenticated → silent refresh, no `/login` bounce (R6, R10) — NOT DONE, requires a running API + logged-in session; cannot be exercised headlessly. Static hydration proof done instead (see apply-progress). REMAINING HUMAN VERIFICATION STEP.
+- [ ] 3.7 Manual smoke: logged-out first paint → no spinner flash, straight to `/login` (R6, R10) — NOT DONE, same reason as 3.6. REMAINING HUMAN VERIFICATION STEP.
 
 **PR3 done when:** build + lint green, both manual smokes pass, `grep -rl "document\.\|window\." packages/core/src/hooks` is empty.
+Build/lint/grep are green (see apply-progress for exact output). Manual smokes 3.6/3.7 are the one remaining human step before PR3 can be considered fully done.
 
 ## Phase 4: schemas + deviceId + cleanup — PR4 (~150-180 lines)
 - [ ] 4.1 `git mv apps/web/src/schemas/*.ts` (4 files) → `packages/core/src/schemas/` (R2)

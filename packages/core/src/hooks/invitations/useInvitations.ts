@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { invitationsApi } from 'core/api/modules/invitations.api'
 import type { CreateInvitationRequest } from 'core/types/invitation.types'
-import { userKeys } from '@/hooks/users/useUsers'
+import { userKeys } from 'core/hooks/users/useUsers'
 
 export const invitationKeys = {
   all: ['invitations'] as const,

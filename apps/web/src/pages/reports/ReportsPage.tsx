@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, Chip, Paper, Skeleton, Stack, Typography } from '@mui/material'
-import { useSessionPeriodReport } from '@/hooks/reports/useReports'
+import { useSessionPeriodReport } from 'core/hooks/reports/useReports'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SessionsBarChart } from '@/components/shared/SessionsBarChart'
 

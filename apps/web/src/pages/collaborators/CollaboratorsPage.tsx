@@ -30,9 +30,9 @@ import {
   useCreateCollaborator,
   useUpdateCollaborator,
   useDeactivateCollaborator,
-} from '@/hooks/collaborators/useCollaborators'
-import { useClinics } from '@/hooks/clinics/useClinics'
-import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
+} from 'core/hooks/collaborators/useCollaborators'
+import { useClinics } from 'core/hooks/clinics/useClinics'
+import { useWorkRoutes } from 'core/hooks/workroutes/useWorkRoutes'
 import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
