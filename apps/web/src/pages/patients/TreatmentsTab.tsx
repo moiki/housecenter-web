@@ -42,6 +42,8 @@ import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFTextField, RHFSelect, RHFDatePicker, RHFRichText } from '@/components/shared/form'
 import type { TreatmentResponse, TreatmentDetailResponse, TreatmentCommentResponse } from 'core/types/patient.types'
+import { treatmentDetailSchema, type TreatmentDetailFormData } from 'core/schemas/treatmentDetail.schema'
+import { commentSchema, type CommentFormData } from 'core/schemas/comment.schema'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const treatmentSchema = z.object({
@@ -54,19 +56,8 @@ const treatmentSchema = z.object({
 })
 type TreatmentForm = z.infer<typeof treatmentSchema>
 
-const detailSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  treatmentDate: z.string().min(1),
-  profile: z.string().url().nullable().or(z.literal('')).transform((v) => v || null),
-})
-type DetailForm = z.infer<typeof detailSchema>
-
-const commentSchema = z.object({
-  body: z.string().min(1, 'Comment is required'),
-  type: z.enum(['Route', 'Medical', 'Simple']),
-})
-type CommentForm = z.infer<typeof commentSchema>
+type DetailForm = TreatmentDetailFormData
+type CommentForm = CommentFormData
 
 // ── Options & colors ───────────────────────────────────────────────────────────
 type ChipColor = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
@@ -171,7 +162,7 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
   const [commentToDelete, setCommentToDelete] = useState<TreatmentCommentResponse | null>(null)
 
   const detailForm = useForm<DetailForm>({
-    resolver: zodResolver(detailSchema),
+    resolver: zodResolver(treatmentDetailSchema),
     defaultValues: { name: '', description: '', treatmentDate: '', profile: null },
   })
   const commentForm = useForm<CommentForm>({

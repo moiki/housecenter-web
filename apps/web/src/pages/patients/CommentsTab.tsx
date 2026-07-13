@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Box, Button, Chip, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material'
 import AddOutlined from '@mui/icons-material/AddOutlined'
 import CloseOutlined from '@mui/icons-material/CloseOutlined'
@@ -13,6 +12,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFRichText, RHFSelect } from '@/components/shared/form'
 import type { PatientCommentDto } from 'core/types/patient.types'
+import { commentSchema, type CommentFormData } from 'core/schemas/comment.schema'
 
 const COMMENT_TYPE_OPTIONS = [
   { value: 'Simple', label: 'Simple' },
@@ -24,11 +24,7 @@ type ChipColor = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error
 const TYPE_COLOR: Record<string, ChipColor> = { Simple: 'default', Medical: 'info', Route: 'primary' }
 const STATUS_COLOR: Record<string, ChipColor> = { Pending: 'warning', Accepted: 'success', Rejected: 'error' }
 
-const schema = z.object({
-  body: z.string().min(1, 'Comment is required'),
-  type: z.enum(['Route', 'Medical', 'Simple']),
-})
-type FormData = z.infer<typeof schema>
+type FormData = CommentFormData
 
 export function CommentsTab({ patientId }: { patientId: string }) {
   const { data: summary } = usePatientFullSummary(patientId)
@@ -44,7 +40,7 @@ export function CommentsTab({ patientId }: { patientId: string }) {
     reset,
     formState: { isSubmitting },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(commentSchema),
     defaultValues: { body: '', type: 'Simple' },
   })
 
