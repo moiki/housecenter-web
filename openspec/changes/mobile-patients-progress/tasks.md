@@ -64,18 +64,18 @@ locked in design.md.
 
 ## Phase 2: Mobile deps + Pacientes tab + list + detail shell — PR2 (R5–R8)
 
-- [ ] 2.1 `apps/mobile/package.json` — add `react-hook-form ^7.79.0`, `@hookform/resolvers ^5.4.0`; `npx expo install @react-native-community/datetimepicker` (R5)
-- [ ] 2.2 Create `apps/mobile/src/components/shared/form/RHFTextInput.tsx` — Controller-wrapped `TextInput` + error text (D4)
-- [ ] 2.3 Create `apps/mobile/src/components/shared/form/RHFSelect.tsx` — Controller-wrapped Pressable-pill group for small enums (D4)
-- [ ] 2.4 Create `apps/mobile/src/components/shared/form/RHFPickerField.tsx` — Controller-wrapped `Modal`+`FlatList` picker for large lists (clinics/work routes) (D4)
-- [ ] 2.5 Create `apps/mobile/src/components/shared/form/RHFDateField.tsx` — Controller-wrapped datetimepicker, `mode="date"|"datetime"`, string↔ISO on submit (D5)
-- [ ] 2.6 Modify `apps/mobile/src/navigation/TabNavigator.tsx` — rename `Home`→`Pacientes`, mount `PatientsStackNavigator`, `headerShown:false` on the tab (R6, D8)
-- [ ] 2.7 Create `apps/mobile/src/navigation/PatientsStack.tsx` — native-stack `PatientsList`→`PatientDetail` (+ `CreateSession` typed in `PatientsStackParamList`, screen wired in PR4) (R6, D8)
-- [ ] 2.8 Create `apps/mobile/src/screens/patients/PatientsListScreen.tsx` — `usePatients(page)` + `FlatList` + client-side search + `QueryBoundary`/`LoadingState`/`EmptyState`; no create/edit/deactivate control (R7)
-- [ ] 2.9 Create `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — `usePatientFullSummary(id)` + custom segmented control (local `useState<TabId>`, 4 tabs) (R8)
-- [ ] 2.10 Create `apps/mobile/src/screens/patients/OverviewTab.tsx` — read-only summary fields; `assignedDoctors` NOT rendered (R8)
-- [ ] 2.11 Modify `apps/mobile/src/i18n/locales/es.json` — add `patients` namespace (list/search/detail/tab labels) (R14, D9)
-- [ ] 2.12 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`, `pnpm --filter web build` — all green (R5-R8, R14)
+- [x] 2.1 `apps/mobile/package.json` — add `react-hook-form ^7.79.0`, `@hookform/resolvers ^5.4.0`; `npx expo install @react-native-community/datetimepicker` (R5)
+- [x] 2.2 Create `apps/mobile/src/components/shared/form/RHFTextInput.tsx` — Controller-wrapped `TextInput` + error text (D4)
+- [x] 2.3 Create `apps/mobile/src/components/shared/form/RHFSelect.tsx` — Controller-wrapped Pressable-pill group for small enums (D4)
+- [x] 2.4 Create `apps/mobile/src/components/shared/form/RHFPickerField.tsx` — Controller-wrapped `Modal`+`FlatList` picker for large lists (clinics/work routes) (D4)
+- [x] 2.5 Create `apps/mobile/src/components/shared/form/RHFDateField.tsx` — Controller-wrapped datetimepicker, `mode="date"|"datetime"`, string↔ISO on submit (D5)
+- [x] 2.6 Modify `apps/mobile/src/navigation/TabNavigator.tsx` — rename `Home`→`Pacientes`, mount `PatientsStackNavigator`, `headerShown:false` on the tab (R6, D8)
+- [x] 2.7 Create `apps/mobile/src/navigation/PatientsStack.tsx` — native-stack `PatientsList`→`PatientDetail` (+ `CreateSession` typed in `PatientsStackParamList`, screen wired in PR4) (R6, D8)
+- [x] 2.8 Create `apps/mobile/src/screens/patients/PatientsListScreen.tsx` — `usePatients(page)` + `FlatList` + client-side search + `QueryBoundary`/`LoadingState`/`EmptyState`; no create/edit/deactivate control (R7)
+- [x] 2.9 Create `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — `usePatientFullSummary(id)` + custom segmented control (local `useState<TabId>`, 4 tabs) (R8)
+- [x] 2.10 Create `apps/mobile/src/screens/patients/OverviewTab.tsx` — read-only summary fields; `assignedDoctors` NOT rendered (R8)
+- [x] 2.11 Modify `apps/mobile/src/i18n/locales/es.json` — add `patients` namespace (list/search/detail/tab labels) (R14, D9)
+- [x] 2.12 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`, `pnpm --filter web build` — all green (R5-R8, R14)
 
 *Parallel: 2.2-2.5 (wrappers) independent of each other and of 2.6-2.7 (nav); 2.8-2.10 need 2.7's `PatientsStackParamList` first, then can proceed in parallel. 2.11 independent throughout. 2.1 and 2.12 are the sequential entry/exit points.*
 

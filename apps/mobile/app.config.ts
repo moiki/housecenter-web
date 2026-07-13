@@ -16,7 +16,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // New Architecture is now mandatory (not an opt-in toggle); setting it is a tsc error.
   ios: { bundleIdentifier: 'net.housecenter.mobile' }, // SDK-55 default floor: iOS 15.1
   android: { package: 'net.housecenter.mobile' }, // minSdk 24 — verified via expo-doctor (see apply-progress)
-  plugins: ['expo-localization'],
+  // @react-native-community/datetimepicker (D5, R5/R9/R10) needs its config plugin registered so
+  // `expo prebuild`/EAS builds link the native picker module.
+  plugins: ['expo-localization', '@react-native-community/datetimepicker'],
   extra: {
     // read at runtime via expo-constants (src/config/env.ts)
     API_BASE_URL,

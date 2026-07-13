@@ -1,6 +1,6 @@
 {
   "nav": {
-    "home": "Inicio",
+    "patients": "Pacientes",
     "more": "Más"
   },
   "common": {
@@ -32,5 +32,42 @@
     "revokeAll": "Cerrar todas las demás sesiones",
     "revokeAllConfirmTitle": "Cerrar todas las demás sesiones",
     "revokeAllConfirmMessage": "¿Seguro que deseas cerrar la sesión en todos los demás dispositivos?"
+  },
+  "patients": {
+    "title": "Pacientes",
+    "detailTitle": "Detalle del paciente",
+    "list": {
+      "searchPlaceholder": "Buscar paciente...",
+      "clinicBadge": "Clínica",
+      "routeBadge": "Ruta"
+    },
+    "tab": {
+      "overview": "Resumen",
+      "treatments": "Tratamientos",
+      "sessions": "Sesiones",
+      "comments": "Comentarios",
+      "treatmentsComingSoon": "Los tratamientos estarán disponibles próximamente.",
+      "sessionsComingSoon": "Las sesiones estarán disponibles próximamente.",
+      "commentsComingSoon": "Los comentarios estarán disponibles próximamente."
+    },
+    "overview": {
+      "fullName": "Nombre completo",
+      "age": "Edad",
+      "ageValue": "{{age}} años",
+      "gender": "Género",
+      "birthDate": "Fecha de nacimiento",
+      "address": "Dirección",
+      "location": "País / Ciudad",
+      "attentionType": "Tipo de atención",
+      "description": "Descripción"
+    },
+    "gender": {
+      "Male": "Masculino",
+      "Female": "Femenino"
+    },
+    "attentionType": {
+      "Medical": "Médica",
+      "EducationalReinforcement": "Refuerzo educativo"
+    }
   }
 }
