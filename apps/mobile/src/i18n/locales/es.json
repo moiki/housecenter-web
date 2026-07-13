@@ -3,6 +3,8 @@
     "home": "Inicio"
   },
   "common": {
-    "offline": "Sin conexión"
+    "offline": "Sin conexión",
+    "error": "Ocurrió un error",
+    "empty": "No hay datos"
   }
 }
