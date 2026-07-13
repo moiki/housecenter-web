@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import type { RouteProp } from '@react-navigation/native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { usePatientFullSummary } from 'core/hooks/patients/usePatients'
 import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { OfflineBanner } from '../../components/shared/OfflineBanner'
@@ -22,18 +22,21 @@ const TABS: { id: TabId; labelKey: string }[] = [
   { id: 'photos', labelKey: 'patients.tab.photos' },
 ]
 
-interface PatientDetailScreenProps {
-  route: RouteProp<PatientsStackParamList, 'PatientDetail'>
-}
+type Props = NativeStackScreenProps<PatientsStackParamList, 'PatientDetail'>
 
-// PatientDetailScreen (R8, D3): a custom segmented control (local `useState<TabId>` + Pressable
-// pills) over Overview/Treatments/Sessions/Comments/Fotos — no `material-top-tabs`/`pager-view`
-// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. All four original tabs
-// render real content as of PR4 (`OverviewTab`, `TreatmentsTab`, `SessionsTab`, `CommentsTab`) —
-// the PR2/PR3 `ComingSoonPanel` placeholder for Sessions/Comments has been fully replaced. The 5th
-// "Fotos" tab (mobile-attachments-camera PR1b, R12, D6) wires the reusable
-// `AttachmentsSection` with `ownerType="Patient"`.
-export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
+// PatientDetailScreen (R5, R7, R8, D2/D3/D5): a custom segmented control (local `useState<TabId>`
+// + Pressable pills) over Overview/Treatments/Sessions/Comments/Fotos — no
+// `material-top-tabs`/`pager-view` dependency (rejected in D3). Mirrors web's `activeTab`
+// `useState` idiom. All four original tabs render real content as of PR4 (`OverviewTab`,
+// `TreatmentsTab`, `SessionsTab`, `CommentsTab`). The 5th "Fotos" tab (mobile-attachments-camera
+// PR1b, R12, D6) wires the reusable `AttachmentsSection` with `ownerType="Patient"`.
+// PR2 (R5, R7, D2) adds a persistent "Escalar a Doctor" button above the active tab's content ->
+// `navigate('CreateConsultation', { patientId })`; shown unconditionally (no client-side
+// collaborator gate — D7) but disabled with a Spanish hint when
+// `summary.assignedDoctors.length === 0` (D5). Switched this screen's props from a route-only
+// shape to `NativeStackScreenProps` solely to obtain `navigation` for that button — no other
+// behavior change.
+export function PatientDetailScreen({ route, navigation }: Props) {
   const { patientId } = route.params
   const { t } = useTranslation()
   const [tab, setTab] = useState<TabId>('overview')
@@ -54,15 +57,26 @@ export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
         ))}
       </View>
       <QueryBoundary isLoading={isLoading} isError={isError} data={data}>
-        {(summary) => (
-          <View style={styles.panel}>
-            {tab === 'overview' && <OverviewTab summary={summary} />}
-            {tab === 'treatments' && <TreatmentsTab patientId={patientId} />}
-            {tab === 'sessions' && <SessionsTab patientId={patientId} />}
-            {tab === 'comments' && <CommentsTab patientId={patientId} comments={summary.comments} />}
-            {tab === 'photos' && <AttachmentsSection ownerType="Patient" ownerId={patientId} />}
-          </View>
-        )}
+        {(summary) => {
+          const canEscalate = summary.assignedDoctors.length > 0
+          return (
+            <View style={styles.panel}>
+              <Pressable
+                disabled={!canEscalate}
+                onPress={() => navigation.navigate('CreateConsultation', { patientId })}
+                style={[styles.escalateBtn, !canEscalate && styles.escalateBtnDisabled]}
+              >
+                <Text style={styles.escalateBtnText}>{t('consultations.escalate')}</Text>
+              </Pressable>
+              {!canEscalate && <Text style={styles.escalateHint}>{t('consultations.noDoctors')}</Text>}
+              {tab === 'overview' && <OverviewTab summary={summary} />}
+              {tab === 'treatments' && <TreatmentsTab patientId={patientId} />}
+              {tab === 'sessions' && <SessionsTab patientId={patientId} />}
+              {tab === 'comments' && <CommentsTab patientId={patientId} comments={summary.comments} />}
+              {tab === 'photos' && <AttachmentsSection ownerType="Patient" ownerId={patientId} />}
+            </View>
+          )
+        }}
       </QueryBoundary>
     </View>
   )
@@ -89,4 +103,21 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 13, color: '#374151' },
   pillTextActive: { fontSize: 13, color: '#fff', fontWeight: '600' },
   panel: { flex: 1 },
+  escalateBtn: {
+    backgroundColor: '#16a34a',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  escalateBtnDisabled: { opacity: 0.5 },
+  escalateBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  escalateHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 6,
+    marginHorizontal: 16,
+  },
 })
