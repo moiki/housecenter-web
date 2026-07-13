@@ -8,15 +8,21 @@ import { persister } from '../lib/persister'
 import i18n from '../i18n'
 import { initConnectivity } from './connectivity'
 import { AuthBootstrap } from '../components/AuthBootstrap'
+import { PushBootstrap } from '../components/PushBootstrap'
 import { navigationRef } from '../navigation/navigationRef'
 
 // Provider tree per design.md:
 //   SafeAreaProvider
 //   └── PersistQueryClientProvider (client=queryClient, persistOptions={persister, maxAge:24h})
 //       └── I18nextProvider (i18n)
-//           └── NavigationContainer (ref={navigationRef}, PR2a — inert until PR2b wires a caller)
-//               └── AuthBootstrap (render gate: deviceIdReady && authHydrated && ...)
-//                   └── {children}  ← RootNavigator
+//           └── NavigationContainer (ref={navigationRef})
+//               ├── AuthBootstrap (render gate: deviceIdReady && authHydrated && ...)
+//               │   └── {children}  ← RootNavigator
+//               └── PushBootstrap (PR2b, D2 — non-visual, self-gated on user != null)
+// `PushBootstrap` MUST be mounted AFTER `AuthBootstrap` in JSX order, not before — its cold-start
+// one-shot effect (design.md D4) checks `navigationRef.isReady()`, and React commits a sibling's
+// effects in JSX order, so `AuthBootstrap`'s subtree (RootNavigator -> the Tab/Stack navigators
+// that flip `isReady()` true) commits before `PushBootstrap`'s own effects run.
 export function AppProviders({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Runs once at bootstrap: NetInfo -> onlineManager, AppState -> focusManager.
@@ -33,6 +39,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <I18nextProvider i18n={i18n}>
           <NavigationContainer ref={navigationRef}>
             <AuthBootstrap>{children}</AuthBootstrap>
+            <PushBootstrap />
           </NavigationContainer>
         </I18nextProvider>
       </PersistQueryClientProvider>

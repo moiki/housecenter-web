@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useLogout } from 'core/hooks/auth/useLogout'
+import { useUnsubscribePush } from 'core/hooks/notifications/usePushSubscription'
 import { useAuthStore } from '../../store/auth.store'
 import { getDeviceId } from '../../lib/deviceId'
 import { clearCache } from '../../lib/mmkv'
+import { clearCachedPushToken, getCachedPushToken } from '../../lib/pushToken'
 import type { MoreStackParamList } from '../../navigation/TabNavigator'
 
 // "Más" tab landing/menu screen (R11): a profile stub, a link into the device list
@@ -18,11 +20,26 @@ export function MoreScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>()
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
+  const unsubscribePush = useUnsubscribePush()
   const [loggingOut, setLoggingOut] = useState(false)
 
   async function onLogout() {
     setLoggingOut(true)
     try {
+      // Push unsubscribe MUST fire and be awaited BEFORE logout.mutateAsync() (design.md D3,
+      // CRITICAL IMPL NOTE #2): useLogout's `onSettled` clears `accessToken` the instant the
+      // mutation settles, so this is the last point the token is guaranteed authenticated.
+      // Best-effort — swallow errors, never block logout on a flaky push-cleanup call (backend
+      // dead-token pruning is the accepted safety net).
+      const token = await getCachedPushToken()
+      if (token) {
+        try {
+          await unsubscribePush.mutateAsync(token)
+        } catch {
+          // best-effort, swallow
+        }
+        await clearCachedPushToken()
+      }
       // Layer 1 (core, `onSettled` — runs even if the API call fails offline): revokes this
       // device's session server-side, clears the auth store, drops the in-memory query cache.
       await logout.mutateAsync(getDeviceId())

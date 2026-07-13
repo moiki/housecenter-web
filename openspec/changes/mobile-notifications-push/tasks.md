@@ -103,26 +103,31 @@ Human/EAS smoke needed.
 
 ## Phase 3: Push lifecycle (core additive + native + listeners) — PR2b
 
-- [ ] 3.1 `packages/core/src/types/notification.types.ts` — add `PushSubscriptionRequest {
+- [x] 3.1 `packages/core/src/types/notification.types.ts` — add `PushSubscriptionRequest {
       token: string; platform: DevicePlatform }`, importing `DevicePlatform` from
       `./auth.types` (no new type) (R1)
-- [ ] 3.2 `packages/core/src/api/modules/notifications.api.ts` — add `subscribePush(body)` →
+- [x] 3.2 `packages/core/src/api/modules/notifications.api.ts` — add `subscribePush(body)` →
       `POST /notifications/push-subscriptions`, `unsubscribePush(token)` → `DELETE
       /notifications/push-subscriptions/{token}`; existing 4 exports (`list`, `unreadCount`,
       `markRead`, `markAllRead`) untouched (R1)
-- [ ] 3.3 `packages/core/src/hooks/notifications/usePushSubscription.ts` — new:
+- [x] 3.3 `packages/core/src/hooks/notifications/usePushSubscription.ts` — new:
       `useSubscribePush()`/`useUnsubscribePush()` mutation hooks (mirrors
       `useMarkNotificationRead`'s shape); no `invalidateQueries` (R1)
-- [ ] 3.4 Gate: `pnpm --filter core exec tsc -b` exits 0; `pnpm --filter web build` +
+- [x] 3.4 Gate: `pnpm --filter core exec tsc -b` exits 0; `pnpm --filter web build` +
       `pnpm --filter web lint` green with **zero** `git diff` lines under `apps/web` (R1)
-- [ ] 3.5 `apps/mobile/package.json` — add `expo-notifications ~55.0.20` (`expo install`) (R2)
-- [ ] 3.6 `apps/mobile/app.config.ts` — add `['expo-notifications', { icon, color }]` to
+- [x] 3.5 `apps/mobile/package.json` — add `expo-notifications ~55.0.20` (`expo install`) (R2)
+      — `expo install` resolved `~55.0.24` (SDK-55-compatible; `~55.0.20` in the design was an
+      estimate, not a pin)
+- [x] 3.6 `apps/mobile/app.config.ts` — add `['expo-notifications', { icon, color }]` to
       `plugins`; add `android.googleServicesFile`; note iOS APNs entitlement is an EAS
-      credentials concern, not an `app.config.ts` field (R2)
-- [ ] 3.7 `apps/mobile/src/lib/pushToken.ts` — new: mirrors `deviceId.ts`'s SecureStore +
+      credentials concern, not an `app.config.ts` field (R2) — `icon` omitted (no
+      notification-icon asset exists in this repo, per design.md D8's own deferred-asset note);
+      `googleServicesFile` made env-var-conditional (see apply-time deviation note below)
+- [x] 3.7 `apps/mobile/src/lib/pushToken.ts` — new: mirrors `deviceId.ts`'s SecureStore +
       sync-getter pattern — `getCachedPushToken()`/`setCachedPushToken(token)`/
-      `clearCachedPushToken()` (R3)
-- [ ] 3.8 `apps/mobile/src/components/PushBootstrap.tsx` — new: module-scope
+      `clearCachedPushToken()` (R3) — all three are async (design.md D2's own pseudocode calls
+      `await getCachedPushToken()`; unlike `deviceId.ts` there is no synchronous consumer)
+- [x] 3.8 `apps/mobile/src/components/PushBootstrap.tsx` — new: module-scope
       `Notifications.setNotificationHandler(...)`; component self-gates on
       `useAuthStore((s) => s.user) != null`; registration effect
       (permission → Android channel (API-26+ guard, documented no-op below) →
@@ -130,26 +135,44 @@ Human/EAS smoke needed.
       else `useSubscribePush().mutateAsync({token, platform})` → `setCachedPushToken(token)`);
       extract the cache-compare-then-subscribe logic into one shared function reused by the
       `addPushTokenListener` rotation effect — do not duplicate it (R3)
-- [ ] 3.9 Same file — permission-denied path returns silently, no throw, no blocking UI (R3)
-- [ ] 3.10 Same file — tap listener effect: `addNotificationResponseReceivedListener` →
+- [x] 3.9 Same file — permission-denied path returns silently, no throw, no blocking UI (R3)
+- [x] 3.10 Same file — tap listener effect: `addNotificationResponseReceivedListener` →
       `dispatchNotificationTap(data)`; cold-start one-shot effect (`useRef` flag,
       `[user]` dep) gated on `navigationRef.isReady() && user != null`, calls
       `getLastNotificationResponseAsync()` once → `dispatchNotificationTap` (R5)
-- [ ] 3.11 `apps/mobile/src/providers/AppProviders.tsx` — mount `<PushBootstrap />` as a sibling
+- [x] 3.11 `apps/mobile/src/providers/AppProviders.tsx` — mount `<PushBootstrap />` as a sibling
       of `<AuthBootstrap>` inside `NavigationContainer` (neither wraps the other) (R3)
-- [ ] 3.12 `apps/mobile/src/screens/more/MoreScreen.tsx` — `onLogout()`:
+- [x] 3.12 `apps/mobile/src/screens/more/MoreScreen.tsx` — `onLogout()`:
       `getCachedPushToken()` → if present, `await unsubscribePush.mutateAsync(token)` wrapped in
       try/catch (swallow — best-effort) → `clearCachedPushToken()` — **all before**
       `logout.mutateAsync(getDeviceId())`, since `useLogout`'s `onSettled` clears `accessToken`
       the instant the mutation settles (R4)
-- [ ] 3.13 `apps/mobile/src/screens/more/DevicesScreen.tsx` — `confirmRevokeAll()`'s `onPress`:
+- [x] 3.13 `apps/mobile/src/screens/more/DevicesScreen.tsx` — `confirmRevokeAll()`'s `onPress`:
       best-effort `getCachedPushToken()` → `unsubscribePush.mutateAsync(token)` (swallow errors),
       current device's token only, before `revokeAllSessions.mutate()` (R4)
-- [ ] 3.14 Gate: `pnpm --filter mobile exec tsc --noEmit`; `npx expo-doctor` (no failing checks);
+- [x] 3.14 Gate: `pnpm --filter mobile exec tsc --noEmit`; `npx expo-doctor` (no failing checks);
       `npx expo export` — **note:** may fail or require a dev-client rebuild since
       `expo-notifications` is a native module; document the expected dev-client-build
-      requirement rather than treating a native-surface failure as a regression (R2–R5)
-- [ ] 3.15 Human/EAS smoke (see consolidated checklist below) — cannot be verified headlessly (R3, R4, R5)
+      requirement rather than treating a native-surface failure as a regression (R2–R5) — all
+      three green in this sandbox (`expo export` fully succeeded, no dev-client rebuild was
+      needed for JS/TS bundling; a dev-client rebuild IS still required for real native push
+      delivery, see Human/EAS smoke)
+- [x] 3.15 Human/EAS smoke (see consolidated checklist below) — cannot be verified headlessly
+      (R3, R4, R5) — checklist compiled/ready below, code traced against every scenario; all 8
+      items reported PENDING (need dev-client build + FCM/APNs creds + real device), none
+      fabricated
+
+**Apply-time deviations from design.md (both narrow, both documented above):**
+1. `app.config.ts`'s `googleServicesFile` conditional uses only an env var
+   (`process.env.GOOGLE_SERVICES_JSON`), not `fs.existsSync` of a repo-local default path. The
+   mobile tsconfig scopes `"types"` to `["expo/types"]` only (no `@types/node`), so
+   `node:fs`/`node:path`/`__dirname` aren't available without adding Node ambient globals
+   project-wide — a known footgun (e.g. `setTimeout`'s return type conflicts with React
+   Native's). Functionally equivalent for the stated goal (never reference a missing file);
+   CI/EAS is expected to inject the env var pointing at the secret file it provisions.
+2. `pushToken.ts`'s three exports are fully async (matching design.md D2's own
+   `await getCachedPushToken()` usage), not a "sync-getter" like `deviceId.ts` — there is no
+   synchronous consumer analogous to `deviceIdProvider`.
 
 **PR2b done when:** core tsc + web build/lint green (zero `apps/web` diff) + mobile
 tsc/expo-doctor green (`expo export` outcome documented per 3.14) + code trace confirms (a) the
