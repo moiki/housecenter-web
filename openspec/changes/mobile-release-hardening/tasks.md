@@ -125,14 +125,14 @@ files, zero `'Seleccionar'`/`'Seleccionar fecha'` literals outside `es.json`, an
 
 > Depends on PR1 merged — the audit doc documents PR1's teardown coverage as already-shipped.
 
-- [ ] 2.1 `apps/mobile/docs/phi-at-rest-audit.md` — new: (1) what's encrypted/where (MMKV
+- [x] 2.1 `apps/mobile/docs/phi-at-rest-audit.md` — new: (1) what's encrypted/where (MMKV
       query-cache blob, SecureStore-backed encryption key, tokens/deviceId/pushToken SecureStore-
       only); (2) teardown coverage after PR1 — the 3 sites now uniformly wired through
       `clearAllLocalData()`, including the `expo-image` disk/memory cache gap this change closes;
       (3) the new `FLAG_SECURE`/iOS screenshot-block addition; (4) residual risks (no OTA/patch
       channel yet, `Image.clearDiskCache()` failure is best-effort/swallowed, a11y sweep is scoped
       not exhaustive) — explicit verdict per PHI category (R6)
-- [ ] 2.2 `apps/mobile/docs/eas-release-runbook.md` — new: enumerate every remaining Human/ops
+- [x] 2.2 `apps/mobile/docs/eas-release-runbook.md` — new: enumerate every remaining Human/ops
       step — real branded icon/splash/adaptiveIcon artwork + store screenshots (design); EAS
       credentials (Apple Developer account + ASC API key; Google Play service account); `eas build
       --profile production` + `eas submit` (iOS + Android); populate `submit.production` in
@@ -141,7 +141,7 @@ files, zero `'Seleccionar'`/`'Seleccionar fecha'` literals outside `es.json`, an
       FCM credential); the accumulated Human/EAS device smokes from changes #5-#10; plus this
       change's own screenshot-block + a11y (VoiceOver/TalkBack) + large-font + real-build smokes
       (R6)
-- [ ] 2.3 Verify PR2: both docs exist under `apps/mobile/docs/`; the runbook's enumerated items
+- [x] 2.3 Verify PR2: both docs exist under `apps/mobile/docs/`; the runbook's enumerated items
       match the spec's **Release runbook** section 1:1; `git diff --stat` shows only the 2 new doc
       files (no code touched, no build impact) (R6, R7)
 
