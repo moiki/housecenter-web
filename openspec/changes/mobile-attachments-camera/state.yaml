@@ -3,14 +3,14 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-13
-phase: tasks
-status: planning-complete
+phase: verified
+status: verified-ready-for-pr
 chain_strategy: stacked-to-main
 chain_slice: null
 current_slice: null
 decision_needed_before_apply: true   # budget HIGH; PR1 splits into PR1a/PR1b + optional PR2
 depends_on: [mobile-patients-progress]   # branch feat/mobile-attachments-camera stacked on feat/mobile-patients-progress
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
 notes: |
   2026-07-13 — Planning fast-forward (auto) complete. SDD change #7 of the HouseCenter Mobile plan:
   photo capture/attach in apps/mobile (pick -> HEIC->JPEG + downscale -> multipart upload w/ progress

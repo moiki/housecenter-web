@@ -98,7 +98,8 @@
     "commentBody": "Comentario",
     "commentBodyPlaceholder": "Escribe tu comentario...",
     "saveComment": "Publicar comentario",
-    "noComments": "Aún no hay comentarios."
+    "noComments": "Aún no hay comentarios.",
+    "photosLabel": "Fotos del tratamiento"
   },
   "sessions": {
     "noSessions": "Este paciente no tiene sesiones registradas.",
