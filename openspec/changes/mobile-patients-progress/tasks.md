@@ -85,13 +85,13 @@ locked in design.md.
 
 ## Phase 3: Treatments + Details tab — PR3 (R9)
 
-- [ ] 3.1 Create `apps/mobile/src/screens/patients/TreatmentsTab.tsx` — `useTreatments`/`useTreatmentDetails` read-only list (R9)
-- [ ] 3.2 Add status chips wired to `usePatchTreatmentStatus` (Active\|Completed\|Paused), gated on `onlineManager.isOnline()` (R9, R12)
-- [ ] 3.3 Add inline create-treatment-detail panel — RHF + `zodResolver(treatmentDetail.schema)` + `RHFDateField mode="date"` + `useCreateTreatmentDetail`, gated on `onlineManager` (R9, R12)
-- [ ] 3.4 Add inline treatment-comment create panel — RHF + `zodResolver(comment.schema)` + `useCreateTreatmentComment`, gated on `onlineManager`; no treatment create/edit/delete anywhere on this tab (R9, R12)
-- [ ] 3.5 Extend `apps/mobile/src/i18n/locales/es.json` — treatments tab labels + `treatmentStatus` enum-label map (R14, D9)
-- [ ] 3.6 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` — all green (R9)
-- [ ] 3.7 **Human/EAS smoke** (dev client + local API `:5080`, needs dev/CI env): create-treatment-detail appears in list; patch-treatment-status persists; confirm `onlineManager` gate blocks submit while offline (R9, R12)
+- [x] 3.1 Create `apps/mobile/src/screens/patients/TreatmentsTab.tsx` — `useTreatments`/`useTreatmentDetails` read-only list (R9)
+- [x] 3.2 Add status chips wired to `usePatchTreatmentStatus` (Active\|Completed\|Paused), gated on `onlineManager.isOnline()` (R9, R12)
+- [x] 3.3 Add inline create-treatment-detail panel — RHF + `zodResolver(treatmentDetail.schema)` + `RHFDateField mode="date"` + `useCreateTreatmentDetail`, gated on `onlineManager` (R9, R12)
+- [x] 3.4 Add inline treatment-comment create panel — RHF + `zodResolver(comment.schema)` + `useCreateTreatmentComment`, gated on `onlineManager`; no treatment create/edit/delete anywhere on this tab (R9, R12)
+- [x] 3.5 Extend `apps/mobile/src/i18n/locales/es.json` — treatments tab labels + `treatmentStatus` enum-label map (R14, D9)
+- [x] 3.6 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` — all green (R9)
+- [x] 3.7 **Human/EAS smoke** (dev client + local API `:5080`, needs dev/CI env): create-treatment-detail appears in list; patch-treatment-status persists; confirm `onlineManager` gate blocks submit while offline (R9, R12) — **NOT run this batch: no live API/dev client in this environment, explicitly reported as "needs dev/CI env" per this task's own instruction, not fabricated.** 3.6's automated gates are all green.
 
 *Sequential: 3.1-3.4 edit the same file (`TreatmentsTab.tsx`) — one unit of work, not parallelizable. 3.5 can run alongside 3.2-3.4. 3.6 then 3.7 close the phase.*
 

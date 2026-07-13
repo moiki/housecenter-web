@@ -6,6 +6,7 @@ import { usePatientFullSummary } from 'core/hooks/patients/usePatients'
 import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { OfflineBanner } from '../../components/shared/OfflineBanner'
 import { OverviewTab } from './OverviewTab'
+import { TreatmentsTab } from './TreatmentsTab'
 import type { PatientsStackParamList } from '../../navigation/PatientsStack'
 
 type TabId = 'overview' | 'treatments' | 'sessions' | 'comments'
@@ -21,10 +22,10 @@ interface PatientDetailScreenProps {
   route: RouteProp<PatientsStackParamList, 'PatientDetail'>
 }
 
-// PLACEHOLDER content for Treatments/Sessions/Comments — real panels land in PR3 (Treatments +
-// Details) and PR4 (Sessions + patient Comments), each as its own `screens/patients/*Tab.tsx`
-// file per design.md's target structure. Kept as an inline component here (not a pre-created
-// empty file) so PR3/PR4 don't inherit dead scaffolding.
+// PLACEHOLDER content for Sessions/Comments — real panels land in PR4 (Sessions + patient
+// Comments), each as its own `screens/patients/*Tab.tsx` file per design.md's target structure.
+// Treatments is wired to the real `TreatmentsTab` as of PR3. Kept as an inline component here (not
+// a pre-created empty file) so PR4 doesn't inherit dead scaffolding.
 function ComingSoonPanel({ labelKey }: { labelKey: string }) {
   const { t } = useTranslation()
   return (
@@ -36,8 +37,8 @@ function ComingSoonPanel({ labelKey }: { labelKey: string }) {
 
 // PatientDetailScreen (R8, D3): a custom segmented control (local `useState<TabId>` + Pressable
 // pills) over Overview/Treatments/Sessions/Comments — no `material-top-tabs`/`pager-view`
-// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. Overview renders real
-// content now via `OverviewTab`; the other 3 panels are PR3/PR4 placeholders.
+// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. Overview and Treatments
+// render real content (`OverviewTab`, `TreatmentsTab`); Sessions/Comments are PR4 placeholders.
 export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
   const { patientId } = route.params
   const { t } = useTranslation()
@@ -62,7 +63,7 @@ export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
         {(summary) => (
           <View style={styles.panel}>
             {tab === 'overview' && <OverviewTab summary={summary} />}
-            {tab === 'treatments' && <ComingSoonPanel labelKey="patients.tab.treatmentsComingSoon" />}
+            {tab === 'treatments' && <TreatmentsTab patientId={patientId} />}
             {tab === 'sessions' && <ComingSoonPanel labelKey="patients.tab.sessionsComingSoon" />}
             {tab === 'comments' && <ComingSoonPanel labelKey="patients.tab.commentsComingSoon" />}
           </View>
