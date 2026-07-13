@@ -3,14 +3,30 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
-phase: tasks
-status: planning-complete
+phase: apply
+status: apply-in-progress-pr1-of-3-complete
 chain_strategy: stacked-to-main
-chain_slice: null
-current_slice: null
+chain_slice: PR1 of 3 (Scaffold + workspace wiring) — complete, uncommitted
+current_slice: PR2 (Providers) — not started
 decision_needed_before_apply: false   # user pre-authorized implementing #4; 3 PRs each under budget
 depends_on: core-extraction   # branch feat/mobile-app-foundation is stacked on feat/core-extraction
 completed_phases: [explore, propose, spec, design, tasks]
+apply_progress: |
+  2026-07-13 — PR1 (Scaffold + workspace wiring) apply complete, NOT committed (per instructions).
+  14/14 tasks done (1.1-1.14). Files created under apps/mobile/: package.json, index.ts, App.tsx,
+  app.config.ts, metro.config.js, tsconfig.json, eas.json, src/config/env.ts. Shared-surface touches:
+  root package.json (pnpm.overrides.react="^19.2.6", per ADR-3 — real drift was found), root
+  .gitignore (+.expo/ios/android), pnpm-lock.yaml (regenerated). apps/web/package.json and
+  packages/core/package.json: ZERO diff (confirmed via git diff --stat), matching design's rollback
+  assumption. All versions registry-confirmed live (npm view + Expo's bundledNativeModules.json for
+  sdk-55 branch) — see apply-progress engram/tasks.md notes for the full version table and 3
+  deviations from design's illustrative sketches (newArchEnabled removed from ExpoConfig type in
+  SDK55; metro watchFolders merged not replaced; platforms restricted to ios/android).
+  All 5 gates (1.10-1.14) ran for REAL and PASSED — none env-blocked: pnpm install + single-React
+  dedup, tsc --noEmit, expo-doctor (19/19), expo export (ios 428 + android 567 modules), pnpm
+  --filter web build. Full detail: engram sdd/mobile-app-foundation/apply-progress + tasks.md.
+  NEXT: sdd-apply PR2 (Providers: queryClient/mmkv/persister/connectivity/i18n/AppProviders) — this
+  is also where the genuine core-resolves-through-Metro proof (Q4) completes via 2.1's value import.
 notes: |
   2026-07-12 — Planning fast-forward (auto) complete. SDD change #4 of the HouseCenter Mobile plan:
   scaffold the Expo React Native app in apps/mobile/ — FOUNDATION only (scaffold+config, nav shell,

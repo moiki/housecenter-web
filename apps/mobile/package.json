@@ -1,1 +1,46 @@
-{ "name": "mobile", "version": "0.0.0", "private": true }
+{
+  "name": "mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "doctor": "expo-doctor"
+  },
+  "dependencies": {
+    "@react-native-community/netinfo": "11.5.2",
+    "@react-navigation/bottom-tabs": "^7.18.8",
+    "@react-navigation/native": "^7.3.8",
+    "@react-navigation/native-stack": "^7.17.10",
+    "@tanstack/query-async-storage-persister": "5.101.0",
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-query-persist-client": "5.101.0",
+    "core": "workspace:*",
+    "expo": "~55.0.0",
+    "expo-constants": "~55.0.16",
+    "expo-dev-client": "~55.0.36",
+    "expo-localization": "~55.0.16",
+    "i18next": "^26.0.0",
+    "react": "19.2.0",
+    "react-i18next": "^17.0.0",
+    "react-native": "0.83.6",
+    "react-native-mmkv": "^3.3.3",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "typescript": "~6.0.2"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react",
+        "typescript"
+      ]
+    }
+  }
+}
