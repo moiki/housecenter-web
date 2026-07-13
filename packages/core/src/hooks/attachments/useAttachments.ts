@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { attachmentsApi } from 'core/api/modules/attachments.api'
-import type { AttachmentOwnerType } from 'core/types/attachment.types'
+import type { AttachmentOwnerType, AttachmentPayload } from 'core/types/attachment.types'
 
 const keys = {
   all: (ownerType: AttachmentOwnerType, ownerId: string) => ['attachments', ownerType, ownerId] as const,
@@ -17,7 +17,9 @@ export function useAttachments(ownerType: AttachmentOwnerType, ownerId: string) 
 export function useUploadAttachment(ownerType: AttachmentOwnerType, ownerId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ file, onProgress }: { file: File; onProgress?: (percent: number) => void }) =>
+    // KEEP the key `file` (retype only) so web's upload.mutateAsync({file,onProgress}) still
+    // compiles — a DOM File is assignable to AttachmentPayload's Blob branch (D1b).
+    mutationFn: ({ file, onProgress }: { file: AttachmentPayload; onProgress?: (percent: number) => void }) =>
       attachmentsApi.upload(ownerType, ownerId, file, onProgress),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all(ownerType, ownerId) }),
   })

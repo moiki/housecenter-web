@@ -49,16 +49,16 @@ until the core fix lands (same tsc compile unit) — that *dependency* is preser
 
 ## Phase 1: Core `AttachmentPayload` fix + regression gate + mobile deps/config — PR1a (~110 lines)
 
-- [ ] 1.1 `packages/core/src/types/attachment.types.ts` — add `export type AttachmentPayload = Blob | { uri: string; name: string; type: string }` with explanatory comment (R1)
-- [ ] 1.2 `packages/core/src/api/modules/attachments.api.ts` — retype `upload()`'s 3rd param `file: File` → `payload: AttachmentPayload`; keep single `formData.append('file', payload as any)` + comment; drop the hardcoded `Content-Type: multipart/form-data` header (R2, D1, D2b)
-- [ ] 1.3 `packages/core/src/hooks/attachments/useAttachments.ts` — retype `useUploadAttachment`'s mutationFn input `file: File` → `file: AttachmentPayload`, KEEP the object key `file` (R3, D1b)
-- [ ] 1.4 Run `pnpm --filter core exec tsc -b` — exits 0 (R1–R3 / scenario `core-payload-typechecks`)
-- [ ] 1.5 Run `pnpm --filter web build && pnpm --filter web lint` — both green, `AttachmentsTab.tsx` unchanged, still calls `{file, onProgress}` (R4 / scenario `web-build-unbroken`) — **MANDATORY regression gate**
-- [ ] 1.6 `apps/mobile/package.json` — `npx expo install expo-image-picker expo-image-manipulator expo-image` (R5)
-- [ ] 1.7 `apps/mobile/app.config.ts` — add `expo-image-picker` config plugin with Spanish `cameraPermission`/`photosPermission` strings (R6, D7)
-- [ ] 1.8 `apps/mobile/src/components/attachments/AuthedImage.tsx` — new: expo-image `<Image source={{uri, headers}}>`, Bearer token from `useAuthStore((s)=>s.accessToken)`, `uri = env.API_BASE_URL + downloadUrl` (R10, D3)
-- [ ] 1.9 `apps/mobile/src/components/attachments/pickAndUpload.ts` — new: `expo-image-picker` (camera/library, `mediaTypes:['images']`, permission requests) → ALWAYS `expo-image-manipulator` new API (`manipulate(uri).resize({width:1600}).renderAsync().saveAsync({format:SaveFormat.JPEG, compress:0.75})`) → builds `AttachmentPayload` (R7, R8, R9, D4)
-- [ ] 1.10 Verify `expo-image-manipulator`'s installed API surface matches `manipulate/resize/renderAsync/saveAsync`/`SaveFormat` exactly; adjust `pickAndUpload.ts` if the SDK-55 package differs (open question, D4)
+- [x] 1.1 `packages/core/src/types/attachment.types.ts` — add `export type AttachmentPayload = Blob | { uri: string; name: string; type: string }` with explanatory comment (R1)
+- [x] 1.2 `packages/core/src/api/modules/attachments.api.ts` — retype `upload()`'s 3rd param `file: File` → `payload: AttachmentPayload`; keep single `formData.append('file', payload as any)` + comment; drop the hardcoded `Content-Type: multipart/form-data` header (R2, D1, D2b)
+- [x] 1.3 `packages/core/src/hooks/attachments/useAttachments.ts` — retype `useUploadAttachment`'s mutationFn input `file: File` → `file: AttachmentPayload`, KEEP the object key `file` (R3, D1b)
+- [x] 1.4 Run `pnpm --filter core exec tsc -b` — exits 0 (R1–R3 / scenario `core-payload-typechecks`)
+- [x] 1.5 Run `pnpm --filter web build && pnpm --filter web lint` — both green, `AttachmentsTab.tsx` unchanged, still calls `{file, onProgress}` (R4 / scenario `web-build-unbroken`) — **MANDATORY regression gate**
+- [x] 1.6 `apps/mobile/package.json` — `npx expo install expo-image-picker expo-image-manipulator expo-image` (R5)
+- [x] 1.7 `apps/mobile/app.config.ts` — add `expo-image-picker` config plugin with Spanish `cameraPermission`/`photosPermission` strings (R6, D7)
+- [x] 1.8 `apps/mobile/src/components/attachments/AuthedImage.tsx` — new: expo-image `<Image source={{uri, headers}}>`, Bearer token from `useAuthStore((s)=>s.accessToken)`, `uri = env.API_BASE_URL + downloadUrl` (R10, D3)
+- [x] 1.9 `apps/mobile/src/components/attachments/pickAndUpload.ts` — new: `expo-image-picker` (camera/library, `mediaTypes:['images']`, permission requests) → ALWAYS `expo-image-manipulator` new API (`manipulate(uri).resize({width:1600}).renderAsync().saveAsync({format:SaveFormat.JPEG, compress:0.75})`) → builds `AttachmentPayload` (R7, R8, R9, D4)
+- [x] 1.10 Verify `expo-image-manipulator`'s installed API surface matches `manipulate/resize/renderAsync/saveAsync`/`SaveFormat` exactly; adjust `pickAndUpload.ts` if the SDK-55 package differs (open question, D4)
 
 **PR1a done when:** `pnpm --filter core exec tsc -b` exits 0; `pnpm --filter web build`/`lint` green with `AttachmentsTab.tsx` unchanged; `pnpm --filter mobile exec tsc --noEmit` exits 0; `npx expo-doctor` clean; `npx expo export` succeeds with the new deps/config/`AuthedImage`/`pickAndUpload` present but unused by any screen yet.
 
