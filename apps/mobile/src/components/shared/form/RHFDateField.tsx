@@ -5,6 +5,7 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
+import { useTranslation } from 'react-i18next'
 
 interface Props<T extends FieldValues> {
   control: Control<T>
@@ -21,6 +22,7 @@ interface Props<T extends FieldValues> {
 // `mode` (which supports 'datetime' natively) inline once toggled open. RN-only — must stay under
 // apps/mobile, never packages/core (R7).
 export function RHFDateField<T extends FieldValues>({ control, name, label, mode }: Props<T>) {
+  const { t } = useTranslation()
   const [iosPickerOpen, setIosPickerOpen] = useState(false)
 
   return (
@@ -33,7 +35,7 @@ export function RHFDateField<T extends FieldValues>({ control, name, label, mode
           ? mode === 'date'
             ? current.toLocaleDateString()
             : current.toLocaleString()
-          : 'Seleccionar fecha'
+          : t('common.selectDate')
 
         function onIosChange(event: DateTimePickerEvent, selected?: Date) {
           setIosPickerOpen(false)
@@ -69,7 +71,13 @@ export function RHFDateField<T extends FieldValues>({ control, name, label, mode
         return (
           <View style={styles.container}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <Pressable style={styles.trigger} onPress={open}>
+            <Pressable
+              style={styles.trigger}
+              onPress={open}
+              accessibilityRole="button"
+              accessibilityLabel={label}
+              accessibilityHint={display}
+            >
               <Text style={field.value ? styles.triggerText : styles.triggerPlaceholder}>{display}</Text>
             </Pressable>
             {Platform.OS === 'ios' && iosPickerOpen && (

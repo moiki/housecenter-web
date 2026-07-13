@@ -36,6 +36,7 @@ export function NotificationsScreen() {
         style={[styles.row, unread && styles.rowUnread]}
         onPress={() => onPressRow(item)}
         disabled={!isOnline || !unread || markRead.isPending}
+        accessibilityRole="button"
         accessibilityLabel={unread ? t('notifications.markRead') : undefined}
       >
         <View style={styles.rowHeader}>
@@ -59,6 +60,9 @@ export function NotificationsScreen() {
           style={[styles.markAllButton, !isOnline && styles.markAllButtonDisabled]}
           onPress={() => markAllRead.mutate()}
           disabled={!isOnline || markAllRead.isPending}
+          accessibilityRole="button"
+          accessibilityLabel={t('notifications.markAllRead')}
+          hitSlop={{ top: 6, bottom: 6 }}
         >
           <Text style={styles.markAllButtonText}>{t('notifications.markAllRead')}</Text>
         </Pressable>

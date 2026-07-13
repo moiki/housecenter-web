@@ -43,71 +43,71 @@ low-risk regardless.
 
 ## Phase 1: Teardown, screen-capture, a11y, i18n, version/assets/config — PR1 [MONO]
 
-- [ ] 1.1 `apps/mobile/src/lib/teardown.ts` — new: `clearAllLocalData(): Promise<void>` calling
+- [x] 1.1 `apps/mobile/src/lib/teardown.ts` — new: `clearAllLocalData(): Promise<void>` calling
       `clearCache()` (MMKV) + `queryClient.clear()` + `Image.clearMemoryCache()` +
       `await Image.clearDiskCache()` (best-effort, try/catch-wrapped — a disk-cache failure must
       never block/crash a logout). Cache-only; does NOT touch tokens/auth state. Imports only
       `./mmkv` + `./queryClient` + `expo-image` — confirm no circular import back from either (R1)
-- [ ] 1.2 `apps/mobile/src/api/client.ts` — wire `onRefreshFail` to `void clearAllLocalData()`;
+- [x] 1.2 `apps/mobile/src/api/client.ts` — wire `onRefreshFail` to `void clearAllLocalData()`;
       drop the now-unused direct `clearCache()`/`queryClient.clear()` calls and their imports (R1)
-- [ ] 1.3 `apps/mobile/src/components/AuthBootstrap.tsx` — wire the cold-start
+- [x] 1.3 `apps/mobile/src/components/AuthBootstrap.tsx` — wire the cold-start
       silent-refresh-failure `.catch()` to `{ logout(); void clearAllLocalData() }` — **the primary
       gap fix**: today this path calls bare `logout()` and never touches the cache (R1)
-- [ ] 1.4 `apps/mobile/src/screens/more/MoreScreen.tsx` — wire `onLogout`'s `finally` block to
+- [x] 1.4 `apps/mobile/src/screens/more/MoreScreen.tsx` — wire `onLogout`'s `finally` block to
       `await clearAllLocalData()` before `setLoggingOut(false)` (R1)
-- [ ] 1.5 `apps/mobile/package.json` — add `expo-screen-capture` via `expo install
+- [x] 1.5 `apps/mobile/package.json` — add `expo-screen-capture` via `expo install
       expo-screen-capture` (SDK-pinned, not hand-written) (R2)
-- [ ] 1.6 `apps/mobile/src/providers/AppProviders.tsx` — import + call
+- [x] 1.6 `apps/mobile/src/providers/AppProviders.tsx` — import + call
       `usePreventScreenCapture()` unconditionally in the component's function body (hook — must run
       in component scope), mounted once at the app root, not gated by auth state or route (R2)
-- [ ] 1.7 `apps/mobile/src/components/shared/form/RHFTextInput.tsx` — add
+- [x] 1.7 `apps/mobile/src/components/shared/form/RHFTextInput.tsx` — add
       `accessibilityLabel={label}` + `accessibilityHint={rest.placeholder}` on the `TextInput` (R3)
-- [ ] 1.8 `apps/mobile/src/components/shared/form/RHFSelect.tsx` — add
+- [x] 1.8 `apps/mobile/src/components/shared/form/RHFSelect.tsx` — add
       `accessibilityRole="button"` + `accessibilityLabel={opt.label}` +
       `accessibilityState={{selected: active}}` + `hitSlop={{top:8,bottom:8}}` on each pill
       `Pressable` (R3)
-- [ ] 1.9 `apps/mobile/src/components/shared/form/RHFPickerField.tsx` — add `useTranslation()`;
+- [x] 1.9 `apps/mobile/src/components/shared/form/RHFPickerField.tsx` — add `useTranslation()`;
       compute `placeholder ?? t('common.select')` in the function body (not as a default param —
       hooks can't be called there); add `accessibilityRole="button"` +
       `accessibilityLabel={label ?? resolvedPlaceholder}` on the trigger and
       `accessibilityRole="button"` + `accessibilityLabel={item.label}` on option rows (R3, R4)
-- [ ] 1.10 `apps/mobile/src/components/shared/form/RHFDateField.tsx` — add `useTranslation()`;
+- [x] 1.10 `apps/mobile/src/components/shared/form/RHFDateField.tsx` — add `useTranslation()`;
       compute the `t('common.selectDate')` fallback in the function body; add
       `accessibilityRole="button"` + `accessibilityLabel={label}` +
       `accessibilityHint={display}` on the trigger `Pressable` (R3, R4)
-- [ ] 1.11 `apps/mobile/src/i18n/locales/es.json` — add `common.select: "Seleccionar"` +
+- [x] 1.11 `apps/mobile/src/i18n/locales/es.json` — add `common.select: "Seleccionar"` +
       `common.selectDate: "Seleccionar fecha"` under the existing `common` namespace (R4)
-- [ ] 1.12 `apps/mobile/src/components/attachments/AttachmentsSection.tsx` — add
+- [x] 1.12 `apps/mobile/src/components/attachments/AttachmentsSection.tsx` — add
       `accessibilityRole="button"` + `accessibilityLabel={t(...)}` (reusing each button's existing
       i18n key) on the take-photo/choose-library/delete `Pressable`s; add
       `hitSlop={{top:10,bottom:10,left:10,right:10}}` on the undersized delete button (R3)
-- [ ] 1.13 `apps/mobile/src/screens/more/DevicesScreen.tsx` — add `accessibilityRole="button"` +
+- [x] 1.13 `apps/mobile/src/screens/more/DevicesScreen.tsx` — add `accessibilityRole="button"` +
       `accessibilityLabel={t(...)}` on the revoke and revoke-all buttons; add
       `hitSlop={{top:8,bottom:8,left:8,right:8}}` on the revoke button (R3)
-- [ ] 1.14 `apps/mobile/src/screens/more/NotificationsScreen.tsx` — add
+- [x] 1.14 `apps/mobile/src/screens/more/NotificationsScreen.tsx` — add
       `accessibilityRole="button"` on the row `Pressable` (label logic unchanged); add
       `accessibilityRole="button"` + `accessibilityLabel={t('notifications.markAllRead')}` +
       `hitSlop={{top:6,bottom:6}}` on the mark-all `Pressable` (R3)
-- [ ] 1.15 `apps/mobile/src/screens/more/MoreScreen.tsx` — add `accessibilityRole="button"` +
+- [x] 1.15 `apps/mobile/src/screens/more/MoreScreen.tsx` — add `accessibilityRole="button"` +
       `accessibilityLabel={t(...)}` on the 6 nav rows (Ruta del día / Rutas de trabajo / Reportes /
       Devices / Notifications / Logout) (R3)
-- [ ] 1.16 Generate 3 valid, correctly-sized, decodable placeholder PNGs via a dependency-free
+- [x] 1.16 Generate 3 valid, correctly-sized, decodable placeholder PNGs via a dependency-free
       Node/stdlib script (`zlib`/`struct` — no ImageMagick/sharp/canvas): `icon.png` +
       `adaptive-icon.png` at 1024x1024 solid `#2563eb`, `splash.png` at 1284x2778 solid `#ffffff`.
       Commit all 3 under `apps/mobile/assets/`. **MUST complete before task 1.18** — an
       icon/splash path pointing at a missing or corrupt file breaks `expo export`/`expo prebuild`.
       The generation script itself is scratch/ephemeral (not required to be committed) — only the 3
       PNG binaries are committed (R5)
-- [ ] 1.17 `apps/mobile/package.json` — add `expo-splash-screen` via `expo install
+- [x] 1.17 `apps/mobile/package.json` — add `expo-splash-screen` via `expo install
       expo-splash-screen` (R5)
-- [ ] 1.18 `apps/mobile/app.config.ts` — set `version: '1.0.0'` (do NOT touch `package.json`'s
+- [x] 1.18 `apps/mobile/app.config.ts` — set `version: '1.0.0'` (do NOT touch `package.json`'s
       separate `"version"` field — npm workspace metadata, out of scope); add
       `icon: './assets/icon.png'`; add `android.adaptiveIcon: {foregroundImage:
       './assets/adaptive-icon.png', backgroundColor:'#2563eb'}`; add `['expo-splash-screen',
       {image:'./assets/splash.png', resizeMode:'contain', backgroundColor:'#2563eb'}]` to the
       `plugins` array — **NOT** the legacy top-level `splash` key (deprecated SDK 50+); add
       `runtimeVersion: {policy:'appVersion'}` (R5)
-- [ ] 1.19 Verify PR1 (see Per-PR Verification Commands below): typecheck/doctor/export green with
+- [x] 1.19 Verify PR1 (see Per-PR Verification Commands below): typecheck/doctor/export green with
       the new assets+plugin; core/web untouched; grep gates for a11y coverage, i18n stragglers, and
       the 3 teardown call sites all pass (R7, R8)
 

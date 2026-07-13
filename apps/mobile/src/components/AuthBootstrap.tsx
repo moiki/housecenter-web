@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native'
 import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '../store/auth.store'
 import { getDeviceId, whenDeviceIdReady } from '../lib/deviceId'
+import { clearAllLocalData } from '../lib/teardown'
 
 interface Props {
   children: ReactNode
@@ -39,7 +40,13 @@ export function AuthBootstrap({ children }: Props) {
         const user = await authApi.me()
         setAuth(user, tokens.accessToken, tokens.refreshToken)
       })
-      .catch(() => logout())
+      .catch(() => {
+        // Cold-start silent-refresh failure (design.md D1, R1 — THE GAP): previously called only
+        // bare `logout()`, never touching the local cache. Now also routes through the shared
+        // teardown helper so this site can't drift from the other 2 (api/client.ts, MoreScreen).
+        logout()
+        void clearAllLocalData()
+      })
       .finally(() => setRefreshAttempted(true))
   }, [deviceIdReady, needsSilentRefresh, refreshAttempted, refreshToken, setAuth, logout])
 

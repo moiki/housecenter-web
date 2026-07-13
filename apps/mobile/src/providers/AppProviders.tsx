@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { I18nextProvider } from 'react-i18next'
 import { NavigationContainer } from '@react-navigation/native'
+import { usePreventScreenCapture } from 'expo-screen-capture'
 import { queryClient } from '../lib/queryClient'
 import { persister } from '../lib/persister'
 import i18n from '../i18n'
@@ -24,6 +25,11 @@ import { navigationRef } from '../navigation/navigationRef'
 // effects in JSX order, so `AuthBootstrap`'s subtree (RootNavigator -> the Tab/Stack navigators
 // that flip `isReady()` true) commits before `PushBootstrap`'s own effects run.
 export function AppProviders({ children }: { children: ReactNode }) {
+  // App-wide screenshot/recording prevention (design.md D2, R2): mounted once, unconditionally,
+  // at the app root — active across 100% of screens, not gated by auth state or route. Android
+  // FLAG_SECURE / iOS secure overlay are handled natively by the hook; no config plugin needed.
+  usePreventScreenCapture()
+
   useEffect(() => {
     // Runs once at bootstrap: NetInfo -> onlineManager, AppState -> focusManager.
     const cleanup = initConnectivity()
