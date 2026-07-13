@@ -6,6 +6,8 @@ import { useUnreadCount } from 'core/hooks/notifications/useNotifications'
 import { MoreScreen } from '../screens/more/MoreScreen'
 import { DevicesScreen } from '../screens/more/DevicesScreen'
 import { NotificationsScreen } from '../screens/more/NotificationsScreen'
+import { WorkRoutesListScreen } from '../screens/workroutes/WorkRoutesListScreen'
+import { WorkRouteDetailScreen } from '../screens/workroutes/WorkRouteDetailScreen'
 import { PatientsStackNavigator } from './PatientsStack'
 import { ConsultationsStackNavigator } from './ConsultationsStack'
 import type { PatientsStackParamList } from './PatientsStack'
@@ -17,6 +19,8 @@ const MoreStack = createNativeStackNavigator<MoreStackParamList>()
 // it hosts (`MoreScreen`/`DevicesScreen`/`NotificationsScreen`) so `useNavigation<...>()` is typed.
 export type MoreStackParamList = {
   MoreMain: undefined
+  WorkRoutes: undefined // NEW (R4, R8, mobile-reports-workroutes PR1a)
+  WorkRouteDetail: { workRouteId: string } // NEW (R5, R8, mobile-reports-workroutes PR1a)
   Devices: undefined
   Notifications: undefined // NEW (R6, R7, PR1)
 }
@@ -30,6 +34,16 @@ function MoreStackNavigator() {
   return (
     <MoreStack.Navigator>
       <MoreStack.Screen name="MoreMain" component={MoreScreen} options={{ title: t('more.title') }} />
+      <MoreStack.Screen
+        name="WorkRoutes"
+        component={WorkRoutesListScreen}
+        options={{ title: t('workRoutes.title') }}
+      />
+      <MoreStack.Screen
+        name="WorkRouteDetail"
+        component={WorkRouteDetailScreen}
+        options={{ title: t('workRoutes.detailTitle') }}
+      />
       <MoreStack.Screen name="Devices" component={DevicesScreen} options={{ title: t('devices.title') }} />
       <MoreStack.Screen
         name="Notifications"

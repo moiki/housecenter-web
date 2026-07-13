@@ -52,24 +52,24 @@ umbrella).
 > `/Users/moisesreyes/Documents/growthoptix/personal/hoh-project-net/HouseCenter/HouseCenter.Api/`).
 > `strict_tdd:true` — RED -> GREEN -> REFACTOR below.
 
-- [ ] 1.1 **[RED]** `HouseCenter.Api.Tests/CollaboratorCrudTests.cs` — add `InsertUserAsync`/
+- [x] 1.1 **[RED]** `HouseCenter.Api.Tests/CollaboratorCrudTests.cs` — add `InsertUserAsync`/
       `LoginAsAsync` helpers (mirror `ReportTests.cs`'s `SeedUserAsync`/`LoginUserWithRoleAsync`)
       + optional `email` param on `CreateCollaboratorAsync` (default keeps `colab-{guid}@test.local`
       auto-gen); write `GetMe_WithMatchingEmail_ReturnsCollaborator` (seed User + Collaborator
       sharing one email inline, login, `GET /me` expected 200) — fails to compile/404s, endpoint
       doesn't exist yet (R1, scenario `collaborators-me-match`)
-- [ ] 1.2 **[RED]** Same file — write `GetMe_WithDifferentCasedEmail_ReturnsCollaborator`: seed
+- [x] 1.2 **[RED]** Same file — write `GetMe_WithDifferentCasedEmail_ReturnsCollaborator`: seed
       User email `Ana@Test.local`, Collaborator email `ana@test.local` (different casing) → also
       expects 200 — **this is the case-insensitivity resolution task**: the email match MUST be
       case-insensitive (spec R1's stated intent), so this test locks that behavior in before the
       implementation exists (R1)
-- [ ] 1.3 **[RED]** Same file — write `GetMe_WithNoMatchingCollaborator_Returns404`: seed a User
+- [x] 1.3 **[RED]** Same file — write `GetMe_WithNoMatchingCollaborator_Returns404`: seed a User
       with no matching Collaborator row → `GET /me` expected 404 `ProblemDetails` (R1, scenario
       `collaborators-me-no-match`)
-- [ ] 1.4 **[GREEN]** `HouseCenter.Api/Features/Collaborators/CollaboratorService.cs` — add
+- [x] 1.4 **[GREEN]** `HouseCenter.Api/Features/Collaborators/CollaboratorService.cs` — add
       `GetMeAsync(ClaimsPrincipal, CancellationToken)` to `ICollaboratorService` + impl; read
       caller email via `principal.FindFirstValue(ClaimTypes.Email)!` (R1)
-- [ ] 1.5 **[GREEN]** Same file — **case-insensitive** match, resolving the spec/design conflict:
+- [x] 1.5 **[GREEN]** Same file — **case-insensitive** match, resolving the spec/design conflict:
       `db.Collaborators.AsNoTracking().Where(c => c.Email.ToLower() == userEmail.ToLower())
       .Select(...).FirstOrDefaultAsync(ct)` — EF Core translates `.ToLower()` to SQL `LOWER()`;
       Postgres string `==` is case-sensitive by default so plain `==` (design D1's original
@@ -77,63 +77,80 @@ umbrella).
       `SingleOrDefaultAsync` — `Collaborator.Email` has no unique index/constraint (design trap #1)
       — no match → existing `NotFound = Error.NotFound("collaborators.not_found", ...)` convention
       (R1)
-- [ ] 1.6 **[GREEN]** `HouseCenter.Api/Features/Collaborators/CollaboratorEndpoints.cs` — add
+- [x] 1.6 **[GREEN]** `HouseCenter.Api/Features/Collaborators/CollaboratorEndpoints.cs` — add
       `group.MapGet("/me", ...)` inside the existing `/collaborators` group; inherits the group's
       bare `.RequireAuthorization()`, no extra policy (any authenticated role) (R1)
-- [ ] 1.7 **[GREEN]** Run `dotnet test` — confirm all 3 new tests pass (R1)
-- [ ] 1.8 **[REFACTOR]** Tidy: confirm `using System.Security.Claims`; confirm `/me` route
+- [x] 1.7 **[GREEN]** Run `dotnet test` — confirm all 3 new tests pass (R1)
+- [x] 1.8 **[REFACTOR]** Tidy: confirm `using System.Security.Claims`; confirm `/me` route
       registration doesn't collide with `/{id:guid}` (literal beats constrained-parameter
       precedence, per design — no ordering change needed, verify only); confirm helper method
       signatures read cleanly (R1)
-- [ ] 1.9 Verify: `dotnet build` clean + `dotnet test` full suite green — **MERGE + deploy PR0
+- [x] 1.9 Verify: `dotnet build` clean + `dotnet test` full suite green — **MERGE + deploy PR0
       before treating any Ruta del día runtime smoke as meaningful** (D7)
 
 **PR0 done when:** `dotnet test` green (3 new + full suite), `dotnet build` clean, PR0 merged
 and deployed to the environment mobile builds will talk to.
 
+> **PR0 apply status (this batch):** all 9 tasks complete. `dotnet build` clean, `dotnet test`
+> full suite 200/200 green (3 new GetMe tests + zero regressions). Branch `feat/collaborators-me`
+> ready for review/merge in `moiki/housecenter-api` — NOT yet merged/deployed by this agent
+> (orchestrator commits/opens the PR). PR1a/PR1b/PR2 remain PENDING — this is not the last batch.
+
 ---
 
 ## Phase 2: Core additive wrapper + Rutas de trabajo (list + detail) — PR1a [MONO]
 
-- [ ] 2.1 `packages/core/src/api/modules/collaborators.api.ts` — add `getMe: () =>` GET
+- [x] 2.1 `packages/core/src/api/modules/collaborators.api.ts` — add `getMe: () =>` GET
       `/collaborators/me` returning `CollaboratorResponse`; 404 surfaces as a rejected promise
       here (no client-side swallowing at this layer); existing exports untouched (R2)
-- [ ] 2.2 `packages/core/src/hooks/collaborators/useCollaborators.ts` — add
+- [x] 2.2 `packages/core/src/hooks/collaborators/useCollaborators.ts` — add
       `collaboratorKeys.me()` + `useMyCollaboratorProfile()` (`useQuery` keyed
       `['collaborators','me']`, mirrors `useMe.ts`'s `getAuthStore()`/`accessToken` gating);
       `queryFn` catches a 404 via `isApiError` and resolves `null` (not thrown/rethrown) — any
       other status rethrows; existing exports/keys untouched (R2)
-- [ ] 2.3 Gate: `pnpm --filter core exec tsc -b` exits 0 (R2)
-- [ ] 2.4 **Mandatory** gate: `pnpm --filter web build` + `pnpm --filter web lint` green,
+- [x] 2.3 Gate: `pnpm --filter core exec tsc -b` exits 0 (R2)
+- [x] 2.4 **Mandatory** gate: `pnpm --filter web build` + `pnpm --filter web lint` green,
       `apps/web/**` zero diffs — first core touch in this change, shared-core regression is
       non-negotiable (R3, scenario `core-typechecks-and-web-build-unbroken`)
-- [ ] 2.5 `apps/mobile/src/screens/workroutes/WorkRoutesListScreen.tsx` — new: `useWorkRoutes(1,
+- [x] 2.5 `apps/mobile/src/screens/workroutes/WorkRoutesListScreen.tsx` — new: `useWorkRoutes(1,
       DROPDOWN_PAGE_SIZE)` unmodified, `expandOccurrences(routes, today, today)` (device-local
       `dayjs()`) to badge "hoy" rows, wrapped in `QueryBoundary`/`EmptyState`, serves the
       persisted query cache while offline, row tap → `navigate('WorkRouteDetail',
       {workRouteId})`; no create/add entry point (R4, scenario
       `work-routes-list-renders-from-cache`)
-- [ ] 2.6 `apps/mobile/src/screens/workroutes/WorkRouteDetailScreen.tsx` — new: `useWorkRoute
+- [x] 2.6 `apps/mobile/src/screens/workroutes/WorkRouteDetailScreen.tsx` — new: `useWorkRoute
       (workRouteId)` unmodified, renders `clinicName`, each `destinations[]` name/description
       (+picture if present), "Abrir en Maps" via `Linking.openURL(d.googleMapUrl)` guarded on
       non-null (hidden otherwise), local `recurrenceSummary(wr, t)` pure helper from
       `recurrenceDays`/`recurrenceStartDate`/`recurrenceEndDate`/`isRecurrenceIndefinite`; no
       edit/delete/create affordance, no month-calendar grid (R5, scenario
       `route-detail-renders-stops`)
-- [ ] 2.7 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`WorkRoutes:
+- [x] 2.7 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`WorkRoutes:
       undefined`, +`WorkRouteDetail: {workRouteId: string}`; +2 `<MoreStack.Screen>` entries (R8)
-- [ ] 2.8 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Rutas de trabajo" row (`Pressable`
+- [x] 2.8 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Rutas de trabajo" row (`Pressable`
       → `navigate('WorkRoutes')`), mirrors the existing `Devices`/`Notifications` row pattern,
       placed above those rows (R8)
-- [ ] 2.9 `apps/mobile/src/i18n/locales/es.json` — add `more.workRoutes` + `workRoutes.*`
+- [x] 2.9 `apps/mobile/src/i18n/locales/es.json` — add `more.workRoutes` + `workRoutes.*`
       (title, today-badge, openInMaps, empty-list) namespace, Spanish-first (R9)
-- [ ] 2.10 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
+- [x] 2.10 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
       (in `apps/mobile`) all clean (scenarios `mobile-typechecks`,
       `expo-doctor-and-export-clean`); no patient/PHI field logged (R9)
 
 **PR1a done when:** core `tsc -b` + web build/lint green (zero `apps/web/**` diffs) + mobile
 `tsc --noEmit`/`expo-doctor`/`expo export` all green; code trace confirms no edit/delete/create
 affordance anywhere on either screen. No Human/EAS smoke required for this slice alone.
+
+> **PR1a apply status (this batch):** all 10 tasks complete. `pnpm --filter core exec tsc -b`
+> exit 0; `pnpm --filter web build`+`lint` both exit 0, `git diff main -- apps/web` is EMPTY
+> (0 lines), `git diff -- packages/core/src` is 35 insertions / 0 deletions across the 2
+> modified files (purely additive — no existing export changed); `pnpm --filter mobile exec tsc
+> --noEmit` exit 0; `npx expo-doctor` 19/19; `npx expo export` (cache cleared) bundled iOS 1274
+> modules / Android 1282 modules, no unresolved imports (an earlier stale-Metro-cache run showed
+> an anomalous Android=680 count, reproduced-and-discarded by re-running with `--clear` — see
+> apply-progress for the full trace). No create/edit/delete affordance present on either
+> `WorkRoutesListScreen` or `WorkRouteDetailScreen` (code-trace confirmed). Branch
+> `feat/mobile-reports-workroutes` — NOT committed by this agent (orchestrator commits). PR1b/PR2
+> remain PENDING — this is not the last batch.
 
 ---
 
