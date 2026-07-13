@@ -6,7 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-mermaid-filter.err   # stray error log from mermaid-filter (pandoc/mermaid rendering)
+# stray error log from mermaid-filter (pandoc/mermaid rendering)
+mermaid-filter.err
 
 node_modules
 dist
