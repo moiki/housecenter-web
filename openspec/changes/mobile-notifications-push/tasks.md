@@ -50,25 +50,25 @@ apply-time contingency, same pattern `mobile-consultations` used for its own PR2
 
 ## Phase 1: Notifications list/unread UI — PR1
 
-- [ ] 1.1 `apps/mobile/src/screens/more/NotificationsScreen.tsx` — new: reuse
+- [x] 1.1 `apps/mobile/src/screens/more/NotificationsScreen.tsx` — new: reuse
       `useNotifications()`/`useUnreadCount()`/`useMarkNotificationRead()`/
       `useMarkAllNotificationsRead()` **unmodified**; render list wrapped in
       `QueryBoundary`/`EmptyState`; unread rows visually distinct (R6)
-- [ ] 1.2 Same file — single mark-read on row tap, "mark all read" action, `RefreshControl`
+- [x] 1.2 Same file — single mark-read on row tap, "mark all read" action, `RefreshControl`
       pull-to-refresh; all write actions gated on `useOnline()` (disabled/hidden offline); reads
       still render from persisted cache offline (R6)
-- [ ] 1.3 `apps/mobile/src/navigation/TabNavigator.tsx` — add `Notifications: undefined` to
+- [x] 1.3 `apps/mobile/src/navigation/TabNavigator.tsx` — add `Notifications: undefined` to
       `MoreStackParamList`; register `<MoreStack.Screen name="Notifications"
       component={NotificationsScreen}>` (R7)
-- [ ] 1.4 Same file — `TabNavigator()` calls `useUnreadCount()`, sets `tabBarBadge` on the
+- [x] 1.4 Same file — `TabNavigator()` calls `useUnreadCount()`, sets `tabBarBadge` on the
       "More" `Tab.Screen` (`badge > 0 ? badge : undefined`, no badge at 0) (R7)
-- [ ] 1.5 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Notificaciones" row (mirrors the
+- [x] 1.5 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Notificaciones" row (mirrors the
       existing `Devices` row) navigating to `Notifications` (R7)
-- [ ] 1.6 `apps/mobile/src/i18n/locales/es.json` — add `notifications.{title,empty,markRead,
+- [x] 1.6 `apps/mobile/src/i18n/locales/es.json` — add `notifications.{title,empty,markRead,
       markAllRead}` namespace, Spanish-first (R6, R8)
-- [ ] 1.7 Constraint check: `packages/core/src/hooks/notifications/useNotifications.ts` shows
+- [x] 1.7 Constraint check: `packages/core/src/hooks/notifications/useNotifications.ts` shows
       zero diff (`git diff` empty for that file) (R6)
-- [ ] 1.8 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` —
+- [x] 1.8 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` —
       all green (R6, R7). Core untouched this PR — no core/web gate required.
 
 **PR1 done when:** mobile tsc/expo-doctor/expo export all green; code trace confirms
@@ -77,23 +77,23 @@ introduced. No Human/EAS smoke needed — no native module touched.
 
 ## Phase 2: Nav infra (navigationRef, typed param lists) — PR2a
 
-- [ ] 2.1 `apps/mobile/src/navigation/navigationRef.ts` — new: `export const navigationRef =
+- [x] 2.1 `apps/mobile/src/navigation/navigationRef.ts` — new: `export const navigationRef =
       createNavigationContainerRef<RootStackParamList>()`; `PushNotificationData` interface
       (`type`, `referenceType`, `referenceId`); `REFERENCE_ROUTES` map with **only** the
       `Consultation` key → `navigationRef.navigate('Tabs', { screen: 'Consultas', params: {
       screen: 'ConsultationDetail', params: { consultationId: id } } })`; `dispatchNotificationTap`
       guarded by `navigationRef.isReady()`. Pure function — no `expo-notifications` import (R5)
-- [ ] 2.2 `apps/mobile/src/navigation/RootNavigator.tsx` — type
+- [x] 2.2 `apps/mobile/src/navigation/RootNavigator.tsx` — type
       `Stack = createNativeStackNavigator<RootStackParamList>()`; export `RootStackParamList =
       { Login: undefined; Tabs: NavigatorScreenParams<TabParamList> }` (R5)
-- [ ] 2.3 `apps/mobile/src/navigation/TabNavigator.tsx` — type
+- [x] 2.3 `apps/mobile/src/navigation/TabNavigator.tsx` — type
       `Tab = createBottomTabNavigator<TabParamList>()`; export `TabParamList = { Pacientes:
       NavigatorScreenParams<PatientsStackParamList>; Consultas:
       NavigatorScreenParams<ConsultationsStackParamList>; More:
       NavigatorScreenParams<MoreStackParamList> }` (R5)
-- [ ] 2.4 `apps/mobile/src/providers/AppProviders.tsx` — attach `ref={navigationRef}` on
+- [x] 2.4 `apps/mobile/src/providers/AppProviders.tsx` — attach `ref={navigationRef}` on
       `NavigationContainer` (import from `navigationRef.ts`); no caller wired yet (R5)
-- [ ] 2.5 Gate: `pnpm --filter mobile exec tsc --noEmit` exits 0 (confirms the typed nested-navigate
+- [x] 2.5 Gate: `pnpm --filter mobile exec tsc --noEmit` exits 0 (confirms the typed nested-navigate
       call compiles against real screen names `'Tabs'`/`'Consultas'`/`'ConsultationDetail'`); core
       untouched, `pnpm --filter web build`/`lint` unaffected (R5)
 

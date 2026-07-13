@@ -8,12 +8,13 @@ import { persister } from '../lib/persister'
 import i18n from '../i18n'
 import { initConnectivity } from './connectivity'
 import { AuthBootstrap } from '../components/AuthBootstrap'
+import { navigationRef } from '../navigation/navigationRef'
 
 // Provider tree per design.md:
 //   SafeAreaProvider
 //   └── PersistQueryClientProvider (client=queryClient, persistOptions={persister, maxAge:24h})
 //       └── I18nextProvider (i18n)
-//           └── NavigationContainer
+//           └── NavigationContainer (ref={navigationRef}, PR2a — inert until PR2b wires a caller)
 //               └── AuthBootstrap (render gate: deviceIdReady && authHydrated && ...)
 //                   └── {children}  ← RootNavigator
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -30,7 +31,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
         persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }}
       >
         <I18nextProvider i18n={i18n}>
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef}>
             <AuthBootstrap>{children}</AuthBootstrap>
           </NavigationContainer>
         </I18nextProvider>
