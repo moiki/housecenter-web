@@ -3,14 +3,14 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-13
-phase: tasks
-status: planning-complete
+phase: verified
+status: verified-ready-for-pr
 chain_strategy: stacked-to-main
 chain_slice: null
 current_slice: null
 decision_needed_before_apply: true   # 3 chained PRs, ~650-750 lines, budget HIGH, security-sensitive auth
 depends_on: [mobile-app-foundation, device-bound-sessions-api]   # both merged to main; branch feat/mobile-auth-session off main
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
 notes: |
   2026-07-13 — Planning fast-forward (auto) complete. SDD change #5 of the HouseCenter Mobile plan:
   real auth + long-lived device-bound session in apps/mobile against the merged device-bound-sessions
