@@ -6,9 +6,11 @@ import {
   useRevokeAllSessions,
   useRevokeSession,
 } from 'core/hooks/auth/useDeviceSessions'
+import { useUnsubscribePush } from 'core/hooks/notifications/usePushSubscription'
 import type { DeviceSessionResponse } from 'core/types/auth.types'
 import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { getDeviceId } from '../../lib/deviceId'
+import { getCachedPushToken } from '../../lib/pushToken'
 
 // Device-mgmt "Más" sub-screen (R11): lists `useDeviceSessions()`, highlights the row matching
 // the local device, offers per-row revoke, and "cerrar todas las demás sesiones" (revoke-all).
@@ -19,6 +21,7 @@ export function DevicesScreen() {
   const { data: sessions, isLoading, isError } = useDeviceSessions()
   const revokeSession = useRevokeSession()
   const revokeAllSessions = useRevokeAllSessions()
+  const unsubscribePush = useUnsubscribePush()
   const currentDeviceId = getDeviceId()
   const [revokingId, setRevokingId] = useState<string | null>(null)
 
@@ -42,7 +45,17 @@ export function DevicesScreen() {
       {
         text: t('devices.revokeAll'),
         style: 'destructive',
-        onPress: () => revokeAllSessions.mutate(),
+        onPress: async () => {
+          // Best-effort: only this device's own push token is reachable client-side (design.md
+          // D3/R4) — swallow errors, never block revoke-all on a flaky push-cleanup call.
+          try {
+            const token = await getCachedPushToken()
+            if (token) await unsubscribePush.mutateAsync(token)
+          } catch {
+            // best-effort, swallow
+          }
+          revokeAllSessions.mutate()
+        },
       },
     ])
   }

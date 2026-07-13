@@ -3,11 +3,11 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-13
-phase: tasks
-status: planning-complete
+phase: apply
+status: implementation-complete
 chain_strategy: stacked-to-main
-chain_slice: PR1
-current_slice: PR1
+chain_slice: PR2b-lifecycle
+current_slice: done
 decision_needed_before_apply: resolved   # Guard fired (High risk PR2b); user chose 4-PR split 2026-07-13
 delivery_decision: "4 PRs (PR2b split) — user chose at Review Workload Guard 2026-07-13"
 pr_plan:
@@ -16,7 +16,7 @@ pr_plan:
   - { slice: PR2b-core,      desc: "core additive subscribe/unsubscribe + expo-notifications dep + config plugin", core: true,  native: true }
   - { slice: PR2b-lifecycle, desc: "PushBootstrap + unsubscribe wiring + listeners + cold-start deep-link",        core: false, native: true }
 depends_on: [mobile-auth-session, mobile-patients-progress, mobile-attachments-camera, mobile-consultations]   # branch off main (all #1-#8 merged)
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply]
 notes: |
   2026-07-13 — SDD change #9 of the HouseCenter Mobile plan (8/11 done). In-app notifications list/unread
   UI in apps/mobile + remote push (FCM via expo-notifications): permission, register native device token ->
@@ -98,3 +98,30 @@ notes: |
   the channel-guard check); PR1/PR2a need no manual smoke (no native module touched).
   NEXT: orchestrator must resolve the Review Workload Guard decision (chained/stacked PRs vs. maintainer-approved
   size:exception) before sdd-apply starts PR1.
+
+  2026-07-13 — apply batch 1/2 complete (PR1 + PR2a). NotificationsScreen list/unread UI under "Más" +
+  tab badge (PR1, ~170 lines actual, under the 190-250 forecast); typed navigationRef/RootStackParamList/
+  TabParamList/REFERENCE_ROUTES (PR2a, ~81 lines actual, under the 100-160 forecast). Core/web untouched
+  this batch (zero diff). All mobile tsc/expo-doctor/expo-export gates green; not committed yet (orchestrator
+  commits each slice). Full detail in engram sdd/mobile-notifications-push/apply-progress.
+  NEXT: apply batch 2/2 — PR2b-core + PR2b-lifecycle (Phase 3, tasks 3.1-3.15).
+
+  2026-07-13 — apply batch 2/2 complete (PR2b-core + PR2b-lifecycle) — IMPLEMENTATION COMPLETE, all 28/28
+  tasks [x]. PR2b-core: core additive PushSubscriptionRequest type + subscribePush/unsubscribePush API fns +
+  usePushSubscription.ts hook file (zero existing-export edits); expo-notifications ~55.0.24 installed via
+  `expo install` (design's ~55.0.20 was an estimate); app.config.ts config plugin (color only, no icon asset
+  exists) + env-var-conditional android.googleServicesFile (deviation: env-var-only, not fs.existsSync — see
+  tasks.md's "Apply-time deviations" note; mobile tsconfig has no @types/node). PR2b-lifecycle: pushToken.ts
+  (fully async, not sync-getter — deviation, matches design.md D2's own `await` usage); PushBootstrap.tsx new
+  (module-scope setNotificationHandler, self-gated registration effect w/ shared cache-compare-then-subscribe
+  fn reused by both mount + addPushTokenListener rotation, permission-denied returns silently, tap listener +
+  ref-guarded cold-start one-shot calling dispatchNotificationTap); mounted in AppProviders.tsx AFTER
+  AuthBootstrap (JSX-order-load-bearing per React's sibling-effect-commit-order, documented inline);
+  MoreScreen.onLogout + DevicesScreen.confirmRevokeAll best-effort unsubscribe wiring (awaited before
+  logout.mutateAsync per D3). ALL headless gates green (real runs): core tsc, web build+lint (apps/web diff =
+  0 lines, core diff = additive only), mobile tsc, expo-doctor 19/19, expo export (both platforms, succeeded
+  fully — no dev-client rebuild needed for JS/TS bundling). 8-item Human/EAS smoke checklist reported PENDING
+  (not fabricated) — needs real dev-client build + FCM/APNs creds + device. Not committed (orchestrator commits
+  PR2b-core and PR2b-lifecycle as 2 separate commits). Full detail in engram
+  sdd/mobile-notifications-push/apply-progress (merged, batch 1+2).
+  NEXT: sdd-verify, then orchestrator commits PR2b-core + PR2b-lifecycle, then sdd-archive.
