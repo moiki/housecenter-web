@@ -77,6 +77,9 @@ importers:
       expo-localization:
         specifier: ~55.0.16
         version: 55.0.16(expo@55.0.27)(react@19.2.7)
+      expo-notifications:
+        specifier: ~55.0.24
+        version: 55.0.24(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       expo-secure-store:
         specifier: ~55.0.15
         version: 55.0.15(expo@55.0.27)
@@ -1986,6 +1989,9 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0
 
+  badgin@1.2.3:
+    resolution: {integrity: sha512-NQGA7LcfCpSzIbGRbkgjgdWkjy7HI+Th5VLxTJfW5EeaAf3fnS+xWQaQOCYiny+q6QSvxqoSO04vCx+4u++EJw==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -2390,6 +2396,11 @@ packages:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
 
+  expo-application@55.0.16:
+    resolution: {integrity: sha512-/glsoxbNqhPItIFPBqSDNHihrHlSqJ3guYvAdEDFKcAXJ0iNhfGa8Xdk5+R7KBogmfHouqtsS5bHE7I2qbzKrw==}
+    peerDependencies:
+      expo: '*'
+
   expo-asset@55.0.17:
     resolution: {integrity: sha512-pK9HHJuFqjE8kDUcbMFsZj3Cz8WdXpvZHZmYl7ouFQp59P83BvHln6VnqPDGlO+/4929G0Lm8ZUzbONuNRhi9w==}
     peerDependencies:
@@ -2505,6 +2516,13 @@ packages:
     peerDependenciesMeta:
       react-native-worklets:
         optional: true
+
+  expo-notifications@55.0.24:
+    resolution: {integrity: sha512-aYywntFJ/pEQhEWfGJS3waL0MWJ0pS7v4MdCx5QP+/+6kfiFmXGTMaqwfOWSnOjvVBom0NV2JNYr0qwOzvZFRA==}
+    peerDependencies:
+      expo: '*'
+      react: ^19.2.6
+      react-native: '*'
 
   expo-secure-store@55.0.15:
     resolution: {integrity: sha512-w2T76G6U6A7NRDSTXn/9CarXMCDw+YFP4aEux+vskA0SrJGyMQXP+onJVAu2nGNaUvvW0RqIqxkxdW1bgSSjvQ==}
@@ -6276,6 +6294,8 @@ snapshots:
       babel-plugin-jest-hoist: 29.6.3
       babel-preset-current-node-syntax: 1.2.0(@babel/core@7.29.7)
 
+  badgin@1.2.3: {}
+
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -6666,6 +6686,10 @@ snapshots:
 
   event-target-shim@5.0.1: {}
 
+  expo-application@55.0.16(expo@55.0.27):
+    dependencies:
+      expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(react-dom@19.2.7(react@19.2.7))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+
   expo-asset@55.0.17(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
     dependencies:
       '@expo/image-utils': 0.8.14(typescript@6.0.3)
@@ -6785,6 +6809,20 @@ snapshots:
       invariant: 2.2.4
       react: 19.2.7
       react-native: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7)
+
+  expo-notifications@55.0.24(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
+    dependencies:
+      '@expo/image-utils': 0.8.14(typescript@6.0.3)
+      abort-controller: 3.0.0
+      badgin: 1.2.3
+      expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(react-dom@19.2.7(react@19.2.7))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      expo-application: 55.0.16(expo@55.0.27)
+      expo-constants: 55.0.16(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))
+      react: 19.2.7
+      react-native: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   expo-secure-store@55.0.15(expo@55.0.27):
     dependencies:
