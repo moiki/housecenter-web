@@ -158,7 +158,7 @@ affordance anywhere on either screen. No Human/EAS smoke required for this slice
 
 > Depends on PR1a merged (imports `useMyCollaboratorProfile()`).
 
-- [ ] 3.1 `apps/mobile/src/screens/rutadeldia/RutaDelDiaScreen.tsx` — new: compose in order —
+- [x] 3.1 `apps/mobile/src/screens/rutadeldia/RutaDelDiaScreen.tsx` — new: compose in order —
       `useMyCollaboratorProfile()` → `null` → empty state "sin perfil coincidente";
       `profile.workRouteId === null` → empty state "sin ruta asignada"; else `useWorkRoute
       (workRouteId)` unmodified → `expandOccurrences([route], today, today)` with device-local
@@ -166,15 +166,15 @@ affordance anywhere on either screen. No Human/EAS smoke required for this slice
       state "hoy no toca"; else `usePatients(1, DROPDOWN_PAGE_SIZE)` filtered client-side
       `p.workRouteId === route.id` → empty → empty state "sin pacientes en la ruta"; else render
       route name + filtered patient list (R6)
-- [ ] 3.2 Same file — confirm no "sessions due today" concept/wording appears anywhere in the
+- [x] 3.2 Same file — confirm no "sessions due today" concept/wording appears anywhere in the
       screen's strings (R6, scenario `ruta-del-dia-empty-states` — all 4 preconditions a-d)
-- [ ] 3.3 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`RutaDelDia:
+- [x] 3.3 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`RutaDelDia:
       undefined`; +1 `<MoreStack.Screen>` entry (R8)
-- [ ] 3.4 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Ruta del día" row (`Pressable` →
+- [x] 3.4 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Ruta del día" row (`Pressable` →
       `navigate('RutaDelDia')`) (R8)
-- [ ] 3.5 `apps/mobile/src/i18n/locales/es.json` — add `more.rutaDelDia` + `rutaDelDia.*`
+- [x] 3.5 `apps/mobile/src/i18n/locales/es.json` — add `more.rutaDelDia` + `rutaDelDia.*`
       (title, noProfile, noRoute, noOccurrenceToday, noPatients) namespace, Spanish-first (R9)
-- [ ] 3.6 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
+- [x] 3.6 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
       clean; web stays green / core untouched in this PR; no PHI logged (R9)
 
 **PR1b done when:** mobile gates green; code trace confirms all 4 empty states from R6 render
@@ -182,28 +182,43 @@ for their respective preconditions in isolation. Human/EAS smoke **`ruta-del-dia
 requires PR0 deployed + a Member whose auth email matches a seeded `Collaborator` with a
 `workRouteId` that has an occurrence today — not headless-provable.
 
+> **PR1b apply status (this batch):** all 6 tasks complete. `RutaDelDiaScreen.tsx` (105 lines)
+> created under `screens/rutadeldia/` composing `useMyCollaboratorProfile()` ->
+> `useWorkRoute(workRouteId)` -> `expandOccurrences([route], today, today)` ->
+> `usePatients(1, DROPDOWN_PAGE_SIZE)` filtered client-side by `workRouteId`, each stage
+> naturally gated by the existing `enabled: !!id`/`enabled: !!accessToken` guards. 4 distinct
+> honest empty states render via the shared `EmptyState` component (`rutaDelDia.noProfile` /
+> `.noRoute` / `.noOccurrenceToday` / `.noPatients`) plus a generic `common.error` branch for
+> genuine query failures (500/network) at each stage — the profile 404 itself is NOT one of
+> these; PR1a's hook already resolves it to `null` before this screen ever sees it. No
+> "sessions due today" wording anywhere (grep-confirmed). Read-only patient list, no row
+> navigation into `PatientDetail` (sibling stack) — kept simple per design's v1 guidance.
+> `tsc --noEmit`/`expo-doctor`/`expo export` all clean (see PR2's consolidated verify section
+> below — both slices verified together in the same batch). Branch
+> `feat/mobile-reports-workroutes` — NOT committed by this agent (orchestrator commits).
+
 ---
 
 ## Phase 4: Reportes (session-period only) — PR2 [MONO]
 
-- [ ] 4.1 `apps/mobile/src/screens/reports/ReportsScreen.tsx` — new: `useSessionPeriodReport
+- [x] 4.1 `apps/mobile/src/screens/reports/ReportsScreen.tsx` — new: `useSessionPeriodReport
       (from, to)` unmodified, same preset selector as web's `ReportsPage.tsx` (device-local
       `to = today`, `from = today - N days`; default "last 8 weeks" = 56 days, ≥3 more presets)
       (R7)
-- [ ] 4.2 Same file — reduce `weeks: WeeklySessionBucket[]` ({weekStart, attentionType, status,
+- [x] 4.2 Same file — reduce `weeks: WeeklySessionBucket[]` ({weekStart, attentionType, status,
       count}) to one `{weekStart, count}` row per week client-side, render each as a plain RN
       `View` row with a proportional-width inner `View` (`width: (count/maxCount)*100+'%'`) — NO
       recharts / no charting library import (R7, scenario `reports-screen-renders-session-period`)
-- [ ] 4.3 Same file — render the `sessionsByCollaborator` breakdown list **only when non-null**
+- [x] 4.3 Same file — render the `sessionsByCollaborator` breakdown list **only when non-null**
       (mirrors web's `byCollaborator.length > 0` guard as-is; zero additional client-side role
       branching — the API already projects per role) (R7)
-- [ ] 4.4 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`Reports:
+- [x] 4.4 `apps/mobile/src/navigation/TabNavigator.tsx` — `MoreStackParamList` +`Reports:
       undefined`; +1 `<MoreStack.Screen>` entry (R8)
-- [ ] 4.5 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Reportes" row (`Pressable` →
+- [x] 4.5 `apps/mobile/src/screens/more/MoreScreen.tsx` — add "Reportes" row (`Pressable` →
       `navigate('Reports')`) (R8)
-- [ ] 4.6 `apps/mobile/src/i18n/locales/es.json` — add `more.reports` + `reports.*` (title,
+- [x] 4.6 `apps/mobile/src/i18n/locales/es.json` — add `more.reports` + `reports.*` (title,
       4 preset labels, byCollaborator section label) namespace, Spanish-first (R9)
-- [ ] 4.7 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
+- [x] 4.7 Verify: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export`
       clean; `pnpm --filter web build` stays green (no `packages/core` touch in this PR); no
       patient/PHI field logged (R9)
 
@@ -211,6 +226,41 @@ requires PR0 deployed + a Member whose auth email matches a seeded `Collaborator
 anywhere in the bundle and the collaborator-breakdown list renders iff `sessionsByCollaborator`
 is non-null. Human/EAS smoke **`reports-real-data-per-role`** requires a Member and a Sponsor
 account viewing the same period against the deployed API — not headless-provable.
+
+> **PR2 apply status (this batch):** all 7 tasks complete. `ReportsScreen.tsx` (163 lines)
+> created under `screens/reports/` — `useSessionPeriodReport(from, to)` unmodified, a 4-preset
+> selector (28/56/91/182 days, default index 1 = "last 8 weeks") mirroring web's
+> `ReportsPage.tsx` `PRESETS` array exactly with device-local `dayjs()` date math (never
+> `.utc()`); `toWeekRows()` local pure helper sums each week's buckets client-side into one
+> `{weekStart, count}` row, rendered as a plain RN `View`-based proportional bar
+> (`width: pct+'%'`) — grep-confirmed zero `recharts` import anywhere in `apps/mobile/src` or
+> `node_modules` (only explanatory code comments mention the word). `sessionsByCollaborator`
+> breakdown list renders iff non-null, sorted desc by count, zero additional client-side role
+> branching (server already projects Member/Sponsor/Admin). `QueryBoundary` wraps the single
+> `useSessionPeriodReport` query (loading/error/empty via `reports.empty`).
+>
+> **Consolidated PR1b+PR2 verify (this batch, both slices together):**
+>
+> | Gate | Result |
+> |---|---|
+> | `pnpm --filter mobile exec tsc --noEmit` | exit 0, no output (after removing one unused `t` binding caught by the first run) |
+> | `pnpm --filter core exec tsc -b` | exit 0 — confirms core untouched this batch |
+> | `pnpm --filter web build` | exit 0, only the pre-existing >500kB chunk-size advisory |
+> | `git diff main -- apps/web` | 0 lines — confirmed still byte-unchanged |
+> | `git diff -- packages/core/src` | 0 lines — confirmed no new core touch (PR1a's is the only core diff on this branch) |
+> | `npx expo-doctor` (apps/mobile) | 19/19 checks passed |
+> | `npx expo export --clear` (apps/mobile) | first pass: iOS 1280 / Android 1265 (asymmetric — same warm-partial-cache artifact class noted in PR1a); re-ran with a fully removed `dist/` + `--clear`: **iOS 1280 / Android 1288**, stable and symmetric-with-baseline (PR1a's iOS 1274/Android 1282 + 6 modules on each platform = the 2 new screen files, no new npm dependency) |
+> | `recharts` grep (src + node_modules) | 0 real imports — only 3 explanatory code comments |
+> | mutation-affordance grep (`useCreate\|useUpdate\|useDeactivate\|mutate\|Editar\|Eliminar\|Crear\|Agregar`) on both new screens | 0 matches |
+> | `console.log/warn/error` grep on both new screens | 0 matches — no PHI logged |
+>
+> Line counts: `RutaDelDiaScreen.tsx` 105, `ReportsScreen.tsx` 163, shared
+> (`TabNavigator.tsx`+`MoreScreen.tsx`+`es.json`) 49 insertions / 4 deletions — combined batch
+> ~317 changed lines, within both slices' individual forecasts (PR1b ~100-150, PR2 ~140-190).
+> Branch `feat/mobile-reports-workroutes` — NOT committed by this agent (orchestrator commits
+> each slice separately). **This is the LAST batch — PR0+PR1a+PR1b+PR2 are all implementation-
+> complete** (32/32 tasks checked, bar the 3 Human/EAS smoke items which are explicitly
+> non-headless and reported as pending below).
 
 ---
 
