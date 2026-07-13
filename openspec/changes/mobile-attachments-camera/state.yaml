@@ -1,0 +1,61 @@
+change: mobile-attachments-camera
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # budget HIGH; PR1 splits into PR1a/PR1b + optional PR2
+depends_on: [mobile-patients-progress]   # branch feat/mobile-attachments-camera stacked on feat/mobile-patients-progress
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — Planning fast-forward (auto) complete. SDD change #7 of the HouseCenter Mobile plan:
+  photo capture/attach in apps/mobile (pick -> HEIC->JPEG + downscale -> multipart upload w/ progress
+  -> authed gallery) + fix core's attachments.api.ts File/FormData debt for RN. Branch
+  feat/mobile-attachments-camera stacked on feat/mobile-patients-progress (#6).
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 561) — core File debt is a real RN/DOM FormData-shape mismatch;
+             API 10MB/jpeg-png-webp-pdf/NO-HEIC/Bearer-gated download; AttentionSession auth is
+             collaborator-only (stricter) -> defer; axios-over-expo-file-system; expo-image source.headers.
+  - propose  proposal.md (engram 562) — 6 positions resolved; 2-PR shape.
+  - spec     spec.md (engram 563) — R1-R13, 14 scenarios (5 Human/EAS-smoke).
+  - design   design.md (engram 564) — 8 ADR decisions incl. D1b (keep useUploadAttachment `file` key)
+             + D2b (drop Content-Type header for RN boundary); upload pipeline sequence; code sketches.
+  - tasks    tasks.md (engram 565) — Review Workload Forecast: budget HIGH, PR1->PR1a/PR1b + optional PR2,
+             decision=YES.
+
+  RATIFIED DECISIONS:
+  1. Core fix: AttachmentPayload = Blob | {uri,name,type} in attachment.types.ts; upload() param
+     file:File -> payload:AttachmentPayload + single `formData.append('file', payload as any)` cast.
+     D1b: KEEP useUploadAttachment mutation-variable KEY `file` (retype only, NOT rename) — web calls
+     upload.mutateAsync({file,onProgress}) verbatim; renaming breaks the web regression gate.
+     D2b: drop hardcoded Content-Type:multipart/form-data so axios/RN emit a real boundary.
+  2. Upload transport = axios (reuse core Bearer interceptor + 401 queue + onUploadProgress), NOT expo-file-system.
+  3. Authed gallery = expo-image <Image source.headers> (Bearer from useAuthStore accessToken; abs URL
+     env.API_BASE_URL + relative downloadUrl); NOT loadAsync/prefetch (headers unreliable).
+  4. HEIC->JPEG = ALWAYS run expo-image-manipulator (new manipulate().resize().renderAsync().saveAsync
+     API, NOT deprecated manipulateAsync) -> JPEG + ~1600px + ~0.75 compress.
+  5. v1 UI = Patient "Fotos" 5th tab (any-staff authorized); Treatment nested = optional PR2 stretch;
+     AttentionSession attachment DEFERRED (collaborator-only ownership + #6's unverified collaboratorId=self
+     + SessionsTab shows all collaborators' sessions).
+  6. Config: expo-image-picker plugin + Spanish permission strings; no plugin for manipulator/expo-image.
+
+  PR plan (stacked; PR1 split for review budget):
+  - PR1a (~110, AUTOMATED): core AttachmentPayload fix (+ mandatory web build/lint regression) + mobile
+    deps (expo-image-picker/manipulator/image via expo install) + app.config plugin/perms + AuthedImage +
+    pickAndUpload util.
+  - PR1b (~220-270, depends on PR1a): AttachmentsSection(ownerType,ownerId) + Fotos 5th tab on
+    PatientDetailScreen + es.json. Human/EAS smoke: pick camera/library, HEIC->JPEG downscale, upload
+    progress, Bearer-gated thumbnail.
+  - PR2 (optional stretch, ~10-20): AttachmentsSection ownerType=Treatment nested in TreatmentsTab.
+
+  strict_tdd:false. Automated gates: core tsc + web build/lint (shared) + mobile tsc + expo-doctor +
+  expo export. 5/14 scenarios Human/EAS smoke. Risks: expo-image-manipulator new-API method names verify
+  at expo install; D2b RN boundary (fallback explicit boundary); D1b web-key regression.
+
+  Review Workload Guard: chained PRs YES + ask-on-risk + decision=YES -> STOP before apply, confirm.
+  NEXT: user confirms apply -> sdd-apply PR1a->PR1b(->PR2). Then #8 consultations.
