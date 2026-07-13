@@ -5,19 +5,21 @@ import type { RouteProp } from '@react-navigation/native'
 import { usePatientFullSummary } from 'core/hooks/patients/usePatients'
 import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { OfflineBanner } from '../../components/shared/OfflineBanner'
+import { AttachmentsSection } from '../../components/attachments/AttachmentsSection'
 import { OverviewTab } from './OverviewTab'
 import { TreatmentsTab } from './TreatmentsTab'
 import { SessionsTab } from './SessionsTab'
 import { CommentsTab } from './CommentsTab'
 import type { PatientsStackParamList } from '../../navigation/PatientsStack'
 
-type TabId = 'overview' | 'treatments' | 'sessions' | 'comments'
+type TabId = 'overview' | 'treatments' | 'sessions' | 'comments' | 'photos'
 
 const TABS: { id: TabId; labelKey: string }[] = [
   { id: 'overview', labelKey: 'patients.tab.overview' },
   { id: 'treatments', labelKey: 'patients.tab.treatments' },
   { id: 'sessions', labelKey: 'patients.tab.sessions' },
   { id: 'comments', labelKey: 'patients.tab.comments' },
+  { id: 'photos', labelKey: 'patients.tab.photos' },
 ]
 
 interface PatientDetailScreenProps {
@@ -25,10 +27,12 @@ interface PatientDetailScreenProps {
 }
 
 // PatientDetailScreen (R8, D3): a custom segmented control (local `useState<TabId>` + Pressable
-// pills) over Overview/Treatments/Sessions/Comments — no `material-top-tabs`/`pager-view`
-// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. All four tabs render
-// real content as of PR4 (`OverviewTab`, `TreatmentsTab`, `SessionsTab`, `CommentsTab`) — the
-// PR2/PR3 `ComingSoonPanel` placeholder for Sessions/Comments has been fully replaced.
+// pills) over Overview/Treatments/Sessions/Comments/Fotos — no `material-top-tabs`/`pager-view`
+// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. All four original tabs
+// render real content as of PR4 (`OverviewTab`, `TreatmentsTab`, `SessionsTab`, `CommentsTab`) —
+// the PR2/PR3 `ComingSoonPanel` placeholder for Sessions/Comments has been fully replaced. The 5th
+// "Fotos" tab (mobile-attachments-camera PR1b, R12, D6) wires the reusable
+// `AttachmentsSection` with `ownerType="Patient"`.
 export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
   const { patientId } = route.params
   const { t } = useTranslation()
@@ -56,6 +60,7 @@ export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
             {tab === 'treatments' && <TreatmentsTab patientId={patientId} />}
             {tab === 'sessions' && <SessionsTab patientId={patientId} />}
             {tab === 'comments' && <CommentsTab patientId={patientId} comments={summary.comments} />}
+            {tab === 'photos' && <AttachmentsSection ownerType="Patient" ownerId={patientId} />}
           </View>
         )}
       </QueryBoundary>

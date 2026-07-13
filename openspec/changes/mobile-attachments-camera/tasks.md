@@ -64,15 +64,17 @@ until the core fix lands (same tsc compile unit) — that *dependency* is preser
 
 ## Phase 2: `AttachmentsSection` + Fotos tab wiring — PR1b (~230 lines, depends on PR1a merged)
 
-- [ ] 2.1 `apps/mobile/src/components/attachments/AttachmentsSection.tsx` — new `(ownerType, ownerId)`: `useAttachments` list in `QueryBoundary`/`EmptyState`, "Tomar foto"/"Elegir de galería" buttons calling `pickAndUpload`, both gated on `useOnline()` + `OfflineBanner`, per-row delete via `useDeleteAttachment` gated the same way, thumbnails via `AuthedImage` (R11, D5, D8)
-- [ ] 2.2 `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — extend `TabId` union with `'photos'`, push a 5th `TABS` entry (`labelKey: 'patients.tab.photos'`), render `<AttachmentsSection ownerType="Patient" ownerId={patientId} />` in the panel (R12, D6)
-- [ ] 2.3 `apps/mobile/src/i18n/locales/es.json` — add `patients.tab.photos` + `attachments.{empty,takePhoto,chooseFromLibrary,delete,deleteConfirm,permissionDenied,uploading}` (R13)
-- [ ] 2.4 Code-trace `SessionsTab.tsx` and the rest of the mobile app — confirm NO attachment affordance exists anywhere for `ownerType='AttentionSession'` (R12 / scenario `attentionsession-attach-absent`)
-- [ ] 2.5 Code-trace upload/delete submit handlers in `AttachmentsSection.tsx`/`pickAndUpload.ts` — confirm `useOnline()` guard + `OfflineBanner` precede every mutate call (R9 / scenario `offline-upload-blocked`)
-- [ ] 2.6 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` with the Fotos tab wired (scenarios `mobile-typechecks`, `expo-doctor-clean`, `expo-export-bundles`, `fotos-tab-renders`)
+- [x] 2.1 `apps/mobile/src/components/attachments/AttachmentsSection.tsx` — new `(ownerType, ownerId)`: `useAttachments` list in `QueryBoundary`/`EmptyState`, "Tomar foto"/"Elegir de galería" buttons calling `pickAndUpload`, both gated on `useOnline()` + `OfflineBanner`, per-row delete via `useDeleteAttachment` gated the same way, thumbnails via `AuthedImage` (R11, D5, D8)
+- [x] 2.2 `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — extend `TabId` union with `'photos'`, push a 5th `TABS` entry (`labelKey: 'patients.tab.photos'`), render `<AttachmentsSection ownerType="Patient" ownerId={patientId} />` in the panel (R12, D6)
+- [x] 2.3 `apps/mobile/src/i18n/locales/es.json` — add `patients.tab.photos` + `attachments.{empty,takePhoto,chooseFromLibrary,delete,deleteConfirm,permissionDenied,uploading}` (R13)
+- [x] 2.4 Code-trace `SessionsTab.tsx` and the rest of the mobile app — confirm NO attachment affordance exists anywhere for `ownerType='AttentionSession'` (R12 / scenario `attentionsession-attach-absent`)
+- [x] 2.5 Code-trace upload/delete submit handlers in `AttachmentsSection.tsx`/`pickAndUpload.ts` — confirm `useOnline()` guard + `OfflineBanner` precede every mutate call (R9 / scenario `offline-upload-blocked`)
+- [x] 2.6 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` with the Fotos tab wired (scenarios `mobile-typechecks`, `expo-doctor-clean`, `expo-export-bundles`, `fotos-tab-renders`)
 - [ ] 2.7 Human/EAS smoke on a real device against local API (`:5080`): pick-camera, pick-library, heic-to-jpeg-downscale, upload-with-progress, authed-thumbnail-displays (R7–R10) — **needs dev/CI env**, not automatable under `strict_tdd:false`
 
 **PR1b done when:** `tsc --noEmit`/`expo-doctor`/`expo export` all green with Fotos tab live; code traces 2.4 and 2.5 pass; all 5 Human/EAS smokes pass on a real iPhone (HEIC photo → JPEG <10MB, visible progress, Bearer-gated thumbnail renders with no 401). If smoke access is unavailable, `sdd-apply` reports it as blocked-on-env, not skipped silently.
+
+**PR1b status (2026-07-13 apply batch):** 6/7 tasks complete. Task 2.7 (Human/EAS smoke) is explicitly BLOCKED-ON-ENV — requires a real device + running API at `:5080`, not automatable under `strict_tdd:false`. Not skipped silently; reported as pending in apply-progress.
 
 ## Phase 3 (optional stretch): Treatment-level attachments — PR2 (~10–20 lines)
 

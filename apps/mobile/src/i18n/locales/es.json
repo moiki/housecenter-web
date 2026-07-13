@@ -47,7 +47,8 @@
       "overview": "Resumen",
       "treatments": "Tratamientos",
       "sessions": "Sesiones",
-      "comments": "Comentarios"
+      "comments": "Comentarios",
+      "photos": "Fotos"
     },
     "overview": {
       "fullName": "Nombre completo",
@@ -137,5 +138,14 @@
     "bodyPlaceholder": "Escribe tu comentario...",
     "save": "Publicar comentario",
     "noComments": "Aún no hay comentarios."
+  },
+  "attachments": {
+    "empty": "Sin fotos aún",
+    "takePhoto": "Tomar foto",
+    "chooseFromLibrary": "Elegir de galería",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Seguro que deseas eliminar esta foto? Esta acción no se puede deshacer.",
+    "permissionDenied": "No se pudo acceder a la cámara o a la galería. Revisa los permisos de la app en Ajustes.",
+    "uploading": "Subiendo… {{percent}}%"
   }
 }
