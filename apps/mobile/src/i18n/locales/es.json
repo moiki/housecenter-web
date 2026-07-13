@@ -22,9 +22,16 @@
   "more": {
     "title": "Más",
     "devices": "Dispositivos",
+    "notifications": "Notificaciones",
     "logout": "Cerrar sesión",
     "logoutConfirmTitle": "Cerrar sesión",
     "logoutConfirmMessage": "¿Seguro que deseas cerrar sesión en este dispositivo?"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes notificaciones",
+    "markRead": "Marcar como leída",
+    "markAllRead": "Marcar todas como leídas"
   },
   "devices": {
     "title": "Dispositivos",

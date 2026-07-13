@@ -1,0 +1,100 @@
+change: mobile-notifications-push
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: PR1
+current_slice: PR1
+decision_needed_before_apply: resolved   # Guard fired (High risk PR2b); user chose 4-PR split 2026-07-13
+delivery_decision: "4 PRs (PR2b split) — user chose at Review Workload Guard 2026-07-13"
+pr_plan:
+  - { slice: PR1,            desc: "notifications list/unread UI + Más entry + tab badge",          core: false, native: false }
+  - { slice: PR2a,           desc: "navigationRef + typed root/tab param lists + REFERENCE_ROUTES",  core: false, native: false }
+  - { slice: PR2b-core,      desc: "core additive subscribe/unsubscribe + expo-notifications dep + config plugin", core: true,  native: true }
+  - { slice: PR2b-lifecycle, desc: "PushBootstrap + unsubscribe wiring + listeners + cold-start deep-link",        core: false, native: true }
+depends_on: [mobile-auth-session, mobile-patients-progress, mobile-attachments-camera, mobile-consultations]   # branch off main (all #1-#8 merged)
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — SDD change #9 of the HouseCenter Mobile plan (8/11 done). In-app notifications list/unread
+  UI in apps/mobile + remote push (FCM via expo-notifications): permission, register native device token ->
+  backend subscription, receive foreground/background, deep-link the tap to the referenced item. Absorbs the
+  push lifecycle DEFERRED from #5 (register after login; unsubscribe on logout this-device + revoke-all).
+  Branch off main (all #1-#8 merged).
+
+  explore  exploration.md (engram obs — sdd/mobile-notifications-push/explore) — HIGH confidence.
+
+  KEY FINDINGS (ratify in propose):
+  - Core has list/unreadCount/markRead/markAllRead ONLY -> add a SMALL ADDITIVE push-subscription surface
+    (subscribePush/unsubscribePush on notificationsApi + mutation-hook pair), reusing DevicePlatform from
+    auth.types. Zero changes to existing core exports (the #7/#8 additive-only discipline; web byte-unchanged).
+  - API: POST /notifications/push-subscriptions {token, platform}; DELETE /notifications/push-subscriptions/
+    /{token}. Upsert-by-token + dead-token pruning (missed client unsubscribe is self-healing). Payload
+    {type, referenceType, referenceId}. referenceType in {"Consultation","AttentionSession"}.
+  - TOKEN TYPE: getDevicePushTokenAsync() (native FCM/APNs), NOT getExpoPushTokenAsync() — backend sends raw
+    FCM tokens via FirebaseAdmin. Confirmed.
+  - NAVIGATORS ARE UNTYPED today (RootNavigator + TabNavigator). Cross-tab deep-link needs a navigationRef +
+    typed root/tab param lists (the app's FIRST cross-tab imperative nav). AppProviders NavigationContainer
+    has no ref yet.
+  - AttentionSession notifications CANNOT be deep-linked (only sessionId, no patientId; no GET /sessions/{id}).
+    Accept as-is, mirror web's NotificationBell (maps ONLY "Consultation").
+  - PHI-IN-PUSH-BODY: consultation Title (free text) flows into push body -> lock-screen leak. Backend/product
+    gap; #9 can't fix client-side. FLAG UPSTREAM.
+  - Lifecycle: request permission POST-LOGIN via a PushBootstrap component gated on user!=null; cache last
+    token (mirror deviceId.ts); re-register on addPushTokenListener (idempotent upsert). Unsubscribe BEFORE
+    logout.mutateAsync() (logout clears accessToken on settle); best-effort on revoke-all (current device only).
+  - Foreground: setNotificationHandler. Tap: addNotificationResponseReceivedListener. Cold-start:
+    getLastNotificationResponseAsync() (defer until nav + auth ready).
+  - UI: nest "Notificaciones" under "Más" + tab unread badge (NOT a 4th tab) — low-end/Member-first UX.
+  - Config: expo-notifications @55.0.20 + config plugin (Android channel/icon/color); googleServicesFile for
+    Android native token; iOS APNs entitlement (real Apple dev acct via EAS). expo-dev-client already installed;
+    eas.json profiles exist -> only a new dev-client build needed. Expo Go can't get push (moot; dev-client app).
+
+  SUGGESTED 3-PR SHAPE (stacked): PR1 (~150-250) notifications list/unread UI reusing core + Más entry + badge;
+  PR2a (nav infra: navigationRef + typed root/tab param lists + REFERENCE_ROUTES, tsc-verifiable);
+  PR2b (~budget Medium-High: expo-notifications dep + config plugin + PushBootstrap permission/registration +
+  unsubscribe lifecycle + foreground/tap/cold-start listeners + deep-link routing). PR2b = Human/EAS smoke.
+
+  strict_tdd:false. Verify: core tsc + web build/lint (core touched additively) + mobile tsc + expo-doctor +
+  expo export. Real push delivery/permission/deep-link = Human/EAS smoke (needs dev-client build + FCM creds).
+
+  NEXT: sdd-propose -> spec -> design -> tasks (auto fast-forward), then Review Workload Guard, then apply.
+
+  2026-07-13 — spec phase complete. spec.md written (openspec/changes/mobile-notifications-push/spec.md;
+  engram sdd/mobile-notifications-push/spec). R1-R8 requirements, 20 scenarios (7 Human/EAS-smoke: permission
+  prompt, token-registers-subscription-post, foreground-push-received, tap-live + tap-cold-start deep-link,
+  logout-unsubscribes, revoke-all-stops-push). Ratified positions from proposal baked in unchanged (Más-nested
+  UI + tab badge, core additive-only surface, getDevicePushTokenAsync, post-login PushBootstrap, unsubscribe-
+  before-token-clear, REFERENCE_ROUTES Consultation-only / AttentionSession no-op). API surface/DTOs/validation
+  documented (POST/DELETE push-subscriptions; existing list/unread/mark-read/mark-all surface unchanged).
+  NEXT: sdd-design (ADR-level decisions + code sketches for PushBootstrap/navigationRef/screen contracts),
+  then sdd-tasks (Review Workload Forecast per the 3-PR chained shape already sketched in the proposal).
+
+  2026-07-13 — design phase complete. design.md written (openspec/changes/mobile-notifications-push/design.md).
+  D1-D8 ADRs: typed navigationRef/RootStackParamList/TabParamList (D1), PushBootstrap post-login lifecycle with
+  cache-compare-before-subscribe (D2), unsubscribe-before-logout ordering (D3, load-bearing due to useLogout's
+  onSettled accessToken clear), cold-start one-shot gated on navigationRef.isReady()+user!=null (D4),
+  REFERENCE_ROUTES owned by navigationRef.ts (D5), core additive surface — 2 fns + 1 hook file, DevicePlatform
+  reused (D6), unread badge reuse via useUnreadCount() query-dedup (D7), expo-notifications config plugin +
+  API-26 channel guard (D8). CRITICAL IMPL NOTES flagged for apply: cold-start race, unsubscribe ordering,
+  shared cache-compare fn (no duplication), permission-denied-never-throws, exact typed nested-navigate shape,
+  Android channel guard, no raw token logging, 3-slice PR mapping (PR1/PR2a/PR2b) restated.
+
+  2026-07-13 — tasks phase complete. tasks.md written (openspec/changes/mobile-notifications-push/tasks.md;
+  engram sdd/mobile-notifications-push/tasks). 3 Phases mapped 1:1 to the ratified PR1/PR2a/PR2b shape, 28
+  implementation tasks (PR1: 8, PR2a: 5, PR2b: 15) plus a consolidated 8-item Human/EAS smoke checklist +
+  verification-commands table (36 checklist items total). Review Workload Forecast: PR1 ~190-250 lines,
+  PR2a ~100-160 lines (lowest risk, pure TS/inert),
+  PR2b ~320-420 raw but plausibly 420-520 once inflated (mobile-consultations PR2's own 412-actual-vs-253-
+  estimate 1.63x ratio applied) -> 400-line budget risk marked HIGH, driven entirely by PR2b (first core touch +
+  native dep + config plugin + the single most effect-dense file in the change, PushBootstrap.tsx). Chained PRs
+  recommended: Yes. Decision needed before apply: Yes (delivery_strategy=ask-on-risk + High risk -> orchestrator
+  MUST ask before apply per the Review Workload Guard). Documented an apply-time-contingency internal PR2b split
+  (PR2b-core+config ~90-110 lines / PR2b-lifecycle+listeners ~230-290 lines) if the diff swells past ~380 during
+  apply — not pre-applied, same pattern mobile-consultations used for its own PR2 swing factor. PR2b carries all
+  7 Human/EAS-smoke scenarios (needs new dev-client build + FCM/APNs creds + real device + API-24/25 emulator for
+  the channel-guard check); PR1/PR2a need no manual smoke (no native module touched).
+  NEXT: orchestrator must resolve the Review Workload Guard decision (chained/stacked PRs vs. maintainer-approved
+  size:exception) before sdd-apply starts PR1.
