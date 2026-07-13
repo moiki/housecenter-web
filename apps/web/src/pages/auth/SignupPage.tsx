@@ -10,6 +10,7 @@ import { invitationsApi } from 'core/api/modules/invitations.api'
 import { useAuthStore } from '@/store/auth.store'
 import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
+import { getOrCreateDeviceId } from '@/lib/deviceId'
 
 const schema = z
   .object({
@@ -49,7 +50,14 @@ export function SignupPage() {
 
   const signup = useMutation({
     mutationFn: (data: FormData) =>
-      authApi.signup({ token, firstName: data.firstName, lastName: data.lastName, password: data.password }),
+      authApi.signup({
+        token,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+        deviceId: getOrCreateDeviceId(),
+        platform: 'Web',
+      }),
     onSuccess: async (tokens) => {
       const user = await authApi.me()
       setAuth(user, tokens.accessToken, tokens.refreshToken)

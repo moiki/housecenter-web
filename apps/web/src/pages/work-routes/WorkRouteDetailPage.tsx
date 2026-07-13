@@ -6,7 +6,7 @@ import { Box, Button, IconButton, Paper, Skeleton, Stack, Typography } from '@mu
 import AddOutlined from '@mui/icons-material/AddOutlined'
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
-import { updateWorkRouteSchema, type UpdateWorkRouteFormData } from '@/schemas/workroute.schema'
+import { updateWorkRouteSchema, type UpdateWorkRouteFormData } from 'core/schemas/workroute.schema'
 import { useWorkRoute, useUpdateWorkRoute } from 'core/hooks/workroutes/useWorkRoutes'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { FormSection } from '@/components/shared/FormSection'

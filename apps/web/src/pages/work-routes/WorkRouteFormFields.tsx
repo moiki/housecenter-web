@@ -9,7 +9,7 @@ import {
   RHFWeekdayToggle,
   type SelectOption,
 } from '@/components/shared/form'
-import type { WorkRouteFormData, UpdateWorkRouteFormData } from '@/schemas/workroute.schema'
+import type { WorkRouteFormData, UpdateWorkRouteFormData } from 'core/schemas/workroute.schema'
 
 type WorkRouteFormValues = WorkRouteFormData | UpdateWorkRouteFormData
 

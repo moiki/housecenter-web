@@ -24,7 +24,7 @@ import AddOutlined from '@mui/icons-material/AddOutlined'
 import EditOutlined from '@mui/icons-material/EditOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import WorkOutlined from '@mui/icons-material/WorkOutlined'
-import { collaboratorSchema, type CollaboratorFormData } from '@/schemas/collaborator.schema'
+import { collaboratorSchema, type CollaboratorFormData } from 'core/schemas/collaborator.schema'
 import {
   useCollaborators,
   useCreateCollaborator,

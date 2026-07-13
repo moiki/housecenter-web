@@ -8,6 +8,7 @@ import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
+import { getOrCreateDeviceId } from '@/lib/deviceId'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -37,7 +38,12 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const tokens = await authApi.login(data)
+      const tokens = await authApi.login({
+        email: data.email,
+        password: data.password,
+        deviceId: getOrCreateDeviceId(),
+        platform: 'Web',
+      })
       // Store tokens before calling me() so the request interceptor picks them up
       setTokens(tokens.accessToken, tokens.refreshToken)
       const user = await authApi.me()
