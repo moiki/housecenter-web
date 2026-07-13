@@ -1,18 +1,18 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
-import { cacheStorage } from './mmkv'
+import { getCacheStorage } from './mmkv'
 
-// AsyncStorage-shaped adapter over the synchronous MMKV instance — MMKV's `getString`/`set`/
-// `delete` are sync, but `AsyncStorage`'s contract allows a `MaybePromise` return, so wrapping
-// in `Promise.resolve()` satisfies the interface without changing MMKV's sync perf characteristics.
+// AsyncStorage-shaped adapter over the lazy/promise-gated MMKV instance (design.md D4) — each
+// method awaits `getCacheStorage()` before touching MMKV, so persistence transparently waits for
+// the SecureStore-sourced `encryptionKey` to resolve on first use. `createAsyncStoragePersister`'s
+// adapter contract is already async-native, so this await is invisible to
+// `PersistQueryClientProvider` — it just waits a beat longer before restoring/hydrating.
 const mmkvStorage = {
-  getItem: (key: string) => Promise.resolve(cacheStorage.getString(key) ?? null),
-  setItem: (key: string, value: string) => {
-    cacheStorage.set(key, value)
-    return Promise.resolve()
+  getItem: async (key: string) => (await getCacheStorage()).getString(key) ?? null,
+  setItem: async (key: string, value: string) => {
+    ;(await getCacheStorage()).set(key, value)
   },
-  removeItem: (key: string) => {
-    cacheStorage.delete(key)
-    return Promise.resolve()
+  removeItem: async (key: string) => {
+    ;(await getCacheStorage()).delete(key)
   },
 }
 
