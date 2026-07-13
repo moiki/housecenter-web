@@ -14,6 +14,9 @@ dist-ssr
 .env
 .turbo
 .vite
+.expo
+ios
+android
 
 # Editor directories and files
 .vscode/*
