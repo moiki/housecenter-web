@@ -1,0 +1,61 @@
+change: mobile-auth-session
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # 3 chained PRs, ~650-750 lines, budget HIGH, security-sensitive auth
+depends_on: [mobile-app-foundation, device-bound-sessions-api]   # both merged to main; branch feat/mobile-auth-session off main
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — Planning fast-forward (auto) complete. SDD change #5 of the HouseCenter Mobile plan:
+  real auth + long-lived device-bound session in apps/mobile against the merged device-bound-sessions
+  API. Branch feat/mobile-auth-session off main (which has monorepo+core+mobile-foundation merged).
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 544) — exact API contract; core missing session-mgmt endpoints;
+             mobile zero auth wiring; 2 sync/async mismatches (deviceId provider, MMKV singleton);
+             naming collision risk (DeviceSession* NOT Session* = AttentionSessions); push not separable.
+  - propose  proposal.md (engram 545) — 6 positions resolved; 3-PR shape.
+  - spec     spec.md (engram 546) — R1-R12, 13 scenarios (6 Human/EAS-smoke-only).
+  - design   design.md (engram 547) — 9 ADR decisions + 4 sequence diagrams + code sketches.
+  - tasks    tasks.md (engram 548) — Review Workload Forecast: ~650-750 lines, budget HIGH, 3 chained PRs,
+             decision_needed=YES.
+
+  RATIFIED DECISIONS:
+  1. PUSH DEFERRED ENTIRELY TO #9 (corrects master plan's #5 "ciclo push" line — deregister needs the
+     full expo-notifications/FCM stack #9 builds; not separable). #5 = pure auth/session/device-mgmt.
+  2. Core auth EXTENDED (existing auth.* files, disambiguated: DeviceSessionResponse, useDeviceSessions,
+     useLogout, useRevokeSession, useRevokeAllSessions; NOT Session*/useSessions = AttentionSessions).
+     Trim phantom deviceName?/platform? off RefreshRequest.
+  3. Two sync/async fixes IN-SCOPE: deviceId (async initDeviceId() + sync getDeviceId() for the
+     createApiClient deviceIdProvider:()=>string contract; separate SecureStore key surviving logout);
+     MMKV lazy/promise-gated + SecureStore encryptionKey (kills #4's TODO(#5) static dev key).
+  4. Always send platform from Platform.OS (backend silently defaults to Android=0 if omitted).
+  5. Web signup bug found (SignupPage sends `token` not `invitationToken`, missing `address`) — OUT OF
+     SCOPE, separate bug ticket (mobile has no signup — Members invited via web).
+
+  3-PR plan (stacked, strict sequential):
+  - PR1 Core auth session-mgmt (~100-120, SHARED w/ web -> web-build gate mandatory): auth.types.ts
+        (DeviceSessionResponse/LogoutRequest + RefreshRequest trim), auth.api.ts (logout/getSessions/
+        revokeSession/revokeAllSessions), hooks/auth/ (authKeys factory + 4 hooks). FULLY AUTOMATED gates.
+  - PR2 Mobile auth wiring (~300-370): deps (expo-secure-store/crypto, axios), secureStore.ts AuthStorage,
+        deviceId.ts (async init + sync getter), store/auth.store.ts, api/client.ts, bootstrap.ts + index.ts
+        order, AuthBootstrap gate, RootNavigator conditional (Login|Tabs), LoginScreen (es). Human/EAS smoke:
+        login + cold-start-silent-refresh vs local API :5080.
+  - PR3 Device-mgmt "Más" + MMKV migration (~220-280): screens/more/{MoreScreen,DevicesScreen}, Más tab,
+        logout PHI hygiene (store + MMKV.clearAll + queryClient.clear), lazy MMKV + SecureStore key.
+        Human/EAS smoke: logout/revoke/revoke-all.
+
+  strict_tdd:false. VERIFICATION GAP: 6 of 13 scenarios (login/refresh/logout/revoke round-trips) are
+  Human/EAS dev-client smokes vs live API :5080 — apply can only run tsc/expo-doctor/expo-export/web-build
+  (reports round-trips as "needs dev/CI env"). Naming: spec uses authKeys (design sketch said
+  deviceSessionKeys) — follow authKeys. Open apply risks: Metro resolving core hooks/auth/* at expo export;
+  Crypto.randomUUID() length as MMKV encryptionKey.
+
+  Review Workload Guard: chained PRs YES + ask-on-risk + decision_needed YES -> STOP before apply, confirm.
+  NEXT: user confirms apply approach -> sdd-apply PR1->PR2->PR3. Then #6 patients/progress.
