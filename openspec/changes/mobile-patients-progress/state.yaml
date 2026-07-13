@@ -1,0 +1,64 @@
+change: mobile-patients-progress
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-13
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # 4 chained PRs, budget HIGH; PR2 (~450-550) and PR4 (~550-650) may need sub-splits
+depends_on: [mobile-auth-session]   # branch feat/mobile-patients-progress stacked on feat/mobile-auth-session
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-13 — Planning fast-forward (auto) complete. SDD change #6 of the HouseCenter Mobile plan:
+  the CORE Member field-work app — view patients + RECORD PROGRESS (AttentionSessions = work-route
+  compliance, TreatmentDetails = treatment progress, comments). Branch feat/mobile-patients-progress
+  stacked on feat/mobile-auth-session (#5). #5's human/EAS auth smoke still pending in parallel.
+
+  KEY FINDING: core's patients/treatments/sessions/comments data layer is ALREADY 100% COMPLETE
+  (all hooks/api/types exist from core-extraction — even comment hooks). So #6 = mobile UI + hoist
+  3 inline web Zod schemas + add deps. No new core hooks/api/types.
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 552) — core complete; hoist 3 schemas; Member write-scope; segmented
+             control; collaboratorId-for-self open question.
+  - propose  proposal.md (engram 553) — 7 positions resolved; 4-PR shape.
+  - spec     spec.md (engram 554) — R1-R14, 15 scenarios (5 Human/EAS-smoke).
+  - design   design.md (engram 555) — 9 ADR decisions incl. new RHF-RN form wrappers; screen tree; sketches.
+  - tasks    tasks.md (engram 556) — Review Workload Forecast: budget HIGH, 4 chained PRs, decision=YES;
+             PR2 (~450-550) + PR4 (~550-650) flagged as possibly over-budget with named sub-split contingency.
+
+  RATIFIED DECISIONS:
+  1. Member mobile write-scope: patients VIEW-ONLY (no create/edit); treatments VIEW + status patch (no
+     create/edit); treatment details CREATE only; AttentionSessions CREATE + status patch (NO delete —
+     Administrator-only per plan+API); comments (patient+treatment) CREATE only.
+  2. Hoist EXACTLY 3 schemas to core/schemas (treatmentDetail, session [createSchema w/ locationMode +
+     superRefine, + statusSchema], comment [body+type, replaces 2 duplicated inline copies]); NOT treatment.schema.
+  3. Custom segmented control (useState<TabId>) — NO material-top-tabs/pager-view dep.
+  4. New mobile deps: react-hook-form ^7.79, @hookform/resolvers ^5.4, @react-native-community/datetimepicker
+     (expo install). Introduces the RHF+zodResolver pattern to mobile via new RN Controller wrappers
+     (RHFTextInput/RHFSelect/RHFPickerField/RHFDateField in components/shared/form/).
+  5. collaboratorId for self-service session = user.id (WORKING ASSUMPTION — flagged risk, verify in PR4
+     human smoke that attribution surfaces on web; fallback: request /collaborators/me from API team).
+  6. Nav: repurpose placeholder Home tab -> Pacientes (+ PatientsStack); defer Inicio/Ruta dashboard to #10.
+
+  4-PR plan (stacked, sequential):
+  - PR1 Core schema hoisting (~110-140, SHARED w/ web -> web build/lint gate mandatory): 3 core schemas +
+        rewire TreatmentsTab/SessionsTab/CommentsTab imports. FULLY AUTOMATED.
+  - PR2 Deps + Pacientes tab + list + detail shell (~450-550, may sub-split 2a/2b): RHF/resolvers/datetimepicker,
+        RN form wrappers, Home->Pacientes + PatientsStack, PatientsListScreen, PatientDetailScreen + segmented
+        control + Overview, i18n patients namespace.
+  - PR3 Treatments+Details tab (~280-360): list + status patch + create-detail + treatment comments. Human smoke.
+  - PR4 Sessions tab + patient Comments tab (~550-650, may sub-split 4a/4b): CreateSessionScreen modal (locationMode
+        + datetimepicker + collaboratorId=self + online gate), sessions list + status patch, patient comments.
+        Human smoke: create session + confirm collaborator attribution on web (resolves collaboratorId question).
+
+  strict_tdd:false. VERIFICATION: automated tsc/expo-doctor/expo-export/web-build; 5/15 scenarios (session
+  create/attribution, status patches, detail/comment create, write-then-on-web) are Human/EAS smokes vs
+  live API :5080. Risks: datetimepicker SDK55 compat; Metro resolving core schemas/* at expo export;
+  collaboratorId=self assumption.
+
+  Review Workload Guard: chained PRs YES + ask-on-risk + decision=YES -> STOP before apply, confirm.
+  NEXT: user confirms apply approach -> sdd-apply PR1->PR4. Then #7 attachments/camera.
