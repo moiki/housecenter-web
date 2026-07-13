@@ -81,47 +81,74 @@ scenarios, R9).
 
 ## Phase 2: Create + reply attachments — PR2
 
-- [ ] 2.1 `apps/mobile/src/navigation/PatientsStack.tsx` — add `CreateConsultation:
+- [x] 2.1 `apps/mobile/src/navigation/PatientsStack.tsx` — add `CreateConsultation:
       {patientId}` route (`presentation:'modal'`) to `PatientsStackParamList` (R5)
-- [ ] 2.2 `apps/mobile/src/screens/consultations/CreateConsultationScreen.tsx` — new: RHF +
+- [x] 2.2 `apps/mobile/src/screens/consultations/CreateConsultationScreen.tsx` — new: RHF +
       `zodResolver(createConsultationSchema)`, doctor `RHFSelect` sourced from
       `usePatientFullSummary(patientId).assignedDoctors` (never a global doctor list),
       title + firstMessage fields (R5)
-- [ ] 2.3 Same file — always send `treatmentId: null` + `attachmentUrl: null`; **zero-assigned-
+- [x] 2.3 Same file — always send `treatmentId: null` + `attachmentUrl: null`; **zero-assigned-
       doctors guard**: disable/hide the escalate action with an explanatory Spanish message,
-      no doctor picker rendered with zero options (R5)
-- [ ] 2.4 Same file — `useCreateConsultation().mutateAsync(...)`, `navigation.goBack()` on 201;
+      no doctor picker rendered with zero options (R5) — implemented as a full-form replacement
+      with `<EmptyState messageKey="consultations.noDoctors" />` inside the `QueryBoundary`
+      render prop (matches design.md's sketch); `PatientDetailScreen`'s own button (2.5) is the
+      first line of defense, this is belt-and-suspenders for a stale cached summary.
+- [x] 2.4 Same file — `useCreateConsultation().mutateAsync(...)`, `navigation.goBack()` on 201;
       on 403 match `consultations.not_patient_collaborator` via `isApiError` (confirm mobile
       can import `isApiError` from core) → friendly Spanish `Alert`, stay on form, no crash,
-      no client-side collaborator pre-gate (R7)
-- [ ] 2.5 `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — switch screen typing to
+      no client-side collaborator pre-gate (R7) — `isApiError` import from
+      `core/types/common.types` confirmed (same path already used by `LoginScreen.tsx`);
+      matched on `err.status === 403 && err.detail.includes('not_patient_collaborator')`.
+- [x] 2.5 `apps/mobile/src/screens/patients/PatientDetailScreen.tsx` — switch screen typing to
       `NativeStackScreenProps` (to get `navigation`); add "Escalar a Doctor" button →
       `navigate('CreateConsultation', {patientId})`, shown unconditionally, disabled when
       `assignedDoctors.length===0` with hint text (R5, R7)
-- [ ] 2.6 `apps/mobile/src/components/attachments/pickAndUpload.ts` — split out
+- [x] 2.6 `apps/mobile/src/components/attachments/pickAndUpload.ts` — split out
       `pickPhoto(source)` (permission + pick + manipulate → `AttachmentPayload`, no upload);
       `pickAndUpload` becomes a thin wrapper (`pickPhoto` then upload) — existing Patient/
-      Treatment callers' signature and return contract unchanged (R6)
-- [ ] 2.7 `apps/mobile/src/components/attachments/MessageAttachmentThumb.tsx` — new, read-only:
+      Treatment callers' signature and return contract unchanged (R6) — added a narrower
+      `PickedPhoto = {uri,name,type}` export (RN-only branch of the cross-platform
+      `AttachmentPayload` union) so `ConsultationDetailScreen`'s staged-photo state can read
+      `.uri` without a Blob-branch type error; still directly assignable to `AttachmentPayload`
+      wherever an upload call expects it. See Deviations.
+- [x] 2.7 `apps/mobile/src/components/attachments/MessageAttachmentThumb.tsx` — new, read-only:
       `useAttachments('ConsultationMessage', messageId)` + `AuthedImage`, renders `null` when
       empty; render one per message bubble in `ConsultationDetailScreen` (R4, R6)
-- [ ] 2.8 `ConsultationDetailScreen.tsx` — add optional `pickPhoto` stage to the compose bar;
+- [x] 2.8 `ConsultationDetailScreen.tsx` — add optional `pickPhoto` stage to the compose bar;
       staged preview via **plain `<Image uri={staged.uri}>`, NOT `AuthedImage`** (local file
       URI, not an authed download URL) (R6)
-- [ ] 2.9 Same file — on send: `usePostMessage.mutateAsync` → on success
+- [x] 2.9 Same file — on send: `usePostMessage.mutateAsync` → on success
       `setUploadTargetId(newMsg.id)`; a `useUploadAttachment('ConsultationMessage',
       uploadTargetId)` hook wired at component level + a `useEffect([uploadTargetId])` fires
       the upload. **Rules-of-hooks constraint: do NOT call
       `useUploadAttachment(...).mutateAsync()` inline inside the send handler** — `ownerId` is
       baked into the hook at render time, so the id-dependent upload must be effect-driven (R6)
-- [ ] 2.10 Same file — clear staged payload + `uploadTargetId` when the upload settles;
-      invalidate/refetch the detail query so the new message's thumbnail appears (R6)
-- [ ] 2.11 `apps/mobile/src/i18n/locales/es.json` — add `consultations.{doctor,title,
+- [x] 2.10 Same file — clear staged payload + `uploadTargetId` when the upload settles;
+      invalidate/refetch the detail query so the new message's thumbnail appears (R6) — no
+      extra invalidation call needed: `useUploadAttachment`'s own `onSuccess` already
+      invalidates the `['attachments','ConsultationMessage', messageId]` key that
+      `MessageAttachmentThumb` (already mounted for that message via `usePostMessage`'s prior
+      detail-query invalidation) reads from.
+- [x] 2.11 `apps/mobile/src/i18n/locales/es.json` — add `consultations.{doctor,title,
       firstMessage,create,createTitle,escalate,noDoctors,notCollaborator,attach}`,
-      Spanish-first (R5, R10)
-- [ ] 2.12 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`,
+      Spanish-first (R5, R10) — added as `consultations.titleLabel` instead of
+      `consultations.title` (PR1 already claims that key for the list/stack screen title
+      "Consultas"; reusing it for the create-form's title-field label would have silently
+      broken PR1's screen title). See Deviations.
+- [x] 2.12 Gates: `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`,
       `npx expo export`, `pnpm --filter web build` (regression unaffected by PR2 — no core
-      change in this PR) (R1–R10)
+      change in this PR) (R1–R10) — all green, see apply-progress for full output.
+
+**Deviations (both minor, noted for verify):**
+1. `consultations.title` key collision avoided — task 2.11/design.md's sketch both reuse
+   `consultations.title` for the create-form's title-field label, but PR1 already owns that key
+   for the "Consultas" list/stack screen title. Used `consultations.titleLabel` instead so PR1's
+   UI isn't silently broken.
+2. `pickPhoto`'s returned payload is typed as a new narrower `PickedPhoto` export (not the full
+   cross-platform `AttachmentPayload` union used in design.md's terse sketch) so
+   `ConsultationDetailScreen`'s staged-photo preview can read `.uri` without a Blob-branch type
+   error — required for `tsc --noEmit` to pass; behaviorally identical, still assignable to
+   `AttachmentPayload` at every upload call site.
 
 **PR2 done when:** mobile tsc/expo-doctor/expo export green, web build still green; code
 trace confirms the zero-doctors guard, the 403 friendly-error path, and the
@@ -130,6 +157,16 @@ env — live API `:5080` + dev client + a Doctor-role account for the reply/reso
 **create-consultation**, **escalate-not-collaborator-403**, **attach-photo-to-reply**. Web
 renders no consultation attachments — verify uploaded thumbnails via the API directly, not
 the web UI.
+
+**Actual line count (via `git add -N` + `git diff --stat`, non-destructive):** 345 insertions +
+67 deletions = **412 changed lines** across 7 files, vs. the ~253-line estimate and 400-line
+budget note above. Marginally over 400 — driven mainly by `ConsultationDetailScreen.tsx`'s
+attach-flow additions (+122) and `PatientDetailScreen.tsx`'s `NativeStackScreenProps` switch
+plus escalate button/styles (+73), both larger than their terse code-sketch equivalents once
+styles are included (same inflation factor PR1 saw). No mid-apply 2a/2b split was made — this
+batch was explicitly scoped by the orchestrator as the single, final PR2 slice
+(stacked-to-main, delivery_strategy resolved at the tasks phase); flagging the overage here for
+the Review Workload Guard / reviewer visibility rather than unilaterally re-splitting.
 
 ---
 

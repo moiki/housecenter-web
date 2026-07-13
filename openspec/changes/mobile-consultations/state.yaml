@@ -3,12 +3,16 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-13
-phase: tasks
-status: planning-complete
+phase: verified
+status: prs-open
 chain_strategy: stacked-to-main
 chain_slice: null
 current_slice: null
 decision_needed_before_apply: true   # 2 chained PRs, budget Medium
+prs:
+  - { pr: 33, slice: PR1, base: main, head: feat/mobile-consultations-pr1, title: "Consultas tab + list + thread" }
+  - { pr: 34, slice: PR2, base: feat/mobile-consultations-pr1, head: feat/mobile-consultations, title: "escalate-to-doctor + reply attachments" }
+verify: "PASS WITH WARNINGS (0 CRITICAL / 2 WARNING) — obs #576"
 depends_on: [mobile-patients-progress, mobile-attachments-camera]   # branch feat/mobile-consultations off main (all #1-#7 merged)
 completed_phases: [explore, propose, spec, design, tasks]
 notes: |

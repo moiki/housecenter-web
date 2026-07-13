@@ -153,6 +153,7 @@
   "consultations": {
     "title": "Consultas",
     "detailTitle": "Detalle de la consulta",
+    "createTitle": "Nueva consulta",
     "status": {
       "Open": "Abierta",
       "UnderReview": "En revisión",
@@ -162,6 +163,14 @@
     "messagePlaceholder": "Escribe un mensaje...",
     "send": "Enviar",
     "resolve": "Marcar resuelta",
-    "resolvedHint": "Esta consulta ya fue resuelta."
+    "resolvedHint": "Esta consulta ya fue resuelta.",
+    "attach": "Adjuntar foto",
+    "escalate": "Escalar a Doctor",
+    "doctor": "Doctor",
+    "titleLabel": "Título",
+    "firstMessage": "Mensaje inicial",
+    "create": "Crear consulta",
+    "noDoctors": "Este paciente no tiene doctores asignados.",
+    "notCollaborator": "No atendés a este paciente, por lo que no podés escalar una consulta."
   }
 }
