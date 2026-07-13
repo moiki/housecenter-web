@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from '@/lib/queryClient'
-import { ADMIN_ABOVE, STAFF_ONLY } from '@/lib/constants'
+import { queryClient } from 'core/lib/queryClient'
+import { ADMIN_ABOVE, STAFF_ONLY } from 'core/lib/constants'
 
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { AppLayout } from '@/layouts/AppLayout'

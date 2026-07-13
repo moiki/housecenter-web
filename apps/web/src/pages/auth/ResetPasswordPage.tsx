@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Alert, Box, Button, Typography } from '@mui/material'
 import { authApi } from '@/api/modules/auth.api'
-import { isApiError } from '@/types/common.types'
+import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
 
 const schema = z

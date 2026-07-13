@@ -7,7 +7,7 @@ import type {
   SignupRequest,
   TokenPairResponse,
   UserResponse,
-} from '@/types/auth.types'
+} from 'core/types/auth.types'
 
 export const authApi = {
   login: (data: LoginRequest) =>

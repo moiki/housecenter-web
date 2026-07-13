@@ -3,8 +3,8 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { Box, Button, Chip, IconButton, Paper, Typography } from '@mui/material'
 import ChevronLeftOutlined from '@mui/icons-material/ChevronLeftOutlined'
 import ChevronRightOutlined from '@mui/icons-material/ChevronRightOutlined'
-import { expandOccurrences } from '@/lib/recurrence'
-import type { WorkRouteResponse } from '@/types/workroute.types'
+import { expandOccurrences } from 'core/lib/recurrence'
+import type { WorkRouteResponse } from 'core/types/workroute.types'
 
 const WEEKDAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 

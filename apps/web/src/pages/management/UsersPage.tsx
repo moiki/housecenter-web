@@ -22,7 +22,7 @@ import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOu
 import { useUsers, useDeactivateUser } from '@/hooks/users/useUsers'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import type { UserResponse } from '@/types/user.types'
+import type { UserResponse } from 'core/types/user.types'
 
 type ChipColor = 'default' | 'error' | 'warning' | 'info' | 'success'
 

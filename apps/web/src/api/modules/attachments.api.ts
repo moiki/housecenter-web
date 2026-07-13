@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client'
-import type { AttachmentResponse, AttachmentOwnerType } from '@/types/attachment.types'
+import type { AttachmentResponse, AttachmentOwnerType } from 'core/types/attachment.types'
 
 // Unversioned, like /auth/* and /notifications — see the CLAUDE.md route-versioning gotcha.
 const BASE = '/attachments'

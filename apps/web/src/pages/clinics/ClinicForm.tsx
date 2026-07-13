@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Box, Button } from '@mui/material'
 import { RHFTextField } from '@/components/shared/form'
 import { clinicSchema, type ClinicFormData } from '@/schemas/clinic.schema'
-import type { ClinicResponse } from '@/types/clinic.types'
+import type { ClinicResponse } from 'core/types/clinic.types'
 
 interface Props {
   defaultValues?: ClinicResponse

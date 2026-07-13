@@ -25,7 +25,7 @@ import {
 import { useAuthStore } from '@/store/auth.store'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFRichText } from '@/components/shared/form'
-import type { ConsultationStatus } from '@/types/consultation.types'
+import type { ConsultationStatus } from 'core/types/consultation.types'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 const messageSchema = z.object({

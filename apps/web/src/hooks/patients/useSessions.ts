@@ -5,7 +5,7 @@ import type {
   SessionStatus,
   CreateAttentionSessionRequest,
   UpdateSessionStatusRequest,
-} from '@/types/session.types'
+} from 'core/types/session.types'
 
 const keys = {
   all: (patientId: string) => ['patients', patientId, 'sessions'] as const,

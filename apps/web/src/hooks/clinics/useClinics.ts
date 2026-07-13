@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clinicsApi } from '@/api/modules/clinics.api'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { CreateClinicRequest, UpdateClinicRequest } from '@/types/clinic.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { CreateClinicRequest, UpdateClinicRequest } from 'core/types/clinic.types'
 
 export const clinicKeys = {
   all: ['clinics'] as const,

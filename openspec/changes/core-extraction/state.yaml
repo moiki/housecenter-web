@@ -1,0 +1,52 @@
+change: core-extraction
+artifact_store: openspec
+execution_mode: auto
+delivery_strategy: ask-on-risk
+created: 2026-07-12
+phase: tasks
+status: planning-complete
+chain_strategy: stacked-to-main
+chain_slice: null
+current_slice: null
+decision_needed_before_apply: true   # 4 chained PRs, ~800-970 reviewable lines, budget HIGH -> guard stops
+depends_on: monorepo-workspace-bootstrap   # branch feat/core-extraction is stacked on feat/monorepo-workspace-bootstrap
+completed_phases: [explore, propose, spec, design, tasks]
+notes: |
+  2026-07-12 — Planning fast-forward (auto) complete. SDD change #3 of the HouseCenter Mobile plan:
+  extract packages/core (UI-agnostic types/api/hooks/schemas/lib) from apps/web, abstract the axios
+  client + auth store behind injected TokenStore/AuthStorage (so web and future mobile inject their
+  own storage/nav), migrate apps/web to consume core, and fix the enum drift. Branch feat/core-extraction
+  is stacked on feat/monorepo-workspace-bootstrap (bootstrap PR #10 open on moiki/housecenter-web).
+
+  Artifacts (openspec + engram):
+  - explore  exploration.md (engram 526) — ~90% mechanical; 3 real seams: useMe DOM side effect +
+             concrete store, auth store sync->async hydration (highest risk), deviceId net-new.
+             Enum fix = compile-only, zero blast radius. Package shape Option A (JIT/source-consumed,
+             Metro-safe since RN 0.79). Churn ~70 files, mostly prefix-swaps.
+  - propose  proposal.md (engram 527) — 7 positions resolved; 4-PR shape.
+  - spec     spec.md (engram 528) — R1-R10, 12 build/lint/grep-verifiable scenarios.
+  - design   design.md (engram 529) — 9 ADR decisions: exports map (api/modules kept separate from
+             api/http); no tsconfig paths (native exports + workspace:*); bootstrap.ts imported first
+             in main.tsx for setApiClient ordering; authHydrated sync best-effort read preserves web
+             first-paint; Vite optimizeDeps.exclude risk.
+  - tasks    tasks.md (engram 530) — Review Workload Forecast: ~800-970 reviewable lines, budget HIGH,
+             4 chained PRs, decision_needed=YES.
+
+  4-PR plan (stacked, strict sequential — each is a hard prereq for the next):
+  - PR1 Core foundation + abstraction (~350-420): package/exports/tsconfig; createApiClient +
+        setApiClient/getApiClient; createAuthStore + TokenStore/AuthStorage; git mv types (+enum fix)
+        + lib recurrence/queryClient + role constants; bootstrap.ts; thin web client/store; core:workspace:*.
+  - PR2 api modules (~120-150): git mv 15 modules + getApiClient swap + ~24 importers.
+  - PR3 hooks + hydration redesign (~180-220, HIGHEST RISK): git mv 13 hook folders; useMe split
+        (dark-mode DOM effect -> web-only); authHydrated tri-state gate in AuthBootstrap; ~22 importers.
+        Manual smoke GATING: reload-while-authed no /login bounce; logged-out first paint no spinner flash.
+  - PR4 schemas + deviceId + cleanup (~150-180): git mv schemas + ~8 importers; deviceId end-to-end;
+        NAV_ITEMS -> apps/web/src/lib/nav.ts + Sidebar split; final pnpm -w build.
+
+  strict_tdd:false -> verify via pnpm --filter core build + --filter web build + lint + pnpm -w build.
+  Review Workload Guard: chained PRs YES + ask-on-risk + decision_needed YES -> STOP before apply,
+  confirm with user. Cached chain strategy stacked-to-main.
+
+  DEPLOY COORDINATION (deviceId, PR4): the API device-bound-sessions change (repo housecenter-api,
+  PRs #20-23) makes deviceId REQUIRED on login/refresh. Web deviceId support MUST ship before/with
+  that API deploy or login breaks. Rolling back PR4 after the API cutover breaks login/refresh.

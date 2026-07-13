@@ -27,7 +27,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
-import type { ClinicResponse } from '@/types/clinic.types'
+import type { ClinicResponse } from 'core/types/clinic.types'
 import type { ClinicFormData } from '@/schemas/clinic.schema'
 
 const NEW_CLINIC_FORM_ID = 'new-clinic-form'

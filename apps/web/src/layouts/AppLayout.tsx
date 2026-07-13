@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { Sidebar } from '@/components/shared/Sidebar'
 import { Topbar } from '@/components/shared/Topbar'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
-import type { RoleName } from '@/lib/constants'
+import type { RoleName } from 'core/lib/constants'
 
 export function AppLayout() {
   const user = useAuthStore((s) => s.user)

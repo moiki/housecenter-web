@@ -41,7 +41,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFTextField, RHFSelect, RHFDatePicker, RHFRichText } from '@/components/shared/form'
-import type { TreatmentResponse, TreatmentDetailResponse, TreatmentCommentResponse } from '@/types/patient.types'
+import type { TreatmentResponse, TreatmentDetailResponse, TreatmentCommentResponse } from 'core/types/patient.types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const treatmentSchema = z.object({

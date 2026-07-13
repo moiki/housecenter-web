@@ -22,12 +22,12 @@ import { useSessions, useCreateSession, usePatchSessionStatus, useDeleteSession 
 import { useCollaborators } from '@/hooks/collaborators/useCollaborators'
 import { useClinics } from '@/hooks/clinics/useClinics'
 import { useWorkRoutes } from '@/hooks/workroutes/useWorkRoutes'
-import { DROPDOWN_PAGE_SIZE } from '@/lib/constants'
+import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { HelpTooltip } from '@/components/shared/HelpTooltip'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
-import type { AttentionSessionResponse, SessionStatus } from '@/types/session.types'
+import type { AttentionSessionResponse, SessionStatus } from 'core/types/session.types'
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const createSchema = z

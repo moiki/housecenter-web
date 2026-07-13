@@ -8,7 +8,7 @@ import {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from '@/hooks/notifications/useNotifications'
-import type { NotificationResponse } from '@/types/notification.types'
+import type { NotificationResponse } from 'core/types/notification.types'
 
 // Only reference types with a standalone detail route can be deep-linked to;
 // AttentionSession has no such route (sessions only exist inside a patient's tab).

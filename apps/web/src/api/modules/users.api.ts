@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/client'
-import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
-import type { PagedResult } from '@/types/common.types'
-import type { UserResponse, UpdateUserRequest, AssignRolesRequest } from '@/types/user.types'
+import { DEFAULT_PAGE_SIZE } from 'core/lib/constants'
+import type { PagedResult } from 'core/types/common.types'
+import type { UserResponse, UpdateUserRequest, AssignRolesRequest } from 'core/types/user.types'
 
 const BASE = '/users'
 

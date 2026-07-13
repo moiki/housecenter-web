@@ -1,6 +1,6 @@
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form'
 import { ToggleButton, ToggleButtonGroup, Box, Typography } from '@mui/material'
-import type { Weekday } from '@/types/workroute.types'
+import type { Weekday } from 'core/types/workroute.types'
 
 interface Props<T extends FieldValues> {
   control: Control<T>

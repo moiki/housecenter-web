@@ -1,71 +1,36 @@
-import axios from 'axios'
-import type { AxiosError } from 'axios'
-import { createApiError, type ProblemDetails } from '@/types/common.types'
+import { createApiClient } from 'core/api/http/createApiClient'
+import { setApiClient } from 'core/api/http/registry'
+import type { TokenStore } from 'core/auth/storage'
 import { useAuthStore } from '@/store/auth.store'
 
-export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-})
-
-// Attach Bearer token from store on every request
-apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-// On 401: try refresh once, retry, else logout
-let isRefreshing = false
-let pendingQueue: Array<{ resolve: (v: string) => void; reject: (e: unknown) => void }> = []
-
-const processQueue = (error: unknown, token: string | null) => {
-  pendingQueue.forEach((p) => (token ? p.resolve(token) : p.reject(error)))
-  pendingQueue = []
+// Simplest-form UUID persisted in localStorage. Fully wired end-to-end (login/signup
+// payloads, deviceName/platform) in PR4 — for PR1 this just needs to exist so
+// createApiClient's internal refresh call can send a stable deviceId.
+const DEVICE_ID_KEY = 'hc_device_id'
+function getDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(DEVICE_ID_KEY, id)
+  }
+  return id
 }
 
-apiClient.interceptors.response.use(
-  (res) => res,
-  async (error: AxiosError<ProblemDetails>) => {
-    const original = error.config!
-    const store = useAuthStore.getState()
+const tokenStore: TokenStore = {
+  getAccessToken: () => useAuthStore.getState().accessToken,
+  getRefreshToken: () => useAuthStore.getState().refreshToken,
+  setTokens: (accessToken, refreshToken) => useAuthStore.getState().setTokens(accessToken, refreshToken),
+  clear: () => useAuthStore.getState().logout(),
+}
 
-    if (error.response?.status === 401 && store.refreshToken) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          pendingQueue.push({ resolve, reject })
-        }).then((token) => {
-          original.headers.Authorization = `Bearer ${token}`
-          return apiClient(original)
-        })
-      }
-
-      isRefreshing = true
-      try {
-        const { data } = await axios.post<{ accessToken: string; refreshToken: string }>(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
-          { refreshToken: store.refreshToken },
-        )
-        store.setAuth(store.user!, data.accessToken, data.refreshToken)
-        processQueue(null, data.accessToken)
-        original.headers.Authorization = `Bearer ${data.accessToken}`
-        return apiClient(original)
-      } catch (refreshError) {
-        processQueue(refreshError, null)
-        store.logout()
-        window.location.href = '/login'
-        return Promise.reject(refreshError)
-      } finally {
-        isRefreshing = false
-      }
-    }
-
-    // Map ProblemDetails → ApiError
-    const problem = error.response?.data
-    throw createApiError(
-      error.response?.status ?? 0,
-      problem?.detail ?? error.message,
-      problem?.errors ?? {},
-    )
+// api modules still `import { apiClient } from '@/api/client'` until they migrate to
+// `getApiClient()` in PR2 — keep exporting the concrete instance for now.
+export const apiClient = createApiClient({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  tokenStore,
+  deviceIdProvider: getDeviceId,
+  onRefreshFail: () => {
+    window.location.href = '/login'
   },
-)
+})
+setApiClient(apiClient)

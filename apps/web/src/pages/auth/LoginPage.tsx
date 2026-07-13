@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { Alert, Box, Button, Checkbox, FormControlLabel, Link, Typography } from '@mui/material'
 import { authApi } from '@/api/modules/auth.api'
 import { useAuthStore } from '@/store/auth.store'
-import { isApiError } from '@/types/common.types'
+import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
 
 const schema = z.object({

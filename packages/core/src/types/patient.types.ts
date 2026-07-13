@@ -1,7 +1,7 @@
 export type Gender = 'Male' | 'Female'
 export type AttentionType = 'Medical' | 'EducationalReinforcement'
-export type TreatmentStatus = 'Active' | 'Completed' | 'Cancelled'
-export type CommentType = 'Note' | 'Alert' | 'Observation'
+export type TreatmentStatus = 'Active' | 'Completed' | 'Paused'
+export type CommentType = 'Route' | 'Medical' | 'Simple'
 export type CommentStatus = 'Open' | 'Resolved'
 
 export interface PatientResponse {
@@ -22,7 +22,7 @@ export interface PatientResponse {
   isActive: boolean
 }
 
-// PagedResult<T> lives in @/types/common.types — import it from there, don't redeclare.
+// PagedResult<T> lives in core/types/common.types — import it from there, don't redeclare.
 
 export interface CreatePatientRequest {
   firstName: string
