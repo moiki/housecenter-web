@@ -68,19 +68,27 @@ DEVIATION: `apps/mobile/tsconfig.json` gained `resolveJsonModule: true` (not in 
 
 Full detail (line counts, exact gate output, deviation rationale): engram `sdd/mobile-app-foundation/apply-progress` (updated).
 
-## Phase 3: Navigation Shell + UI Primitives — PR3 (~130–160 lines)
-- [ ] 3.1 `apps/mobile/src/navigation/RootNavigator.tsx` — `native-stack` wrapping `TabNavigator`, `headerShown: false` (R6)
-- [ ] 3.2 `apps/mobile/src/navigation/TabNavigator.tsx` — `bottom-tabs`, single placeholder "Home" tab, renders via `useTranslation` `t('nav.home')` (R5, R6)
-- [ ] 3.3 `apps/mobile/src/components/shared/QueryBoundary.tsx` — RN wrapper: loading/error/children states (R7)
-- [ ] 3.4 `apps/mobile/src/components/shared/OfflineBanner.tsx` — RN banner reflecting `onlineManager`/NetInfo state (R4, R7)
-- [ ] 3.5 `apps/mobile/src/components/shared/LoadingState.tsx` — RN loading indicator (R7)
-- [ ] 3.6 `apps/mobile/src/components/shared/EmptyState.tsx` — RN empty-state (R7)
-- [ ] 3.7 `apps/mobile/App.tsx` — mount `RootNavigator` inside `AppProviders` (final wiring) (R6)
-- [ ] 3.8 Gate: `tsc --noEmit`; `expo-doctor`; `expo export`; `pnpm --filter web build`; `grep -rn "setApiClient\|expo-secure-store" apps/mobile/src` → zero matches; `grep -rl "QueryBoundary\|OfflineBanner" packages/core/src` → zero matches; `git diff --stat packages/core/src/api/modules/attachments.api.ts` → no diff (R6, R7, R9)
+## Phase 3: Navigation Shell + UI Primitives — PR3 (~130–160 lines) — **COMPLETE (2026-07-13)**
+- [x] 3.1 `apps/mobile/src/navigation/RootNavigator.tsx` — `native-stack` wrapping `TabNavigator`, `headerShown: false` (R6)
+- [x] 3.2 `apps/mobile/src/navigation/TabNavigator.tsx` — `bottom-tabs`, single placeholder "Home" tab, renders via `useTranslation` `t('nav.home')` (R5, R6)
+- [x] 3.3 `apps/mobile/src/components/shared/QueryBoundary.tsx` — RN wrapper: loading/error/empty/children states (R7) — DEVIATION (additive, not a design conflict): design's sketch said "loading/error/children"; added a 4th empty-state branch (delegates to `EmptyState.tsx` via an optional `isEmpty(data)` predicate) since R7 lists `QueryBoundary` and an empty state as separate required primitives but a query result is the natural place to detect "loaded but empty" — `QueryBoundary` composes `LoadingState`/`EmptyState` rather than duplicating their JSX.
+- [x] 3.4 `apps/mobile/src/components/shared/OfflineBanner.tsx` — RN banner reflecting `onlineManager` state via `onlineManager.subscribe` (R4, R7) — subscribes to the same `onlineManager` singleton that `connectivity.ts` bridges from NetInfo (single source of truth), rather than opening a second NetInfo listener.
+- [x] 3.5 `apps/mobile/src/components/shared/LoadingState.tsx` — RN loading indicator (`ActivityIndicator`) (R7)
+- [x] 3.6 `apps/mobile/src/components/shared/EmptyState.tsx` — RN empty-state, accepts an optional i18n `messageKey` prop (defaults to `common.empty`) (R7)
+- [x] 3.7 `apps/mobile/App.tsx` — mount `RootNavigator` inside `AppProviders` (final wiring), removed PR2's placeholder `View`/`Text` (R6)
+- [x] 3.8 Gate: `tsc --noEmit`; `expo-doctor`; `expo export`; `pnpm --filter web build`; `grep -rn "setApiClient\|expo-secure-store" apps/mobile/src` → one expected hit (the pre-existing `mmkv.ts` TODO comment, not real wiring); `grep -rn "setApiClient\|patients\|treatments\|@react-native-async-storage" apps/mobile/src` → zero matches; `grep -rl "QueryBoundary\|OfflineBanner" packages/core/src` → zero matches; `git diff --stat packages/core/src/api/modules/attachments.api.ts` → no diff (R6, R7, R9) — **all gates ran for real and PASSED, none env-blocked.**
 
-**PR3 done when:** gates pass (or honestly reported as env-blocked); EAS dev-client boot renders the placeholder tab bar with no navigation error and no real screen content.
+DEVIATION: `es.json` gained two new keys, `common.error` ("Ocurrió un error") and `common.empty` ("No hay datos"), not in PR2's original seed (`nav.home`/`common.offline` only) — required for `QueryBoundary`'s error branch and `EmptyState`'s default copy; both Spanish-first per convention.
+
+**PR3 done when:** gates pass (or honestly reported as env-blocked); EAS dev-client boot renders the placeholder tab bar with no navigation error and no real screen content. **Gates ran for real; the on-device EAS dev-client boot render itself was NOT performed — consistent with PR1/PR2's precedent that native on-device checks are out of scope for a headless apply; `expo export`'s successful bundle (940/924 modules, nav assets emitted) is the closest automatable proxy.**
+
+Full detail (exact file contents, gate output): engram `sdd/mobile-app-foundation/apply-progress` (updated).
+
+## Implementation status: ALL 3 PRs COMPLETE (2026-07-13)
+PR1 (Scaffold + Workspace Wiring), PR2 (Providers), PR3 (Navigation Shell + UI Primitives) — 14 + 8 + 8 = 30/30 tasks done, all gates green, none env-blocked. Nothing committed/pushed (per instructions); stacked-to-main chain strategy, target branch `feat/mobile-app-foundation`. Ready for `sdd-verify`.
 
 ## Notes (not tasks — do NOT implement here)
-- `packages/core/src/api/modules/attachments.api.ts`'s `file: File` web-shaped signature is **BLOCKING for change #7** (broaden to platform-agnostic `AttachmentPayload`) — left byte-for-byte unmodified in #4.
+- `packages/core/src/api/modules/attachments.api.ts`'s `file: File` web-shaped signature is **BLOCKING for change #7** (broaden to platform-agnostic `AttachmentPayload`) — left byte-for-byte unmodified in #4. Confirmed untouched after PR1, PR2, and PR3 (`git diff --stat` zero all three times).
 - Dev MMKV `encryptionKey` in `src/lib/mmkv.ts` is static; **#5 (mobile-auth-session)** replaces it with an `expo-secure-store`-backed key.
 - SDK 56 → iOS 16.4 floor bump remains a **named future SDD change**, not touched here.
+- PR3 kept the nav shell to a single placeholder tab per design.md's sketch ("bottom-tabs(TabNavigator) one placeholder tab") — a richer placeholder tab set (e.g. Inicio/Pacientes/Más) was considered but rejected as scope creep beyond R6 ("MUST NOT include any real feature screen") and beyond what design.md/this tasks.md specified; the real tab set lands once feature screens/auth exist.

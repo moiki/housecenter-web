@@ -4,10 +4,10 @@ execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-12
 phase: apply
-status: apply-in-progress-pr2-of-3-complete
+status: apply-complete-all-3-prs
 chain_strategy: stacked-to-main
-chain_slice: PR2 of 3 (Providers) — complete, uncommitted
-current_slice: PR3 (Navigation shell + UI primitives) — not started
+chain_slice: PR3 of 3 (Navigation shell + UI primitives) — complete, uncommitted
+current_slice: none — implementation complete, ready for sdd-verify
 decision_needed_before_apply: false   # user pre-authorized implementing #4; 3 PRs each under budget
 depends_on: core-extraction   # branch feat/mobile-app-foundation is stacked on feat/core-extraction
 completed_phases: [explore, propose, spec, design, tasks]
@@ -42,6 +42,24 @@ apply_progress: |
   sdd/mobile-app-foundation/apply-progress (updated) + tasks.md.
   NEXT: sdd-apply PR3 (Navigation shell + UI primitives: RootNavigator/TabNavigator,
   components/shared/{QueryBoundary,OfflineBanner,LoadingState,EmptyState}).
+
+  2026-07-13 — PR3 (Navigation shell + UI primitives) apply complete, NOT committed (per
+  instructions). 8/8 tasks done (3.1-3.8). Files created: apps/mobile/src/navigation/
+  {RootNavigator.tsx, TabNavigator.tsx}, apps/mobile/src/components/shared/{QueryBoundary.tsx,
+  OfflineBanner.tsx, LoadingState.tsx, EmptyState.tsx}. Modified: App.tsx (mounts RootNavigator
+  inside AppProviders, removes PR2 placeholder View/Text), es.json (+common.error, +common.empty
+  keys — DEVIATION, needed for QueryBoundary's error branch / EmptyState's default copy, not in
+  PR2's original seed). Single placeholder "Home" tab per design.md's sketch (not a richer
+  Inicio/Pacientes/Más set — considered and rejected as scope creep beyond R6). All 4 gates
+  (tsc --noEmit, expo-doctor 19/19, expo export, pnpm --filter web build) ran for REAL and
+  PASSED — none env-blocked. expo export: ios 940 / android 924 modules (up from PR2's 818/816,
+  reflecting react-navigation's native-stack/bottom-tabs/screens now actually bundled), nav
+  icon assets emitted, no unresolved-module errors. Grep guards: setApiClient/patients/
+  treatments/@react-native-async-storage → zero matches; setApiClient/expo-secure-store → one
+  expected hit (mmkv.ts TODO, not real wiring); QueryBoundary/OfflineBanner leakage into
+  packages/core/src → zero matches; attachments.api.ts → zero diff (confirmed after all 3 PRs).
+  ALL 3 PRs (30/30 tasks) now complete. Full detail: engram sdd/mobile-app-foundation/
+  apply-progress (updated) + tasks.md. NEXT: sdd-verify.
 notes: |
   2026-07-12 — Planning fast-forward (auto) complete. SDD change #4 of the HouseCenter Mobile plan:
   scaffold the Expo React Native app in apps/mobile/ — FOUNDATION only (scaffold+config, nav shell,
