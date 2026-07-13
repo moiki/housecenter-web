@@ -1,6 +1,8 @@
 import { getApiClient } from 'core/api/http/registry'
 import type {
+  DeviceSessionResponse,
   LoginRequest,
+  LogoutRequest,
   PasswordResetDto,
   PasswordResetRequestDto,
   RefreshRequest,
@@ -26,4 +28,18 @@ export const authApi = {
 
   resetPassword: (data: PasswordResetDto) =>
     getApiClient().post('/auth/password/reset', data),
+
+  logout: (deviceId: string) =>
+    getApiClient()
+      .post<void>('/auth/logout', { deviceId } satisfies LogoutRequest)
+      .then((r) => r.data),
+
+  getSessions: () =>
+    getApiClient().get<DeviceSessionResponse[]>('/auth/sessions').then((r) => r.data),
+
+  revokeSession: (id: string) =>
+    getApiClient().delete<void>(`/auth/sessions/${id}`).then((r) => r.data),
+
+  revokeAllSessions: () =>
+    getApiClient().post<void>('/auth/sessions/revoke-all').then((r) => r.data),
 }

@@ -70,22 +70,22 @@ to confirm the chain plan rather than assuming it.
 
 ## Phase 1: Core auth session-management — PR1 (~100–120 lines)
 
-- [ ] 1.1 `packages/core/src/types/auth.types.ts` — add `DeviceSessionResponse` (`id`, `deviceId`,
+- [x] 1.1 `packages/core/src/types/auth.types.ts` — add `DeviceSessionResponse` (`id`, `deviceId`,
       `deviceName?`, `platform`, `lastUsedAt`, `createdDate`) and `LogoutRequest { deviceId }`; trim
       `RefreshRequest` to exactly `{ refreshToken: string; deviceId: string }` (drop the phantom
       `deviceName?`/`platform?` fields the backend record never had) (R2)
-- [ ] 1.2 `packages/core/src/api/modules/auth.api.ts` — add `logout`, `getSessions`, `revokeSession`,
+- [x] 1.2 `packages/core/src/api/modules/auth.api.ts` — add `logout`, `getSessions`, `revokeSession`,
       `revokeAllSessions`, mirroring the existing `authApi` object shape and `getApiClient()` transport
       (R1)
-- [ ] 1.3 `packages/core/src/hooks/auth/authKeys.ts` — `authKeys` query-key factory: `authKeys.all` +
+- [x] 1.3 `packages/core/src/hooks/auth/authKeys.ts` — `authKeys` query-key factory: `authKeys.all` +
       `authKeys.deviceSessions()` (R3)
-- [ ] 1.4 `packages/core/src/hooks/auth/useDeviceSessions.ts` — `useDeviceSessions` query (`queryKey:
+- [x] 1.4 `packages/core/src/hooks/auth/useDeviceSessions.ts` — `useDeviceSessions` query (`queryKey:
       authKeys.deviceSessions()`), `useRevokeSession`, `useRevokeAllSessions` mutations; both mutations
       invalidate `authKeys.deviceSessions()` on success (R3)
-- [ ] 1.5 `packages/core/src/hooks/auth/useLogout.ts` — `useLogout` mutation over `authApi.logout`;
+- [x] 1.5 `packages/core/src/hooks/auth/useLogout.ts` — `useLogout` mutation over `authApi.logout`;
       invalidates `authKeys.deviceSessions()` (`onSettled`, so it runs even if the API call fails
       offline) (R3)
-- [ ] 1.6 Code-trace check: confirm no name collisions with existing AttentionSessions
+- [x] 1.6 Code-trace check: confirm no name collisions with existing AttentionSessions
       (`sessions.api.ts`, `SessionResponse`, `useSessions`) — `DeviceSessionResponse`/`useDeviceSessions`/
       `authKeys` must not shadow or be shadowed by them (R1, R2, R3)
 
@@ -93,6 +93,17 @@ to confirm the chain plan rather than assuming it.
 `pnpm --filter web lint` both pass with no regressions from the `RefreshRequest` trim or the new
 exports (**mandatory** — these files are shared with `apps/web`) · `pnpm -w build` succeeds. All gates
 automated; no Human/EAS smoke in this PR.
+
+**PR1 status: DONE (2026-07-13).** All 6 tasks implemented and gates green (see verification results
+below). One deliberate implementation deviation from task 1.5's literal wording, following
+`design.md`'s D8 code sketch (which is what task 1.5's own `(R3)` trace and the apply prompt both
+point back to): `useLogout`'s `onSettled` calls `getAuthStore().getState().logout()` + `qc.clear()`
+(a full cache clear) rather than a narrow `invalidateQueries({queryKey: authKeys.deviceSessions()})`.
+A full clear is a superset — it drops `authKeys.deviceSessions()` along with everything else — and
+matches design.md's two-layer PHI-hygiene rationale (core wipes store + entire cache; mobile layers
+`MMKV.clearAll()` on top in PR3). `useRevokeSession`/`useRevokeAllSessions` DO use the narrow
+`invalidateQueries({queryKey: authKeys.deviceSessions()})` exactly as specified, since those mutations
+should only refresh the device list, not wipe the whole app cache.
 
 ## Phase 2: Mobile auth wiring — PR2 (~300–370 lines)
 
