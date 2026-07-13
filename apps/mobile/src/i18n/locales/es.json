@@ -47,9 +47,7 @@
       "overview": "Resumen",
       "treatments": "Tratamientos",
       "sessions": "Sesiones",
-      "comments": "Comentarios",
-      "sessionsComingSoon": "Las sesiones estarán disponibles próximamente.",
-      "commentsComingSoon": "Los comentarios estarán disponibles próximamente."
+      "comments": "Comentarios"
     },
     "overview": {
       "fullName": "Nombre completo",
@@ -99,6 +97,45 @@
     "commentBody": "Comentario",
     "commentBodyPlaceholder": "Escribe tu comentario...",
     "saveComment": "Publicar comentario",
+    "noComments": "Aún no hay comentarios."
+  },
+  "sessions": {
+    "noSessions": "Este paciente no tiene sesiones registradas.",
+    "newSession": "Registrar sesión",
+    "createTitle": "Nueva sesión",
+    "statusLabel": "Estado",
+    "status": {
+      "Scheduled": "Programada",
+      "Completed": "Completada",
+      "Missed": "No asistió"
+    },
+    "attentionTypeLabel": "Tipo de atención",
+    "sessionDate": "Fecha y hora",
+    "locationType": "Tipo de ubicación",
+    "locationMode": {
+      "clinic": "Clínica",
+      "workRoute": "Ruta de trabajo"
+    },
+    "clinic": "Clínica",
+    "workRoute": "Ruta de trabajo",
+    "duration": "Duración (min)",
+    "durationPlaceholder": "Opcional",
+    "notes": "Notas",
+    "notesPlaceholder": "Opcional",
+    "save": "Guardar sesión",
+    "saveStatus": "Guardar estado"
+  },
+  "comments": {
+    "add": "Agregar comentario",
+    "typeLabel": "Tipo",
+    "type": {
+      "Simple": "Simple",
+      "Medical": "Médico",
+      "Route": "Ruta"
+    },
+    "body": "Comentario",
+    "bodyPlaceholder": "Escribe tu comentario...",
+    "save": "Publicar comentario",
     "noComments": "Aún no hay comentarios."
   }
 }

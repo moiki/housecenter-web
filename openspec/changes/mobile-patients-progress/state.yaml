@@ -3,14 +3,14 @@ artifact_store: openspec
 execution_mode: auto
 delivery_strategy: ask-on-risk
 created: 2026-07-13
-phase: tasks
-status: planning-complete
+phase: verified
+status: verified-ready-for-pr
 chain_strategy: stacked-to-main
 chain_slice: null
 current_slice: null
 decision_needed_before_apply: true   # 4 chained PRs, budget HIGH; PR2 (~450-550) and PR4 (~550-650) may need sub-splits
 depends_on: [mobile-auth-session]   # branch feat/mobile-patients-progress stacked on feat/mobile-auth-session
-completed_phases: [explore, propose, spec, design, tasks]
+completed_phases: [explore, propose, spec, design, tasks, apply, verify]
 notes: |
   2026-07-13 — Planning fast-forward (auto) complete. SDD change #6 of the HouseCenter Mobile plan:
   the CORE Member field-work app — view patients + RECORD PROGRESS (AttentionSessions = work-route

@@ -2,12 +2,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useTranslation } from 'react-i18next'
 import { PatientsListScreen } from '../screens/patients/PatientsListScreen'
 import { PatientDetailScreen } from '../screens/patients/PatientDetailScreen'
+import { CreateSessionScreen } from '../screens/patients/CreateSessionScreen'
 
-// Param list for the "Pacientes" tab's nested stack (D8). `CreateSession` is typed here now so
-// screens can already type `useNavigation<NativeStackNavigationProp<PatientsStackParamList>>()`
-// against the full union ahead of time; the route itself is registered as a `presentation:'modal'`
-// screen in PR4 (task 4.2) once `CreateSessionScreen` exists — mirrors `MoreStackParamList`'s
-// export idiom in `TabNavigator.tsx`.
+// Param list for the "Pacientes" tab's nested stack (D8).
 export type PatientsStackParamList = {
   PatientsList: undefined
   PatientDetail: { patientId: string }
@@ -17,8 +14,10 @@ export type PatientsStackParamList = {
 const Stack = createNativeStackNavigator<PatientsStackParamList>()
 
 // Native-stack for the "Pacientes" tab: browse (`PatientsListScreen`) -> detail
-// (`PatientDetailScreen`, R6/D8). Colocated in its own file (unlike `MoreStackNavigator`, which
-// stays inline in `TabNavigator.tsx`) because this stack grows a 3rd (modal) route in PR4.
+// (`PatientDetailScreen`, R6/D8) -> create-session modal (`CreateSessionScreen`, R10/D8, PR4).
+// `CreateSession` is a `presentation:'modal'` route (D8) — the large create-session form
+// benefits from a full modal sheet, unlike the smaller inline toggled panels used by the
+// Treatments/Sessions/Comments tabs' status-patch/create-detail/add-comment forms.
 export function PatientsStackNavigator() {
   const { t } = useTranslation()
   return (
@@ -28,6 +27,11 @@ export function PatientsStackNavigator() {
         name="PatientDetail"
         component={PatientDetailScreen}
         options={{ title: t('patients.detailTitle') }}
+      />
+      <Stack.Screen
+        name="CreateSession"
+        component={CreateSessionScreen}
+        options={{ title: t('sessions.createTitle'), presentation: 'modal' }}
       />
     </Stack.Navigator>
   )
