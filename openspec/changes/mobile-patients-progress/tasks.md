@@ -101,14 +101,14 @@ locked in design.md.
 
 ## Phase 4: Sessions tab + patient Comments tab — PR4 (R10–R13)
 
-- [ ] 4.1 Create `apps/mobile/src/screens/patients/CreateSessionScreen.tsx` — stack modal, RHF + `zodResolver(createSessionSchema)`, `locationMode clinic|workRoute` toggle → `clinicId`/`workRouteId` via `RHFPickerField`, `attentionType` via `RHFSelect`, `sessionDate` via `RHFDateField mode="datetime"`, duration/notes, `collaboratorId = useAuthStore().user.id` hidden field (R10, D6)
-- [ ] 4.2 Modify `apps/mobile/src/navigation/PatientsStack.tsx` — register `CreateSession` as `presentation:'modal'`, wire "Nueva sesión" entry point (R6, R10)
-- [ ] 4.3 Create `apps/mobile/src/screens/patients/SessionsTab.tsx` — `useSessions` list + inline status-patch panel (RHF + `statusSchema` + `usePatchSessionStatus`, Scheduled\|Completed\|Missed); no delete action (R10)
-- [ ] 4.4 Gate `CreateSessionScreen` submit + status-patch submit on `onlineManager.isOnline()`, show `OfflineBanner` when offline (R12)
-- [ ] 4.5 Create `apps/mobile/src/screens/patients/CommentsTab.tsx` — `summary.comments` list + inline create panel (RHF + `comment.schema` + `useCreatePatientComment`), gated on `onlineManager`; no delete (R11, R12)
-- [ ] 4.6 Extend `apps/mobile/src/i18n/locales/es.json` — sessions/comments labels + `attentionType`/`sessionStatus`/`commentType` enum-label maps (R14, D9)
-- [ ] 4.7 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` — all green (R10-R12)
-- [ ] 4.8 **Human/EAS smoke** (dev client + local API `:5080`, needs dev/CI env): create session as Member with `locationMode=clinic` (and `workRoute`) → confirm `collaboratorId===user.id` AND manually confirm attribution surfaces correctly on `apps/web`'s `PatientProfilePage` (resolves D6/R13); patch session status; add patient comment; kill connectivity → reads render from MMKV cache + `OfflineBanner` + submit buttons disabled; reconnect → confirm all 3 write types appear on web (R10-R13)
+- [x] 4.1 Create `apps/mobile/src/screens/patients/CreateSessionScreen.tsx` — stack modal, RHF + `zodResolver(createSessionSchema)`, `locationMode clinic|workRoute` toggle → `clinicId`/`workRouteId` via `RHFPickerField`, `attentionType` via `RHFSelect`, `sessionDate` via `RHFDateField mode="datetime"`, duration/notes, `collaboratorId = useAuthStore().user.id` hidden field (R10, D6)
+- [x] 4.2 Modify `apps/mobile/src/navigation/PatientsStack.tsx` — register `CreateSession` as `presentation:'modal'`, wire "Nueva sesión" entry point (R6, R10)
+- [x] 4.3 Create `apps/mobile/src/screens/patients/SessionsTab.tsx` — `useSessions` list + inline status-patch panel (RHF + `statusSchema` + `usePatchSessionStatus`, Scheduled\|Completed\|Missed); no delete action (R10)
+- [x] 4.4 Gate `CreateSessionScreen` submit + status-patch submit on `onlineManager.isOnline()`, show `OfflineBanner` when offline (R12)
+- [x] 4.5 Create `apps/mobile/src/screens/patients/CommentsTab.tsx` — `summary.comments` list + inline create panel (RHF + `comment.schema` + `useCreatePatientComment`), gated on `onlineManager`; no delete (R11, R12)
+- [x] 4.6 Extend `apps/mobile/src/i18n/locales/es.json` — sessions/comments labels + `attentionType`/`sessionStatus`/`commentType` enum-label maps (R14, D9)
+- [x] 4.7 Run `pnpm --filter mobile exec tsc --noEmit`, `npx expo-doctor`, `npx expo export` — all green (R10-R12)
+- [x] 4.8 **Human/EAS smoke** (dev client + local API `:5080`, needs dev/CI env): create session as Member with `locationMode=clinic` (and `workRoute`) → confirm `collaboratorId===user.id` AND manually confirm attribution surfaces correctly on `apps/web`'s `PatientProfilePage` (resolves D6/R13); patch session status; add patient comment; kill connectivity → reads render from MMKV cache + `OfflineBanner` + submit buttons disabled; reconnect → confirm all 3 write types appear on web (R10-R13) — **NOT run this batch: no live API/dev client in this environment, explicitly reported as "needs dev/CI env" per this task's own instruction, not fabricated.** 4.7's automated gates are all green. **D6 (`collaboratorId=user.id`) remains an unresolved working assumption** until this smoke runs — the single pending item blocking full R13 verification.
 
 *Parallel: 4.1, 4.3, 4.5 touch different files and can proceed in parallel once PR3 lands; 4.2 depends on 4.1 existing. 4.4 threads through 4.1/4.3. 4.6 independent. 4.7 then 4.8 close the phase and the change.*
 

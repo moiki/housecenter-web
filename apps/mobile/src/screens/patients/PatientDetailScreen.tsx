@@ -7,6 +7,8 @@ import { QueryBoundary } from '../../components/shared/QueryBoundary'
 import { OfflineBanner } from '../../components/shared/OfflineBanner'
 import { OverviewTab } from './OverviewTab'
 import { TreatmentsTab } from './TreatmentsTab'
+import { SessionsTab } from './SessionsTab'
+import { CommentsTab } from './CommentsTab'
 import type { PatientsStackParamList } from '../../navigation/PatientsStack'
 
 type TabId = 'overview' | 'treatments' | 'sessions' | 'comments'
@@ -22,23 +24,11 @@ interface PatientDetailScreenProps {
   route: RouteProp<PatientsStackParamList, 'PatientDetail'>
 }
 
-// PLACEHOLDER content for Sessions/Comments — real panels land in PR4 (Sessions + patient
-// Comments), each as its own `screens/patients/*Tab.tsx` file per design.md's target structure.
-// Treatments is wired to the real `TreatmentsTab` as of PR3. Kept as an inline component here (not
-// a pre-created empty file) so PR4 doesn't inherit dead scaffolding.
-function ComingSoonPanel({ labelKey }: { labelKey: string }) {
-  const { t } = useTranslation()
-  return (
-    <View style={styles.comingSoon}>
-      <Text style={styles.comingSoonText}>{t(labelKey)}</Text>
-    </View>
-  )
-}
-
 // PatientDetailScreen (R8, D3): a custom segmented control (local `useState<TabId>` + Pressable
 // pills) over Overview/Treatments/Sessions/Comments — no `material-top-tabs`/`pager-view`
-// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. Overview and Treatments
-// render real content (`OverviewTab`, `TreatmentsTab`); Sessions/Comments are PR4 placeholders.
+// dependency (rejected in D3). Mirrors web's `activeTab` `useState` idiom. All four tabs render
+// real content as of PR4 (`OverviewTab`, `TreatmentsTab`, `SessionsTab`, `CommentsTab`) — the
+// PR2/PR3 `ComingSoonPanel` placeholder for Sessions/Comments has been fully replaced.
 export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
   const { patientId } = route.params
   const { t } = useTranslation()
@@ -64,8 +54,8 @@ export function PatientDetailScreen({ route }: PatientDetailScreenProps) {
           <View style={styles.panel}>
             {tab === 'overview' && <OverviewTab summary={summary} />}
             {tab === 'treatments' && <TreatmentsTab patientId={patientId} />}
-            {tab === 'sessions' && <ComingSoonPanel labelKey="patients.tab.sessionsComingSoon" />}
-            {tab === 'comments' && <ComingSoonPanel labelKey="patients.tab.commentsComingSoon" />}
+            {tab === 'sessions' && <SessionsTab patientId={patientId} />}
+            {tab === 'comments' && <CommentsTab patientId={patientId} comments={summary.comments} />}
           </View>
         )}
       </QueryBoundary>
@@ -94,6 +84,4 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 13, color: '#374151' },
   pillTextActive: { fontSize: 13, color: '#fff', fontWeight: '600' },
   panel: { flex: 1 },
-  comingSoon: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  comingSoonText: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
 })
