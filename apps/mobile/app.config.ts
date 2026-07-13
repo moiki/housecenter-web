@@ -18,7 +18,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: { package: 'net.housecenter.mobile' }, // minSdk 24 — verified via expo-doctor (see apply-progress)
   // @react-native-community/datetimepicker (D5, R5/R9/R10) needs its config plugin registered so
   // `expo prebuild`/EAS builds link the native picker module.
-  plugins: ['expo-localization', '@react-native-community/datetimepicker'],
+  // expo-image-picker (mobile-attachments-camera, D7) needs its config plugin to write the iOS
+  // NSCamera/PhotoLibraryUsageDescription strings (Spanish-first, project convention). Neither
+  // expo-image-manipulator nor expo-image require a config plugin entry.
+  plugins: [
+    'expo-localization',
+    '@react-native-community/datetimepicker',
+    [
+      'expo-image-picker',
+      {
+        cameraPermission: 'Permite a HouseCenter usar la cámara para adjuntar fotos.',
+        photosPermission: 'Permite a HouseCenter acceder a tus fotos para adjuntarlas.',
+      },
+    ],
+  ],
   extra: {
     // read at runtime via expo-constants (src/config/env.ts)
     API_BASE_URL,
