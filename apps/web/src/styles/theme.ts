@@ -40,6 +40,16 @@ const shared: ThemeOptions = {
           '&.Mui-focused': {
             boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.15)}`,
           },
+          // Chrome/Safari paint autofilled inputs with their OWN native highlight —
+          // dark navy on a dark-mode OS/browser — completely bypassing our palette.
+          // The only way to override it is this inset-box-shadow trick (a transparent
+          // background-color has no effect on :-webkit-autofill).
+          '& input:-webkit-autofill': {
+            WebkitBoxShadow: `0 0 0 100px ${theme.palette.background.paper} inset`,
+            WebkitTextFillColor: theme.palette.text.primary,
+            caretColor: theme.palette.text.primary,
+            transition: 'background-color 5000s ease-in-out 0s',
+          },
         }),
       },
     },

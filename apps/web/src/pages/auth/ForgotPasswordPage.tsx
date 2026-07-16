@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Box, Button, Link, Typography } from '@mui/material'
@@ -12,6 +13,7 @@ const schema = z.object({ email: z.string().email('Invalid email') })
 type FormData = z.infer<typeof schema>
 
 export function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const [sent, setSent] = useState(false)
 
   const mutation = useMutation({ mutationFn: authApi.requestPasswordReset })
@@ -34,12 +36,12 @@ export function ForgotPasswordPage() {
   if (sent) {
     return (
       <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <Typography sx={{ fontWeight: 600 }}>Check your inbox</Typography>
+        <Typography sx={{ fontWeight: 600 }}>{t('auth.forgotPassword.sentTitle')}</Typography>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-          If that email is registered, you'll receive a reset link shortly.
+          {t('auth.forgotPassword.sentDescription')}
         </Typography>
         <Link component={RouterLink} to="/login" underline="hover" sx={{ fontSize: 14, fontWeight: 600 }}>
-          Back to sign in
+          {t('auth.backToSignIn')}
         </Link>
       </Box>
     )
@@ -49,10 +51,10 @@ export function ForgotPasswordPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-          Reset password
+          {t('auth.forgotPassword.title')}
         </Typography>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-          Enter your email and we'll send you a reset link.
+          {t('auth.forgotPassword.subtitle')}
         </Typography>
       </Box>
 
@@ -62,15 +64,22 @@ export function ForgotPasswordPage() {
         noValidate
         sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
-        <RHFTextField control={control} name="email" label="Email" type="email" autoComplete="email" placeholder="Enter your email" />
+        <RHFTextField
+          control={control}
+          name="email"
+          label={t('common.fields.email')}
+          type="email"
+          autoComplete="email"
+          placeholder={t('auth.form.emailPlaceholder')}
+        />
 
         <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-          Send reset link
+          {t('auth.forgotPassword.submitButton')}
         </Button>
 
         <Typography sx={{ textAlign: 'center', fontSize: 14 }}>
           <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
-            Back to sign in
+            {t('auth.backToSignIn')}
           </Link>
         </Typography>
       </Box>

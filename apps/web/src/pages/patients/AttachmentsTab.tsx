@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Box, Button, IconButton, LinearProgress, Paper, Skeleton, Stack, Tooltip, Typography } from '@mui/material'
 import UploadFileOutlined from '@mui/icons-material/UploadFileOutlined'
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
@@ -12,6 +13,7 @@ import { AttachmentThumbnail } from '@/components/attachments/AttachmentThumbnai
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { attachmentsApi } from 'core/api/modules/attachments.api'
 import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import type { AttachmentResponse } from 'core/types/attachment.types'
 
 // Matches the backend's FileStorageOptions.AllowedContentTypes (Features/Attachments/UploadAttachment.cs)
@@ -34,6 +36,8 @@ async function triggerDownload(attachment: AttachmentResponse) {
 }
 
 export function AttachmentsTab({ patientId }: { patientId: string }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const { data: attachments, isLoading } = useAttachments('Patient', patientId)
   // Lookup needs the full user list; capped at the backend's clamp max (100 rows).
   const { data: usersData } = useUsers(1, DROPDOWN_PAGE_SIZE)
@@ -42,7 +46,7 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [progress, setProgress] = useState<number | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<AttachmentResponse | null>(null)
 
   const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,11 +54,11 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
     e.target.value = ''
     if (!file) return
     setProgress(0)
-    setUploadError(null)
+    setActionError(null)
     try {
       await upload.mutateAsync({ file, onProgress: setProgress })
     } catch (err) {
-      setUploadError(isApiError(err) ? err.detail : 'Upload failed. Please try again.')
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
     } finally {
       setProgress(null)
     }
@@ -62,7 +66,7 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
 
   const uploaderName = (userId: string) => {
     const match = usersData?.items.find((candidate) => candidate.id === userId)
-    return match ? `${match.firstName} ${match.lastName}` : 'Unknown'
+    return match ? `${match.firstName} ${match.lastName}` : t('patients.attachments.unknownUploader')
   }
 
   return (
@@ -75,13 +79,13 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
           onClick={() => fileInputRef.current?.click()}
           loading={upload.isPending}
         >
-          Upload file
+          {t('patients.attachments.uploadButton')}
         </Button>
       </Box>
 
-      {uploadError && (
-        <Alert severity="error" onClose={() => setUploadError(null)}>
-          {uploadError}
+      {actionError && (
+        <Alert severity="error" onClose={() => setActionError(null)}>
+          {actionError}
         </Alert>
       )}
 
@@ -101,7 +105,7 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
       ) : !attachments?.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <AttachFileOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No attachments yet.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('patients.attachments.empty')}</Typography>
         </Paper>
       ) : (
         <Stack spacing={1.5}>
@@ -116,13 +120,13 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
                   {formatBytes(a.sizeBytes)} · {uploaderName(a.uploadedByUserId)} · {new Date(a.createdDate).toLocaleDateString()}
                 </Typography>
               </Box>
-              <Tooltip title="Download">
-                <IconButton size="small" onClick={() => triggerDownload(a)} aria-label="Download attachment">
+              <Tooltip title={t('patients.attachments.download')}>
+                <IconButton size="small" onClick={() => triggerDownload(a)} aria-label={t('patients.attachments.downloadAriaLabel')}>
                   <DownloadOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Delete">
-                <IconButton size="small" color="error" onClick={() => setToDelete(a)} aria-label="Delete attachment">
+              <Tooltip title={t('common.actions.delete')}>
+                <IconButton size="small" color="error" onClick={() => setToDelete(a)} aria-label={t('patients.attachments.deleteTitle')}>
                   <DeleteOutlineOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -133,14 +137,19 @@ export function AttachmentsTab({ patientId }: { patientId: string }) {
 
       <ConfirmDialog
         open={!!toDelete}
-        title="Delete attachment"
-        description={`"${toDelete?.fileName}" will be permanently removed.`}
-        confirmLabel="Delete"
+        title={t('patients.attachments.deleteTitle')}
+        description={t('patients.attachments.deleteDescription', { fileName: toDelete?.fileName })}
+        confirmLabel={t('common.actions.delete')}
         loading={deleteAttachment.isPending}
         onConfirm={async () => {
           if (toDelete) {
-            await deleteAttachment.mutateAsync(toDelete.id)
-            setToDelete(null)
+            setActionError(null)
+            try {
+              await deleteAttachment.mutateAsync(toDelete.id)
+              setToDelete(null)
+            } catch (err) {
+              setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+            }
           }
         }}
         onCancel={() => setToDelete(null)}

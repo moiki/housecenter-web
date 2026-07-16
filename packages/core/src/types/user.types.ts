@@ -11,6 +11,7 @@ export interface UserResponse {
   profession: string | null
   profilePicture: string | null
   darkMode: boolean
+  language: 'En' | 'Es'
   isActive: boolean
   roles: string[]
 }

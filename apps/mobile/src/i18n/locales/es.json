@@ -28,6 +28,7 @@
     "reports": "Reportes",
     "devices": "Dispositivos",
     "notifications": "Notificaciones",
+    "language": "Idioma",
     "logout": "Cerrar sesión",
     "logoutConfirmTitle": "Cerrar sesión",
     "logoutConfirmMessage": "¿Seguro que deseas cerrar sesión en este dispositivo?"
@@ -167,8 +168,9 @@
     "detailTitle": "Detalle de la ruta",
     "today": "Hoy",
     "emptyList": "No hay rutas de trabajo",
-    "destinationsTitle": "Paradas",
-    "openInMaps": "Abrir en Maps",
+    "patientsTitle": "Pacientes",
+    "noPatientsAssigned": "Todavía no hay pacientes asignados a esta ruta.",
+    "noVisitTime": "Sin hora asignada",
     "recurrence": {
       "noDays": "Sin días configurados",
       "from": "Desde {{date}}",

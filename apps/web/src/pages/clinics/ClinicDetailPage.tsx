@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Alert, Box, Button, Paper, Skeleton, Typography } from '@mui/material'
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import { useClinic, useUpdateClinic } from 'core/hooks/clinics/useClinics'
@@ -7,6 +8,7 @@ import { ClinicForm } from '@/pages/clinics/ClinicForm'
 import type { ClinicFormData } from 'core/schemas/clinic.schema'
 
 export function ClinicDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: clinic, isLoading, isError } = useClinic(id!)
@@ -29,10 +31,10 @@ export function ClinicDetailPage() {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <Typography color="text.secondary" sx={{ fontSize: 14 }}>
-          Clinic not found.
+          {t('clinics.detail.notFound')}
         </Typography>
         <Button onClick={() => navigate('/clinics')} sx={{ mt: 1.5 }}>
-          Back to clinics
+          {t('clinics.detail.backToClinics')}
         </Button>
       </Box>
     )
@@ -42,22 +44,22 @@ export function ClinicDetailPage() {
     <Box sx={{ maxWidth: 520 }}>
       <PageHeader
         title={clinic.name}
-        description="Edit clinic details"
+        description={t('clinics.detail.description')}
         action={
           <Button color="inherit" startIcon={<ArrowBackOutlined />} onClick={() => navigate('/clinics')}>
-            Back
+            {t('common.actions.back')}
           </Button>
         }
       />
 
       {updateClinic.isSuccess && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          Clinic updated successfully.
+          {t('clinics.detail.updateSuccess')}
         </Alert>
       )}
 
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-        <ClinicForm defaultValues={clinic} onSubmit={handleUpdate} submitLabel="Save changes" />
+        <ClinicForm defaultValues={clinic} onSubmit={handleUpdate} submitLabel={t('common.actions.save')} />
       </Paper>
     </Box>
   )

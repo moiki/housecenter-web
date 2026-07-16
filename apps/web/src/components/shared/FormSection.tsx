@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Box, Typography } from '@mui/material'
 
 interface Props {
-  title: string
+  title: ReactNode
   children: ReactNode
 }
 
@@ -14,6 +14,7 @@ export function FormSection({ title, children }: Props) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Typography
+        component="div"
         sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}
       >
         {title}

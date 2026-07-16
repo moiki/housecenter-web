@@ -71,12 +71,15 @@ export function createApiClient(cfg: CreateApiClientConfig) {
         }
       }
 
-      // Map ProblemDetails → ApiError
+      // Map ProblemDetails → ApiError. `title` carries the backend's stable error code
+      // (see ResultExtensions.ToProblem — `title: error.Code`), not a human title; it's
+      // absent for the two generic validation-error shapes (see ApiError.code's doc comment).
       const problem = error.response?.data
       throw createApiError(
         error.response?.status ?? 0,
         problem?.detail ?? error.message,
         problem?.errors ?? {},
+        problem?.title,
       )
     },
   )

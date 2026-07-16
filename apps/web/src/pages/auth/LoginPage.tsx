@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Alert, Box, Button, Checkbox, FormControlLabel, Link, Typography } from '@mui/material'
 import { authApi } from 'core/api/modules/auth.api'
+import { translateErrorCode } from 'core/i18n'
 import { useAuthStore } from '@/store/auth.store'
 import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
@@ -18,6 +20,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export function LoginPage() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -52,7 +55,8 @@ export function LoginPage() {
       if (user.darkMode) document.documentElement.classList.add('dark-mode')
       navigate(from, { replace: true })
     } catch (err) {
-      const message = isApiError(err) ? err.detail : 'Invalid credentials'
+      const lang = i18n.language.startsWith('es') ? 'es' : 'en'
+      const message = isApiError(err) ? translateErrorCode(err.code, lang) : translateErrorCode(undefined, lang)
       setError('root', { message })
     }
   }
@@ -61,23 +65,30 @@ export function LoginPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-          Log in
+          {t('auth.login.title')}
         </Typography>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-          Welcome back! Please enter your details.
+          {t('auth.login.subtitle')}
         </Typography>
       </Box>
 
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <RHFTextField control={control} name="email" label="Email" type="email" autoComplete="email" placeholder="Enter your email" />
+        <RHFTextField
+          control={control}
+          name="email"
+          label={t('common.fields.email')}
+          type="email"
+          autoComplete="email"
+          placeholder={t('auth.form.emailPlaceholder')}
+        />
 
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
             <Typography component="span" sx={{ fontSize: 14, fontWeight: 500 }}>
-              Password
+              {t('common.fields.password')}
             </Typography>
             <Link component={RouterLink} to="/forgot-password" underline="hover" sx={{ fontSize: 14, fontWeight: 600 }}>
-              Forgot password
+              {t('auth.login.forgotPasswordLink')}
             </Link>
           </Box>
           <RHFTextField control={control} name="password" type="password" autoComplete="current-password" placeholder="••••••••••••" />
@@ -85,20 +96,20 @@ export function LoginPage() {
 
         <FormControlLabel
           control={<Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />}
-          label={<Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Remember for 30 days</Typography>}
+          label={<Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{t('auth.login.rememberLabel')}</Typography>}
         />
 
         {errors.root && <Alert severity="error">{errors.root.message}</Alert>}
 
         <Button type="submit" variant="contained" fullWidth loading={isSubmitting}>
-          Sign in
+          {t('auth.login.submitButton')}
         </Button>
       </Box>
 
       <Typography sx={{ textAlign: 'center', fontSize: 14, color: 'text.secondary' }}>
-        Don't have an account?{' '}
+        {t('auth.login.noAccountText')}{' '}
         <Link component={RouterLink} to="/signup" underline="hover" sx={{ fontWeight: 600 }}>
-          Sign up
+          {t('auth.login.signUpLink')}
         </Link>
       </Typography>
     </Box>

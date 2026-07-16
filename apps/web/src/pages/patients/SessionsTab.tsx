@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -42,22 +43,6 @@ type StatusForm = SessionStatusFormData
 type ChipColor = 'default' | 'info' | 'success' | 'error'
 const STATUS_COLOR: Record<SessionStatus, ChipColor> = { Scheduled: 'info', Completed: 'success', Missed: 'error' }
 
-const STATUS_OPTIONS = [
-  { value: 'Scheduled', label: 'Scheduled' },
-  { value: 'Completed', label: 'Completed' },
-  { value: 'Missed', label: 'Missed' },
-]
-
-const TYPE_OPTIONS = [
-  { value: 'Medical', label: 'Medical' },
-  { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
-]
-
-const LOCATION_MODE_OPTIONS = [
-  { value: 'clinic', label: 'Clinic' },
-  { value: 'workRoute', label: 'Work Route' },
-]
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
@@ -68,10 +53,21 @@ const NEW_SESSION_FORM_ID = 'new-session-form'
 // The mutation lives in the tab component (below) so the SlideOver's pinned footer
 // button can read its `isPending` state; this form only owns the fields + validation.
 function CreateSessionForm({ formId, onSubmit }: { formId: string; onSubmit: (data: CreateForm) => Promise<void> }) {
+  const { t } = useTranslation()
   // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
   const { data: collaboratorsData } = useCollaborators(1, DROPDOWN_PAGE_SIZE)
   const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
   const { data: workRoutesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
+
+  const TYPE_OPTIONS = [
+    { value: 'Medical', label: t('enums.attentionType.Medical') },
+    { value: 'EducationalReinforcement', label: t('enums.attentionType.EducationalReinforcement') },
+  ]
+
+  const LOCATION_MODE_OPTIONS = [
+    { value: 'clinic', label: t('patients.sessions.clinicLabel') },
+    { value: 'workRoute', label: t('patients.sessions.workRouteLabel') },
+  ]
 
   const { control, handleSubmit } = useForm<CreateForm>({
     resolver: zodResolver(createSessionSchema),
@@ -100,12 +96,12 @@ function CreateSessionForm({ formId, onSubmit }: { formId: string; onSubmit: (da
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <RHFSelect control={control} name="collaboratorId" label="Collaborator" options={collaboratorOptions} />
-      <RHFSelect control={control} name="attentionType" label="Attention Type" options={TYPE_OPTIONS} />
+      <RHFSelect control={control} name="collaboratorId" label={t('patients.sessions.collaboratorLabel')} options={collaboratorOptions} />
+      <RHFSelect control={control} name="attentionType" label={t('patients.sessions.attentionTypeLabel')} options={TYPE_OPTIONS} />
       <RHFTextField
         control={control}
         name="sessionDate"
-        label="Session Date"
+        label={t('patients.sessions.sessionDateLabel')}
         type="datetime-local"
         slotProps={{ inputLabel: { shrink: true } }}
       />
@@ -113,18 +109,18 @@ function CreateSessionForm({ formId, onSubmit }: { formId: string; onSubmit: (da
         <RHFSelect
           control={control}
           name="locationMode"
-          label="Location Type"
+          label={t('patients.sessions.locationTypeLabel')}
           options={LOCATION_MODE_OPTIONS}
           sx={{ flex: 1 }}
         />
         <HelpTooltip topicKey="sessions.clinic-or-route" />
       </Box>
-      {locationMode === 'clinic' && <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />}
+      {locationMode === 'clinic' && <RHFSelect control={control} name="clinicId" label={t('patients.sessions.clinicLabel')} options={clinicOptions} />}
       {locationMode === 'workRoute' && (
-        <RHFSelect control={control} name="workRouteId" label="Work Route" options={workRouteOptions} />
+        <RHFSelect control={control} name="workRouteId" label={t('patients.sessions.workRouteLabel')} options={workRouteOptions} />
       )}
-      <RHFTextField control={control} name="durationMinutes" label="Duration (minutes)" type="number" placeholder="Optional" />
-      <RHFTextField control={control} name="notes" label="Notes" placeholder="Optional" multiline minRows={2} />
+      <RHFTextField control={control} name="durationMinutes" label={t('patients.sessions.durationMinutesLabel')} type="number" placeholder={t('patients.sessions.optionalPlaceholder')} />
+      <RHFTextField control={control} name="notes" label={t('patients.sessions.notesLabel')} placeholder={t('patients.sessions.optionalPlaceholder')} multiline minRows={2} />
     </Box>
   )
 }
@@ -139,7 +135,14 @@ function StatusPatchForm({
   patientId: string
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const patchStatus = usePatchSessionStatus(patientId)
+
+  const STATUS_OPTIONS = [
+    { value: 'Scheduled', label: t('enums.sessionStatus.Scheduled') },
+    { value: 'Completed', label: t('enums.sessionStatus.Completed') },
+    { value: 'Missed', label: t('enums.sessionStatus.Missed') },
+  ]
 
   const {
     control,
@@ -175,18 +178,18 @@ function StatusPatchForm({
     >
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <RHFSelect control={control} name="status" label="Status" options={STATUS_OPTIONS} sx={{ flex: 1 }} />
+          <RHFSelect control={control} name="status" label={t('patients.fields.status')} options={STATUS_OPTIONS} sx={{ flex: 1 }} />
           <HelpTooltip topicKey="sessions.status-lifecycle" />
         </Box>
-        <RHFTextField control={control} name="durationMinutes" label="Duration (min)" type="number" />
-        <RHFTextField control={control} name="notes" label="Notes" />
+        <RHFTextField control={control} name="durationMinutes" label={t('patients.sessions.durationMinLabel')} type="number" />
+        <RHFTextField control={control} name="notes" label={t('patients.sessions.notesLabel')} />
       </Box>
       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         <Button size="small" color="inherit" onClick={onClose}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button size="small" type="submit" variant="contained" loading={isSubmitting}>
-          Save
+          {t('patients.sessions.saveButton')}
         </Button>
       </Box>
     </Paper>
@@ -199,6 +202,7 @@ interface Props {
 }
 
 export function SessionsTab({ patientId }: Props) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -228,11 +232,11 @@ export function SessionsTab({ patientId }: Props) {
     <Stack spacing={2}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Attention Sessions</Typography>
+        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('patients.sessions.title')}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <HelpTooltip topicKey="sessions.recording" />
           <Button size="small" variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
-            New Session
+            {t('patients.sessions.newButton')}
           </Button>
         </Box>
       </Box>
@@ -246,7 +250,7 @@ export function SessionsTab({ patientId }: Props) {
         </Stack>
       ) : sessions.length === 0 ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
-          <Typography sx={{ fontSize: 14 }}>No sessions recorded yet.</Typography>
+          <Typography sx={{ fontSize: 14 }}>{t('patients.sessions.empty')}</Typography>
         </Paper>
       ) : (
         <Stack spacing={1.5}>
@@ -268,19 +272,19 @@ export function SessionsTab({ patientId }: Props) {
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{formatDate(session.sessionDate)}</Typography>
-                      <Chip label={session.status} size="small" color={STATUS_COLOR[session.status] ?? 'default'} />
+                      <Chip label={t(`enums.sessionStatus.${session.status}`)} size="small" color={STATUS_COLOR[session.status] ?? 'default'} />
                       <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
-                        {session.attentionType === 'EducationalReinforcement' ? 'Educational' : session.attentionType}
+                        {t(`enums.attentionType.${session.attentionType}`)}
                       </Typography>
                     </Box>
                     <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
                       {session.collaboratorName}
-                      {session.durationMinutes ? ` · ${session.durationMinutes} min` : ''}
+                      {session.durationMinutes ? t('patients.sessions.durationSuffix', { minutes: session.durationMinutes }) : ''}
                     </Typography>
                   </Box>
                 </Box>
-                <Tooltip title="Delete">
-                  <IconButton size="small" color="error" onClick={() => setDeleteTarget(session)} aria-label="Delete session">
+                <Tooltip title={t('common.actions.delete')}>
+                  <IconButton size="small" color="error" onClick={() => setDeleteTarget(session)} aria-label={t('patients.sessions.deleteAriaLabel')}>
                     <DeleteOutlineOutlined fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -304,17 +308,17 @@ export function SessionsTab({ patientId }: Props) {
 
       {/* Create slide-over */}
       <SlideOver
-        title="New Attention Session"
+        title={t('patients.sessions.newDialogTitle')}
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        description="Record a new attention session for this patient."
+        description={t('patients.sessions.newDialogDescription')}
         footer={
           <>
             <Button variant="text" color="inherit" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" form={NEW_SESSION_FORM_ID} variant="contained" loading={createSession.isPending}>
-              Create Session
+              {t('patients.sessions.createButton')}
             </Button>
           </>
         }
@@ -325,9 +329,9 @@ export function SessionsTab({ patientId }: Props) {
       {/* Delete confirm */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete session?"
-        description="This action cannot be undone."
-        confirmLabel="Delete"
+        title={t('patients.sessions.deleteDialogTitle')}
+        description={t('patients.sessions.deleteDialogDescription')}
+        confirmLabel={t('common.actions.delete')}
         loading={deleteSession.isPending}
         onConfirm={async () => {
           if (deleteTarget) await deleteSession.mutateAsync(deleteTarget.id)

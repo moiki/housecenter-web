@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Avatar,
@@ -31,30 +32,32 @@ import { useClinics } from 'core/hooks/clinics/useClinics'
 import { useWorkRoutes } from 'core/hooks/workroutes/useWorkRoutes'
 import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowLink } from '@/components/shared/RowLink'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { FormSection } from '@/components/shared/FormSection'
-import { RHFTextField, RHFSelect, RHFDatePicker } from '@/components/shared/form'
+import { RHFTextField, RHFSelect, RHFDatePicker, RHFTimePicker } from '@/components/shared/form'
 import type { PatientResponse } from 'core/types/patient.types'
 
 const NEW_PATIENT_FORM_ID = 'new-patient-form'
-
-const GENDER_OPTIONS = [
-  { value: 'Male', label: 'Male' },
-  { value: 'Female', label: 'Female' },
-]
-const TYPE_OPTIONS = [
-  { value: 'Medical', label: 'Medical' },
-  { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
-]
 
 // The submit button lives in the SlideOver footer (a DOM sibling), so the form is
 // tagged with `id` and the button links to it via its `form` attribute — validation
 // and submit still run through react-hook-form's handleSubmit.
 function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: PatientFormData) => Promise<void> }) {
+  const { t } = useTranslation()
   // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
   const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
   const { data: routesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
+
+  const GENDER_OPTIONS = [
+    { value: 'Male', label: t('enums.gender.Male') },
+    { value: 'Female', label: t('enums.gender.Female') },
+  ]
+  const TYPE_OPTIONS = [
+    { value: 'Medical', label: t('enums.attentionType.Medical') },
+    { value: 'EducationalReinforcement', label: t('enums.attentionType.EducationalReinforcement') },
+  ]
 
   const { control, handleSubmit } = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -64,17 +67,18 @@ function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: Patie
       country: null, state: null, city: null,
       address: '', description: null,
       primaryAttentionType: 'Medical',
-      clinicId: null, workRouteId: null,
+      clinicId: null, workRouteId: null, routeVisitTime: null,
     },
   })
+  const selectedWorkRouteId = useWatch({ control, name: 'workRouteId' })
 
   // Empty-string option => Zod transforms '' -> null (replaces the legacy '__none__' sentinel).
   const clinicOptions = [
-    { value: '', label: 'No clinic' },
+    { value: '', label: t('patients.form.noClinicOption') },
     ...(clinicsData?.items ?? []).map((c) => ({ value: c.id, label: c.name })),
   ]
   const routeOptions = [
-    { value: '', label: 'No route' },
+    { value: '', label: t('patients.form.noRouteOption') },
     ...(routesData?.items ?? []).map((r) => ({ value: r.id, label: r.routeName })),
   ]
 
@@ -85,30 +89,35 @@ function PatientForm({ formId, onSubmit }: { formId: string; onSubmit: (d: Patie
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}
     >
-      <FormSection title="Patient details">
+      <FormSection title={t('patients.form.sections.details')}>
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-          <RHFTextField control={control} name="firstName" label="First name" />
-          <RHFTextField control={control} name="lastName" label="Last name" />
+          <RHFTextField control={control} name="firstName" label={t('common.fields.firstName')} />
+          <RHFTextField control={control} name="lastName" label={t('common.fields.lastName')} />
         </Box>
-        <RHFDatePicker control={control} name="birthDate" label="Birth date" />
+        <RHFDatePicker control={control} name="birthDate" label={t('patients.fields.birthDate')} />
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-          <RHFSelect control={control} name="gender" label="Gender" options={GENDER_OPTIONS} />
-          <RHFSelect control={control} name="primaryAttentionType" label="Attention type" options={TYPE_OPTIONS} />
+          <RHFSelect control={control} name="gender" label={t('patients.fields.gender')} options={GENDER_OPTIONS} />
+          <RHFSelect control={control} name="primaryAttentionType" label={t('patients.fields.attentionType')} options={TYPE_OPTIONS} />
         </Box>
       </FormSection>
 
-      <FormSection title="Location">
-        <RHFTextField control={control} name="address" label="Address" />
+      <FormSection title={t('patients.form.sections.location')}>
+        <RHFTextField control={control} name="address" label={t('common.fields.address')} />
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
-          <RHFTextField control={control} name="country" label="Country" />
-          <RHFTextField control={control} name="state" label="State" />
-          <RHFTextField control={control} name="city" label="City" />
+          <RHFTextField control={control} name="country" label={t('common.fields.country')} />
+          <RHFTextField control={control} name="state" label={t('common.fields.state')} />
+          <RHFTextField control={control} name="city" label={t('common.fields.city')} />
         </Box>
       </FormSection>
 
-      <FormSection title="Assignment">
-        <RHFSelect control={control} name="clinicId" label="Clinic (optional)" options={clinicOptions} />
-        <RHFSelect control={control} name="workRouteId" label="Work route (optional)" options={routeOptions} />
+      <FormSection title={t('patients.form.sections.assignment')}>
+        <RHFSelect control={control} name="clinicId" label={t('patients.form.clinicOptional')} options={clinicOptions} />
+        <RHFSelect control={control} name="workRouteId" label={t('patients.form.workRouteOptional')} options={routeOptions} />
+        {/* Only meaningful once a route is picked — drives stop ordering on that
+            route's calendar/map view. */}
+        {!!selectedWorkRouteId && (
+          <RHFTimePicker control={control} name="routeVisitTime" label={t('patients.form.visitTimeOnRoute')} />
+        )}
       </FormSection>
     </Box>
   )
@@ -120,6 +129,7 @@ function calcAge(birthDate: string) {
 }
 
 export function PatientsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const { data, isLoading, isFetching } = usePatients(page)
@@ -143,11 +153,11 @@ export function PatientsPage() {
   return (
     <Box>
       <PageHeader
-        title="Patients"
-        description="Full patient registry."
+        title={t('patients.title')}
+        description={t('patients.description')}
         action={
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setSlideOpen(true)}>
-            New Patient
+            {t('patients.newPatientButton')}
           </Button>
         }
       />
@@ -161,7 +171,7 @@ export function PatientsPage() {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <PeopleOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No patients registered yet.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('patients.empty')}</Typography>
         </Paper>
       ) : (
         <>
@@ -170,17 +180,17 @@ export function PatientsPage() {
             sx={{ borderRadius: 2, overflow: 'hidden', opacity: isFetching ? 0.6 : 1, transition: 'opacity 150ms' }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Patients</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('patients.title')}</Typography>
               <Chip label={data.totalCount} size="small" />
             </Box>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Patient</TableCell>
-                    <TableCell>Age</TableCell>
-                    <TableCell>Gender</TableCell>
-                    <TableCell>Type</TableCell>
+                    <TableCell>{t('patients.table.patient')}</TableCell>
+                    <TableCell>{t('patients.fields.age')}</TableCell>
+                    <TableCell>{t('patients.fields.gender')}</TableCell>
+                    <TableCell>{t('patients.fields.type')}</TableCell>
                     <TableCell align="right" />
                   </TableRow>
                 </TableHead>
@@ -188,7 +198,11 @@ export function PatientsPage() {
                   {data.items.map((p) => (
                     <TableRow key={p.id} hover>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <RowLink
+                          onClick={() => navigate(`/patients/${p.id}`)}
+                          aria-label={`${t('common.actions.view')} ${p.firstName} ${p.lastName}`}
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
+                        >
                           <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
                             {p.firstName[0]}{p.lastName[0]}
                           </Avatar>
@@ -202,26 +216,26 @@ export function PatientsPage() {
                               {p.address}
                             </Typography>
                           </Box>
-                        </Box>
+                        </RowLink>
                       </TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>{calcAge(p.birthDate)} yrs</TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>{p.gender}</TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>{t('patients.ageYears', { age: calcAge(p.birthDate) })}</TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>{t(`enums.gender.${p.gender}`)}</TableCell>
                       <TableCell>
                         <Chip
                           size="small"
                           variant="outlined"
                           color={p.primaryAttentionType === 'Medical' ? 'info' : 'primary'}
-                          label={p.primaryAttentionType === 'EducationalReinforcement' ? 'Educational' : p.primaryAttentionType}
+                          label={t(`enums.attentionType.${p.primaryAttentionType}`)}
                         />
                       </TableCell>
                       <TableCell align="right">
-                        <Tooltip title="View">
-                          <IconButton size="small" onClick={() => navigate(`/patients/${p.id}`)} aria-label="View">
+                        <Tooltip title={t('common.actions.view')}>
+                          <IconButton size="small" onClick={() => navigate(`/patients/${p.id}`)} aria-label={t('common.actions.view')}>
                             <VisibilityOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Deactivate">
-                          <IconButton size="small" color="error" onClick={() => setToDeactivate(p)} aria-label="Deactivate">
+                        <Tooltip title={t('common.actions.deactivate')}>
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(p)} aria-label={t('common.actions.deactivate')}>
                             <DeleteOutlineOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -236,7 +250,7 @@ export function PatientsPage() {
           {data.totalPages > 1 && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                {data.totalCount} patients — page {data.page} of {data.totalPages}
+                {t('patients.pageSummary', { count: data.totalCount, page: data.page, totalPages: data.totalPages })}
               </Typography>
               <Pagination
                 count={data.totalPages}
@@ -253,15 +267,15 @@ export function PatientsPage() {
       <SlideOver
         open={slideOpen}
         onClose={() => setSlideOpen(false)}
-        title="New patient"
-        description="Register a patient in the clinic system."
+        title={t('patients.newPatientDialog.title')}
+        description={t('patients.newPatientDialog.description')}
         footer={
           <>
             <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" form={NEW_PATIENT_FORM_ID} variant="contained" loading={createPatient.isPending}>
-              Create patient
+              {t('patients.newPatientDialog.createButton')}
             </Button>
           </>
         }
@@ -271,9 +285,9 @@ export function PatientsPage() {
 
       <ConfirmDialog
         open={!!toDeactivate}
-        title="Deactivate patient"
-        description={`${toDeactivate?.firstName} ${toDeactivate?.lastName} will be deactivated.`}
-        confirmLabel="Deactivate"
+        title={t('patients.confirmDeactivate.title')}
+        description={t('patients.confirmDeactivate.description', { name: `${toDeactivate?.firstName} ${toDeactivate?.lastName}` })}
+        confirmLabel={t('common.actions.deactivate')}
         loading={deactivatePatient.isPending}
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}

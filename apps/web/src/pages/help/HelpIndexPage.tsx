@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -33,6 +34,7 @@ function groupByCategory(topics: HelpTopicSummary[]) {
 }
 
 export function HelpIndexPage() {
+  const { t } = useTranslation()
   const { data, isLoading } = useHelpTopics()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -69,10 +71,10 @@ export function HelpIndexPage() {
     <Box>
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 600, fontSize: { xs: 22, sm: 28 } }}>
-          Guías para usar HouseCenter
+          {t('help.index.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-          Encontrá cómo hacer cualquier cosa en la plataforma.
+          {t('help.index.subtitle')}
         </Typography>
       </Box>
 
@@ -81,7 +83,7 @@ export function HelpIndexPage() {
           <TextField
             fullWidth
             size="medium"
-            placeholder="Buscar en las guías…"
+            placeholder={t('help.index.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             slotProps={{
@@ -98,7 +100,7 @@ export function HelpIndexPage() {
 
           <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center', mb: 3 }}>
             <Chip
-              label="Todos"
+              label={t('help.index.allCategoriesChip')}
               size="small"
               aria-pressed={activeCategory === null}
               onClick={() => setActiveCategory(null)}
@@ -130,11 +132,11 @@ export function HelpIndexPage() {
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <HelpOutlineOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
           <Typography sx={{ mt: 1, fontSize: 14 }}>
-            {hasTopics ? 'No se encontraron guías para tu búsqueda o categoría.' : 'No help topics available yet.'}
+            {hasTopics ? t('help.index.noResults') : t('help.index.empty')}
           </Typography>
           {hasActiveFilters && (
             <Button size="small" onClick={clearFilters} sx={{ mt: 2 }}>
-              Limpiar filtros
+              {t('help.index.clearFiltersButton')}
             </Button>
           )}
         </Paper>

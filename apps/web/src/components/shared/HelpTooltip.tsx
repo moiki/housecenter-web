@@ -1,5 +1,6 @@
 import { useId, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Box, IconButton, Link, Popover, Typography } from '@mui/material'
 import HelpOutlineOutlined from '@mui/icons-material/HelpOutlineOutlined'
 import { useHelpTopics } from 'core/hooks/help/useHelpTopics'
@@ -14,6 +15,7 @@ interface Props {
 // content inside a tooltip — a screen-reader/keyboard user could never reach that
 // link if this stayed a Tooltip, since focus-triggered tooltips aren't tabbable into.
 export function HelpTooltip({ topicKey, children }: Props) {
+  const { t } = useTranslation()
   const { data: topics, isLoading, isError } = useHelpTopics()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const popoverId = useId()
@@ -60,7 +62,7 @@ export function HelpTooltip({ topicKey, children }: Props) {
       ) : (
         <IconButton
           size="small"
-          aria-label="Ayuda"
+          aria-label={t('help.tooltip.ariaLabel')}
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={open ? popoverId : undefined}
@@ -91,7 +93,7 @@ export function HelpTooltip({ topicKey, children }: Props) {
           onClick={close}
           sx={{ display: 'inline-block', mt: 0.75, fontWeight: 600 }}
         >
-          Leer más ›
+          {t('help.tooltip.readMore')}
         </Link>
       </Popover>
     </>

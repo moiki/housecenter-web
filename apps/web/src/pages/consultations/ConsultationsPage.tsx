@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -21,6 +23,8 @@ import { useConsultations, useCreateConsultation } from 'core/hooks/consultation
 import { usePatients } from 'core/hooks/patients/usePatients'
 import { useUsers } from 'core/hooks/users/useUsers'
 import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
+import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { RHFTextField, RHFSelect, RHFRichText } from '@/components/shared/form'
@@ -40,13 +44,6 @@ type CreateForm = z.infer<typeof createSchema>
 type ChipColor = 'default' | 'info' | 'warning' | 'success'
 const STATUS_COLOR: Record<ConsultationStatus, ChipColor> = { Open: 'info', UnderReview: 'warning', Resolved: 'success' }
 
-const STATUS_FILTER_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'Open', label: 'Open' },
-  { value: 'UnderReview', label: 'Under Review' },
-  { value: 'Resolved', label: 'Resolved' },
-]
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
@@ -57,6 +54,7 @@ const NEW_CONSULTATION_FORM_ID = 'new-consultation-form'
 // The mutation lives in the page component (below) so the SlideOver's pinned footer
 // button can read its `isPending` state; this form only owns the fields + validation.
 function CreateConsultationForm({ formId, onSubmit }: { formId: string; onSubmit: (data: CreateForm) => Promise<void> }) {
+  const { t } = useTranslation()
   // NOTE: usePatients(1, 200) is a pre-existing, separately-tracked bug — the backend
   // clamps pageSize to 100, so this silently drops patients beyond row 100 in orgs with
   // >100 patients. Out of scope for this change; left as-is intentionally.
@@ -81,20 +79,33 @@ function CreateConsultationForm({ formId, onSubmit }: { formId: string; onSubmit
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <RHFSelect control={control} name="patientId" label="Patient" options={patientOptions} />
-      <RHFSelect control={control} name="assignedDoctorId" label="Assigned Doctor" options={doctorOptions} />
-      <RHFTextField control={control} name="title" label="Title" placeholder="Subject of the consultation" />
-      <RHFRichText control={control} name="firstMessage" label="First Message" placeholder="Describe the case…" />
+      <RHFSelect control={control} name="patientId" label={t('consultations.form.patientLabel')} options={patientOptions} />
+      <RHFSelect control={control} name="assignedDoctorId" label={t('consultations.form.doctorLabel')} options={doctorOptions} />
+      <RHFTextField
+        control={control}
+        name="title"
+        label={t('consultations.form.titleLabel')}
+        placeholder={t('consultations.form.titlePlaceholder')}
+      />
+      <RHFRichText
+        control={control}
+        name="firstMessage"
+        label={t('consultations.form.firstMessageLabel')}
+        placeholder={t('consultations.form.firstMessagePlaceholder')}
+      />
     </Box>
   )
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export function ConsultationsPage() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<ConsultationStatus | undefined>()
   const [createOpen, setCreateOpen] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
   const createConsultation = useCreateConsultation()
 
   const { data, isLoading } = useConsultations({ page, pageSize: 15, status: statusFilter })
@@ -102,26 +113,38 @@ export function ConsultationsPage() {
   const consultations = data?.items ?? []
   const totalPages = data?.totalPages ?? 1
 
+  const STATUS_FILTER_OPTIONS = [
+    { value: '', label: t('consultations.filters.allStatuses') },
+    { value: 'Open', label: t('enums.consultationStatus.Open') },
+    { value: 'UnderReview', label: t('enums.consultationStatus.UnderReview') },
+    { value: 'Resolved', label: t('enums.consultationStatus.Resolved') },
+  ]
+
   const handleCreate = async (data: CreateForm) => {
-    await createConsultation.mutateAsync({
-      patientId: data.patientId,
-      assignedDoctorId: data.assignedDoctorId,
-      title: data.title,
-      firstMessage: data.firstMessage,
-      treatmentId: data.treatmentId || null,
-      attachmentUrl: null,
-    })
-    setCreateOpen(false)
+    setCreateError(null)
+    try {
+      await createConsultation.mutateAsync({
+        patientId: data.patientId,
+        assignedDoctorId: data.assignedDoctorId,
+        title: data.title,
+        firstMessage: data.firstMessage,
+        treatmentId: data.treatmentId || null,
+        attachmentUrl: null,
+      })
+      setCreateOpen(false)
+    } catch (err) {
+      setCreateError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   return (
     <Box>
       <PageHeader
-        title="Consultations"
-        description="Medical inbox — open cases and threads"
+        title={t('consultations.title')}
+        description={t('consultations.description')}
         action={
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setCreateOpen(true)}>
-            New Consultation
+            {t('consultations.newConsultationButton')}
           </Button>
         }
       />
@@ -153,7 +176,7 @@ export function ConsultationsPage() {
           </Box>
         ) : consultations.length === 0 ? (
           <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography sx={{ fontSize: 14 }}>No consultations found.</Typography>
+            <Typography sx={{ fontSize: 14 }}>{t('consultations.empty')}</Typography>
           </Paper>
         ) : (
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
@@ -179,13 +202,15 @@ export function ConsultationsPage() {
                       {c.title}
                     </Typography>
                     <Chip
-                      label={c.status === 'UnderReview' ? 'Under Review' : c.status}
+                      label={t(`enums.consultationStatus.${c.status}`)}
                       size="small"
                       color={STATUS_COLOR[c.status as ConsultationStatus] ?? 'default'}
                     />
                   </Box>
                   {c.resolvedAt && (
-                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>Resolved {formatDate(c.resolvedAt)}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>
+                      {t('consultations.resolvedOn', { date: formatDate(c.resolvedAt) })}
+                    </Typography>
                   )}
                 </Box>
                 <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled' }} />
@@ -204,21 +229,26 @@ export function ConsultationsPage() {
 
       {/* Create slide-over */}
       <SlideOver
-        title="New Consultation"
+        title={t('consultations.newConsultationDialog.title')}
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        description="Start a new consultation thread and assign it to a doctor."
+        description={t('consultations.newConsultationDialog.description')}
         footer={
           <>
             <Button variant="text" color="inherit" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" form={NEW_CONSULTATION_FORM_ID} variant="contained" loading={createConsultation.isPending}>
-              Open Consultation
+              {t('consultations.newConsultationDialog.createButton')}
             </Button>
           </>
         }
       >
+        {createError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setCreateError(null)}>
+            {createError}
+          </Alert>
+        )}
         <CreateConsultationForm formId={NEW_CONSULTATION_FORM_ID} onSubmit={handleCreate} />
       </SlideOver>
     </Box>

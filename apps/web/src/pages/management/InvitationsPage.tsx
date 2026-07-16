@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -26,6 +28,8 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import MailOutlined from '@mui/icons-material/MailOutlined'
 import { useInvitations, useCreateInvitation, useResendInvitation, useDeleteInvitation } from 'core/hooks/invitations/useInvitations'
 import { useRoles } from 'core/hooks/roles/useRoles'
+import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -56,6 +60,7 @@ function InviteForm({
   roleOptions: { value: string; label: string }[]
   onSubmit: (data: FormData) => Promise<void>
 }) {
+  const { t } = useTranslation()
   const { control, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', roleId: '' },
@@ -68,13 +73,15 @@ function InviteForm({
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
     >
-      <RHFTextField control={control} name="email" label="Email" type="email" placeholder="colleague@example.com" />
-      <RHFSelect control={control} name="roleId" label="Role" options={roleOptions} />
+      <RHFTextField control={control} name="email" label={t('common.fields.email')} type="email" placeholder={t('management.invitations.form.emailPlaceholder')} />
+      <RHFSelect control={control} name="roleId" label={t('management.invitations.form.roleLabel')} options={roleOptions} />
     </Box>
   )
 }
 
 export function InvitationsPage() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const [page, setPage] = useState(1)
   const { data, isLoading } = useInvitations(page)
   const { data: roles } = useRoles()
@@ -84,31 +91,55 @@ export function InvitationsPage() {
 
   const [slideOpen, setSlideOpen] = useState(false)
   const [toDelete, setToDelete] = useState<InvitationResponse | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
-  const roleOptions = (roles ?? []).map((r) => ({ value: r.id, label: r.name }))
+  const roleOptions = (roles ?? []).map((r) => ({ value: r.id, label: t(`roles.${r.name}`) }))
 
   const handleCreate = async (data: FormData) => {
-    await createInvitation.mutateAsync(data)
-    setSlideOpen(false)
+    setActionError(null)
+    try {
+      await createInvitation.mutateAsync(data)
+      setSlideOpen(false)
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
+  }
+
+  const handleResend = (id: string) => {
+    setActionError(null)
+    resendInvitation.mutate(id, {
+      onError: (err) => setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang)),
+    })
   }
 
   const handleDelete = async () => {
     if (!toDelete) return
-    await deleteInvitation.mutateAsync(toDelete.id)
-    setToDelete(null)
+    setActionError(null)
+    try {
+      await deleteInvitation.mutateAsync(toDelete.id)
+      setToDelete(null)
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   return (
     <Box>
       <PageHeader
-        title="Invitations"
-        description="Invite new members to join HouseCenter."
+        title={t('management.invitations.title')}
+        description={t('management.invitations.description')}
         action={
           <Button variant="contained" startIcon={<PersonAddOutlined />} onClick={() => setSlideOpen(true)}>
-            Invite user
+            {t('management.invitations.inviteButton')}
           </Button>
         }
       />
+
+      {actionError && (
+        <Alert severity="error" onClose={() => setActionError(null)} sx={{ mb: 2 }}>
+          {actionError}
+        </Alert>
+      )}
 
       {isLoading ? (
         <Stack spacing={1.5}>
@@ -119,21 +150,21 @@ export function InvitationsPage() {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <MailOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No invitations yet.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('management.invitations.empty')}</Typography>
         </Paper>
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Invitations</Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('management.invitations.title')}</Typography>
             <Chip label={data.totalCount} size="small" />
           </Box>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Sent</TableCell>
+                  <TableCell>{t('common.fields.email')}</TableCell>
+                  <TableCell>{t('management.invitations.table.status')}</TableCell>
+                  <TableCell>{t('management.invitations.table.sent')}</TableCell>
                   <TableCell align="right" />
                 </TableRow>
               </TableHead>
@@ -143,7 +174,7 @@ export function InvitationsPage() {
                     <TableCell sx={{ fontWeight: 500 }}>{inv.email}</TableCell>
                     <TableCell>
                       <Chip
-                        label={inv.status}
+                        label={t(`management.invitations.status.${inv.status}`)}
                         size="small"
                         color={STATUS_COLOR[inv.status] ?? 'default'}
                         variant="outlined"
@@ -154,14 +185,14 @@ export function InvitationsPage() {
                     </TableCell>
                     <TableCell align="right">
                       {inv.status === 'Pending' && (
-                        <Tooltip title="Resend">
-                          <IconButton size="small" onClick={() => resendInvitation.mutate(inv.id)} aria-label="Resend">
+                        <Tooltip title={t('management.invitations.resendAriaLabel')}>
+                          <IconButton size="small" onClick={() => handleResend(inv.id)} aria-label={t('management.invitations.resendAriaLabel')}>
                             <SendOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       )}
-                      <Tooltip title="Delete">
-                        <IconButton size="small" color="error" onClick={() => setToDelete(inv)} aria-label="Delete">
+                      <Tooltip title={t('common.actions.delete')}>
+                        <IconButton size="small" color="error" onClick={() => setToDelete(inv)} aria-label={t('common.actions.delete')}>
                           <DeleteOutlineOutlined fontSize="small" />
                         </IconButton>
                       </Tooltip>
@@ -183,15 +214,15 @@ export function InvitationsPage() {
       <SlideOver
         open={slideOpen}
         onClose={() => setSlideOpen(false)}
-        title="Invite user"
-        description="Send an email invitation to join the organization."
+        title={t('management.invitations.slideOver.title')}
+        description={t('management.invitations.slideOver.description')}
         footer={
           <>
             <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" form={INVITE_FORM_ID} variant="contained" loading={createInvitation.isPending}>
-              Send invitation
+              {t('management.invitations.slideOver.sendButton')}
             </Button>
           </>
         }
@@ -201,9 +232,9 @@ export function InvitationsPage() {
 
       <ConfirmDialog
         open={!!toDelete}
-        title="Delete invitation"
-        description={`The invitation to "${toDelete?.email}" will be permanently deleted.`}
-        confirmLabel="Delete"
+        title={t('management.invitations.confirmDelete.title')}
+        description={t('management.invitations.confirmDelete.description', { email: toDelete?.email })}
+        confirmLabel={t('common.actions.delete')}
         loading={deleteInvitation.isPending}
         onConfirm={handleDelete}
         onCancel={() => setToDelete(null)}

@@ -2,11 +2,13 @@ import { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { authApi } from 'core/api/modules/auth.api'
 import { invitationsApi } from 'core/api/modules/invitations.api'
+import { translateErrorCode } from 'core/i18n'
 import { useAuthStore } from '@/store/auth.store'
 import { isApiError } from 'core/types/common.types'
 import { RHFTextField } from '@/components/shared/form'
@@ -27,6 +29,7 @@ const schema = z
 type FormData = z.infer<typeof schema>
 
 export function SignupPage() {
+  const { t, i18n } = useTranslation()
   const [params] = useSearchParams()
   const token = params.get('token') ?? ''
   const navigate = useNavigate()
@@ -66,7 +69,8 @@ export function SignupPage() {
       navigate('/', { replace: true })
     },
     onError: (err) => {
-      const message = isApiError(err) ? err.detail : 'Signup failed'
+      const lang = i18n.language.startsWith('es') ? 'es' : 'en'
+      const message = isApiError(err) ? translateErrorCode(err.code, lang) : translateErrorCode(undefined, lang)
       setError('root', { message })
     },
   })
@@ -88,9 +92,9 @@ export function SignupPage() {
   if (validation.isError) {
     return (
       <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <Typography sx={{ fontWeight: 600, color: 'error.main' }}>Invalid or expired invitation</Typography>
+        <Typography sx={{ fontWeight: 600, color: 'error.main' }}>{t('auth.signup.invalidInvitationTitle')}</Typography>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-          Ask an administrator to send you a new invite.
+          {t('auth.signup.invalidInvitationDescription')}
         </Typography>
       </Box>
     )
@@ -100,9 +104,9 @@ export function SignupPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-          Create your account
+          {t('auth.signup.title')}
         </Typography>
-        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Complete your registration</Typography>
+        <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{t('auth.signup.subtitle')}</Typography>
       </Box>
 
       <Box
@@ -112,19 +116,33 @@ export function SignupPage() {
         sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-          <RHFTextField control={control} name="firstName" label="First name" autoComplete="given-name" />
-          <RHFTextField control={control} name="lastName" label="Last name" autoComplete="family-name" />
+          <RHFTextField control={control} name="firstName" label={t('common.fields.firstName')} autoComplete="given-name" />
+          <RHFTextField control={control} name="lastName" label={t('common.fields.lastName')} autoComplete="family-name" />
         </Box>
 
-        <RHFTextField control={control} name="address" label="Address" autoComplete="street-address" />
+        <RHFTextField control={control} name="address" label={t('common.fields.address')} autoComplete="street-address" />
 
-        <RHFTextField control={control} name="password" label="Password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
-        <RHFTextField control={control} name="confirmPassword" label="Confirm password" type="password" autoComplete="new-password" placeholder="••••••••••••" />
+        <RHFTextField
+          control={control}
+          name="password"
+          label={t('common.fields.password')}
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••••"
+        />
+        <RHFTextField
+          control={control}
+          name="confirmPassword"
+          label={t('common.fields.confirmPassword')}
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••••"
+        />
 
         {errors.root && <Alert severity="error">{errors.root.message}</Alert>}
 
         <Button type="submit" variant="contained" fullWidth loading={isSubmitting || signup.isPending}>
-          Create account
+          {t('auth.signup.submitButton')}
         </Button>
       </Box>
     </Box>

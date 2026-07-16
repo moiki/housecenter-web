@@ -1,0 +1,232 @@
+{
+  "nav": {
+    "patients": "Patients",
+    "consultations": "Consultations",
+    "more": "More"
+  },
+  "common": {
+    "offline": "No connection",
+    "error": "Something went wrong",
+    "empty": "No data",
+    "cancel": "Cancel",
+    "previous": "Previous",
+    "next": "Next",
+    "select": "Select",
+    "selectDate": "Select date"
+  },
+  "auth": {
+    "title": "Log in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Log in",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "more": {
+    "title": "More",
+    "rutaDelDia": "Today's Route",
+    "workRoutes": "Work Routes",
+    "reports": "Reports",
+    "devices": "Devices",
+    "notifications": "Notifications",
+    "language": "Language",
+    "logout": "Log out",
+    "logoutConfirmTitle": "Log out",
+    "logoutConfirmMessage": "Are you sure you want to log out of this device?"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You have no notifications",
+    "markRead": "Mark as read",
+    "markAllRead": "Mark all as read"
+  },
+  "devices": {
+    "title": "Devices",
+    "thisDevice": "this device",
+    "revoke": "Revoke",
+    "revokeConfirmTitle": "Revoke device",
+    "revokeConfirmMessage": "Are you sure you want to log out this device?",
+    "revokeAll": "Log out all other sessions",
+    "revokeAllConfirmTitle": "Log out all other sessions",
+    "revokeAllConfirmMessage": "Are you sure you want to log out of all other devices?"
+  },
+  "patients": {
+    "title": "Patients",
+    "detailTitle": "Patient detail",
+    "list": {
+      "searchPlaceholder": "Search patient...",
+      "clinicBadge": "Clinic",
+      "routeBadge": "Route"
+    },
+    "tab": {
+      "overview": "Overview",
+      "treatments": "Treatments",
+      "sessions": "Sessions",
+      "comments": "Comments",
+      "photos": "Photos"
+    },
+    "overview": {
+      "fullName": "Full name",
+      "age": "Age",
+      "ageValue": "{{age}} years old",
+      "gender": "Gender",
+      "birthDate": "Birth date",
+      "address": "Address",
+      "location": "Country / City",
+      "attentionType": "Attention type",
+      "description": "Description"
+    },
+    "gender": {
+      "Male": "Male",
+      "Female": "Female"
+    },
+    "attentionType": {
+      "Medical": "Medical",
+      "EducationalReinforcement": "Educational Reinforcement"
+    }
+  },
+  "treatments": {
+    "noTreatments": "This patient has no treatments.",
+    "statusLabel": "Status",
+    "status": {
+      "Active": "Active",
+      "Completed": "Completed",
+      "Paused": "Paused"
+    },
+    "detailsLabel": "Details",
+    "addDetail": "Add detail",
+    "detailName": "Name",
+    "detailNamePlaceholder": "Detail name",
+    "detailDate": "Date",
+    "detailDescription": "Description",
+    "detailDescriptionPlaceholder": "Describe this detail...",
+    "saveDetail": "Save detail",
+    "noDetails": "No details recorded yet.",
+    "commentsLabel": "Comments",
+    "addComment": "Add comment",
+    "commentTypeLabel": "Type",
+    "commentType": {
+      "Simple": "Simple",
+      "Medical": "Medical",
+      "Route": "Route"
+    },
+    "commentBody": "Comment",
+    "commentBodyPlaceholder": "Write your comment...",
+    "saveComment": "Post comment",
+    "noComments": "No comments yet.",
+    "photosLabel": "Treatment photos"
+  },
+  "sessions": {
+    "noSessions": "This patient has no recorded sessions.",
+    "newSession": "Record session",
+    "createTitle": "New session",
+    "statusLabel": "Status",
+    "status": {
+      "Scheduled": "Scheduled",
+      "Completed": "Completed",
+      "Missed": "Missed"
+    },
+    "attentionTypeLabel": "Attention type",
+    "sessionDate": "Date and time",
+    "locationType": "Location type",
+    "locationMode": {
+      "clinic": "Clinic",
+      "workRoute": "Work route"
+    },
+    "clinic": "Clinic",
+    "workRoute": "Work route",
+    "duration": "Duration (min)",
+    "durationPlaceholder": "Optional",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional",
+    "save": "Save session",
+    "saveStatus": "Save status"
+  },
+  "comments": {
+    "add": "Add comment",
+    "typeLabel": "Type",
+    "type": {
+      "Simple": "Simple",
+      "Medical": "Medical",
+      "Route": "Route"
+    },
+    "body": "Comment",
+    "bodyPlaceholder": "Write your comment...",
+    "save": "Post comment",
+    "noComments": "No comments yet."
+  },
+  "attachments": {
+    "empty": "No photos yet",
+    "takePhoto": "Take photo",
+    "chooseFromLibrary": "Choose from library",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this photo? This action can't be undone.",
+    "permissionDenied": "Couldn't access the camera or photo library. Check the app's permissions in Settings.",
+    "uploading": "Uploading… {{percent}}%"
+  },
+  "workRoutes": {
+    "title": "Work Routes",
+    "detailTitle": "Route detail",
+    "today": "Today",
+    "emptyList": "No work routes",
+    "patientsTitle": "Patients",
+    "noPatientsAssigned": "No patients assigned to this route yet.",
+    "noVisitTime": "No time set",
+    "recurrence": {
+      "noDays": "No days configured",
+      "from": "From {{date}}",
+      "to": "to {{date}}",
+      "indefinite": "ongoing"
+    },
+    "weekday": {
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday",
+      "Saturday": "Saturday",
+      "Sunday": "Sunday"
+    }
+  },
+  "rutaDelDia": {
+    "title": "Today's Route",
+    "noProfile": "We couldn't find your collaborator profile. Contact an administrator if this isn't right.",
+    "noRoute": "You don't have a work route assigned.",
+    "noOccurrenceToday": "No route scheduled for today.",
+    "noPatients": "No patients on this route."
+  },
+  "reports": {
+    "title": "Reports",
+    "empty": "No session data for this period",
+    "sessionsTitle": "Sessions per week",
+    "byCollaboratorTitle": "Sessions by collaborator",
+    "preset": {
+      "d28": "Last 4 weeks",
+      "d56": "Last 8 weeks",
+      "d91": "Last 3 months",
+      "d182": "Last 6 months"
+    }
+  },
+  "consultations": {
+    "title": "Consultations",
+    "detailTitle": "Consultation detail",
+    "createTitle": "New consultation",
+    "status": {
+      "Open": "Open",
+      "UnderReview": "Under Review",
+      "Resolved": "Resolved"
+    },
+    "empty": "No consultations",
+    "messagePlaceholder": "Write a message...",
+    "send": "Send",
+    "resolve": "Mark resolved",
+    "resolvedHint": "This consultation has already been resolved.",
+    "attach": "Attach photo",
+    "escalate": "Escalate to Doctor",
+    "doctor": "Doctor",
+    "titleLabel": "Title",
+    "firstMessage": "First message",
+    "create": "Create consultation",
+    "noDoctors": "This patient has no doctors assigned.",
+    "notCollaborator": "You don't attend this patient, so you can't escalate a consultation."
+  }
+}

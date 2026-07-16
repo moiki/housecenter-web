@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import {
   AppBar,
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export function Topbar({ onToggleSidebar }: Props) {
+  const { t } = useTranslation()
   const { user, updateUser, logout } = useAuthStore()
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -49,7 +51,17 @@ export function Topbar({ onToggleSidebar }: Props) {
     },
   })
 
+  // Only updates the store — AuthBootstrap.tsx's effect (the single owner of
+  // `i18n.changeLanguage()`) reacts to `user.language` and does the actual switch.
+  const languageMutation = useMutation({
+    mutationFn: usersApi.updateLanguage,
+    onMutate: (language) => {
+      if (user) updateUser({ ...user, language })
+    },
+  })
+
   const handleThemeToggle = () => themeMutation.mutate({ isDarkMode: !user?.darkMode })
+  const handleLanguageToggle = () => languageMutation.mutate(user?.language === 'En' ? 'Es' : 'En')
   const handleLogout = () => {
     setAnchorEl(null)
     logout()
@@ -70,13 +82,13 @@ export function Topbar({ onToggleSidebar }: Props) {
       sx={{ bgcolor: 'background.default' }}
     >
       <Toolbar variant="dense" sx={{ gap: 1.5 }}>
-        <IconButton edge="start" onClick={onToggleSidebar} aria-label="Toggle sidebar" size="small">
+        <IconButton edge="start" onClick={onToggleSidebar} aria-label={t('shell.topbar.toggleSidebar')} size="small">
           <MenuOutlined fontSize="small" />
         </IconButton>
 
         <TextField
           size="small"
-          placeholder="Search…"
+          placeholder={t('shell.topbar.searchPlaceholder')}
           type="search"
           sx={{ width: { xs: 140, sm: 280 } }}
           slotProps={{
@@ -92,8 +104,14 @@ export function Topbar({ onToggleSidebar }: Props) {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Tooltip title={user?.darkMode ? 'Light mode' : 'Dark mode'}>
-          <IconButton onClick={handleThemeToggle} size="small" aria-label="Toggle dark mode">
+        <Tooltip title={user?.language === 'En' ? t('shell.topbar.switchToSpanish') : t('shell.topbar.switchToEnglish')}>
+          <IconButton onClick={handleLanguageToggle} size="small" aria-label={t('shell.topbar.toggleLanguage')} sx={{ fontSize: 11, fontWeight: 700 }}>
+            {user?.language === 'En' ? 'ES' : 'EN'}
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title={user?.darkMode ? t('shell.topbar.lightMode') : t('shell.topbar.darkMode')}>
+          <IconButton onClick={handleThemeToggle} size="small" aria-label={t('shell.topbar.toggleDarkMode')}>
             {user?.darkMode ? <LightModeOutlined fontSize="small" /> : <DarkModeOutlined fontSize="small" />}
           </IconButton>
         </Tooltip>
@@ -127,7 +145,7 @@ export function Topbar({ onToggleSidebar }: Props) {
             <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{user?.email}</Typography>
             {user?.roles?.[0] && (
               <Chip
-                label={user.roles[0]}
+                label={t(`roles.${user.roles[0]}`)}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -140,13 +158,13 @@ export function Topbar({ onToggleSidebar }: Props) {
             <ListItemIcon>
               <SettingsOutlined fontSize="small" />
             </ListItemIcon>
-            Settings
+            {t('nav.settings')}
           </MenuItem>
           <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
             <ListItemIcon>
               <LogoutOutlined fontSize="small" sx={{ color: 'error.main' }} />
             </ListItemIcon>
-            Sign out
+            {t('shell.topbar.signOut')}
           </MenuItem>
         </Menu>
       </Toolbar>

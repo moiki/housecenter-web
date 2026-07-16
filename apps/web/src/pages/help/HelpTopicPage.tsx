@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, Paper, Skeleton, Stack, Typography } from '@mui/material'
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import Markdown from 'markdown-to-jsx'
@@ -7,6 +8,7 @@ import { useHelpTopic } from 'core/hooks/help/useHelpTopics'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 export function HelpTopicPage() {
+  const { t } = useTranslation()
   const { topicKey = '' } = useParams<{ topicKey: string }>()
   const { data: topic, isLoading, isError } = useHelpTopic(topicKey)
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -35,12 +37,12 @@ export function HelpTopicPage() {
     return (
       <Box>
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
-          <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Tema no encontrado</Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 600 }}>{t('help.topic.notFound.title')}</Typography>
           <Typography sx={{ mt: 1, fontSize: 14 }}>
-            Este artículo de ayuda no existe o no está disponible para tu rol.
+            {t('help.topic.notFound.description')}
           </Typography>
           <Button component={RouterLink} to="/help" variant="outlined" sx={{ mt: 3 }}>
-            Volver a Help
+            {t('help.topic.backButton')}
           </Button>
         </Paper>
       </Box>
@@ -57,7 +59,7 @@ export function HelpTopicPage() {
         startIcon={<ArrowBackOutlined fontSize="small" />}
         sx={{ mb: 1, ml: -1 }}
       >
-        Volver a Help
+        {t('help.topic.backButton')}
       </Button>
       <PageHeader title={topic.title} titleRef={titleRef} />
       <Paper variant="outlined" sx={{ borderRadius: 2, p: 3 }}>

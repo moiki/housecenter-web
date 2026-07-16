@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Avatar,
   Box,
@@ -56,6 +57,7 @@ interface Props {
 }
 
 export function Sidebar({ role, collapsed }: Props) {
+  const { t } = useTranslation()
   const width = collapsed ? COLLAPSED : EXPANDED
   const visible = NAV_ITEMS.filter((item) => item.roles.includes(role))
   const core = visible.filter((i) => CORE_PATHS.includes(i.path))
@@ -64,8 +66,9 @@ export function Sidebar({ role, collapsed }: Props) {
 
   const renderItem = (item: NavItem) => {
     const IconComp = NAV_ICONS[item.icon] ?? HomeOutlined
+    const label = t(item.label)
     return (
-      <Tooltip key={item.path} title={collapsed ? item.label : ''} placement="right">
+      <Tooltip key={item.path} title={collapsed ? label : ''} placement="right">
         <ListItemButton
           component={NavLink}
           to={item.path}
@@ -87,7 +90,7 @@ export function Sidebar({ role, collapsed }: Props) {
           <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 1.5, justifyContent: 'center' }}>
             <IconComp fontSize="small" />
           </ListItemIcon>
-          {!collapsed && <ListItemText primary={item.label} />}
+          {!collapsed && <ListItemText primary={label} />}
         </ListItemButton>
       </Tooltip>
     )
@@ -155,13 +158,13 @@ export function Sidebar({ role, collapsed }: Props) {
         {core.map(renderItem)}
         {reports.length > 0 && (
           <>
-            {groupHeader('Reports')}
+            {groupHeader(t('nav.groupReports'))}
             {reports.map(renderItem)}
           </>
         )}
         {admin.length > 0 && (
           <>
-            {groupHeader('Management')}
+            {groupHeader(t('nav.groupManagement'))}
             {admin.map(renderItem)}
           </>
         )}
@@ -170,7 +173,7 @@ export function Sidebar({ role, collapsed }: Props) {
       {/* Settings pinned */}
       <Box sx={{ py: 0.5 }}>
         <List disablePadding>
-          {renderItem({ label: 'Settings', path: '/settings', roles: [], icon: 'settings' })}
+          {renderItem({ label: 'nav.settings', path: '/settings', roles: [], icon: 'settings' })}
         </List>
       </Box>
     </Drawer>

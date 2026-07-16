@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -34,7 +36,10 @@ import {
 import { useClinics } from 'core/hooks/clinics/useClinics'
 import { useWorkRoutes } from 'core/hooks/workroutes/useWorkRoutes'
 import { DROPDOWN_PAGE_SIZE } from 'core/lib/constants'
+import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowLink } from '@/components/shared/RowLink'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { RHFTextField, RHFSelect } from '@/components/shared/form'
@@ -51,6 +56,7 @@ function CollaboratorForm({
   onSubmit: (data: CollaboratorFormData) => Promise<void>
   formId: string
 }) {
+  const { t } = useTranslation()
   // Dropdowns need the full list; capped at the backend's clamp max (100 rows).
   const { data: clinicsData } = useClinics(1, DROPDOWN_PAGE_SIZE)
   const { data: routesData } = useWorkRoutes(1, DROPDOWN_PAGE_SIZE)
@@ -93,35 +99,35 @@ function CollaboratorForm({
   const clinicOptions = (clinicsData?.items ?? []).map((c) => ({ value: c.id, label: c.name }))
   // Empty-string option => Zod transforms '' -> null (replaces the legacy '__none__' sentinel).
   const routeOptions = [
-    { value: '', label: 'No route assigned' },
+    { value: '', label: t('collaborators.form.noRouteOption') },
     ...(routesData?.items ?? []).map((r) => ({ value: r.id, label: r.routeName })),
   ]
 
   return (
     <Box component="form" id={formId} onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <RHFTextField control={control} name="firstName" label="First name" placeholder="Jane" />
-        <RHFTextField control={control} name="lastName" label="Last name" placeholder="Smith" />
+        <RHFTextField control={control} name="firstName" label={t('common.fields.firstName')} placeholder={t('collaborators.form.firstNamePlaceholder')} />
+        <RHFTextField control={control} name="lastName" label={t('common.fields.lastName')} placeholder={t('collaborators.form.lastNamePlaceholder')} />
       </Box>
 
-      <RHFTextField control={control} name="email" label="Email" type="email" placeholder="jane@example.com" />
-      <RHFTextField control={control} name="phoneNumber" label="Phone" placeholder="+1 555 0000" />
-      <RHFTextField control={control} name="address" label="Address" placeholder="Full address" />
+      <RHFTextField control={control} name="email" label={t('common.fields.email')} type="email" placeholder={t('collaborators.form.emailPlaceholder')} />
+      <RHFTextField control={control} name="phoneNumber" label={t('common.fields.phone')} placeholder={t('collaborators.form.phonePlaceholder')} />
+      <RHFTextField control={control} name="address" label={t('common.fields.address')} placeholder={t('collaborators.form.addressPlaceholder')} />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5 }}>
-        <RHFTextField control={control} name="country" label="Country" placeholder="US" />
-        <RHFTextField control={control} name="state" label="State" placeholder="CA" />
-        <RHFTextField control={control} name="city" label="City" placeholder="LA" />
+        <RHFTextField control={control} name="country" label={t('common.fields.country')} placeholder={t('collaborators.form.countryPlaceholder')} />
+        <RHFTextField control={control} name="state" label={t('common.fields.state')} placeholder={t('collaborators.form.statePlaceholder')} />
+        <RHFTextField control={control} name="city" label={t('common.fields.city')} placeholder={t('collaborators.form.cityPlaceholder')} />
       </Box>
 
-      <RHFSelect control={control} name="clinicId" label="Clinic" options={clinicOptions} />
-      <RHFSelect control={control} name="workRouteId" label="Work route (optional)" options={routeOptions} />
+      <RHFSelect control={control} name="clinicId" label={t('collaborators.form.clinicLabel')} options={clinicOptions} />
+      <RHFSelect control={control} name="workRouteId" label={t('collaborators.form.workRouteOptionalLabel')} options={routeOptions} />
 
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>Positions</Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{t('collaborators.positions')}</Typography>
           <Button size="small" startIcon={<AddOutlined />} onClick={() => append('')}>
-            Add position
+            {t('collaborators.addPositionButton')}
           </Button>
         </Box>
 
@@ -137,10 +143,10 @@ function CollaboratorForm({
               <RHFTextField
                 control={control}
                 name={`positions.${i}` as `positions.${number}`}
-                placeholder={`Position ${i + 1}`}
+                placeholder={t('collaborators.positionPlaceholder', { index: i + 1 })}
               />
               {fields.length > 1 && (
-                <IconButton size="small" color="error" onClick={() => remove(i)} aria-label="Remove position" sx={{ mt: 0.5 }}>
+                <IconButton size="small" color="error" onClick={() => remove(i)} aria-label={t('collaborators.removePositionAriaLabel')} sx={{ mt: 0.5 }}>
                   <DeleteOutlineOutlined fontSize="small" />
                 </IconButton>
               )}
@@ -153,6 +159,8 @@ function CollaboratorForm({
 }
 
 export function CollaboratorsPage() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const [page, setPage] = useState(1)
   const { data, isLoading } = useCollaborators(page)
   const createCollaborator = useCreateCollaborator()
@@ -161,6 +169,7 @@ export function CollaboratorsPage() {
   const [slideMode, setSlideMode] = useState<'create' | 'edit' | null>(null)
   const [selected, setSelected] = useState<CollaboratorResponse | null>(null)
   const [toDeactivate, setToDeactivate] = useState<CollaboratorResponse | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const updateCollaborator = useUpdateCollaborator(selected?.id ?? '')
 
@@ -169,32 +178,53 @@ export function CollaboratorsPage() {
   const closeSlide = () => { setSlideMode(null); setSelected(null) }
 
   const handleCreate = async (data: CollaboratorFormData) => {
-    await createCollaborator.mutateAsync(data)
-    closeSlide()
+    setActionError(null)
+    try {
+      await createCollaborator.mutateAsync(data)
+      closeSlide()
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   const handleUpdate = async (data: CollaboratorFormData) => {
-    await updateCollaborator.mutateAsync(data)
-    closeSlide()
+    setActionError(null)
+    try {
+      await updateCollaborator.mutateAsync(data)
+      closeSlide()
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   const handleDeactivate = async () => {
     if (!toDeactivate) return
-    await deactivateCollaborator.mutateAsync(toDeactivate.id)
-    setToDeactivate(null)
+    setActionError(null)
+    try {
+      await deactivateCollaborator.mutateAsync(toDeactivate.id)
+      setToDeactivate(null)
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   return (
     <Box>
       <PageHeader
-        title="Collaborators"
-        description="Staff directory — nurses, doctors, and field workers."
+        title={t('collaborators.title')}
+        description={t('collaborators.description')}
         action={
           <Button variant="contained" startIcon={<AddOutlined />} onClick={openCreate}>
-            New Collaborator
+            {t('collaborators.newCollaboratorButton')}
           </Button>
         }
       />
+
+      {actionError && (
+        <Alert severity="error" onClose={() => setActionError(null)} sx={{ mb: 2 }}>
+          {actionError}
+        </Alert>
+      )}
 
       {isLoading ? (
         <Stack spacing={1.5}>
@@ -205,23 +235,23 @@ export function CollaboratorsPage() {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <WorkOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No collaborators yet. Add the first one.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('collaborators.empty')}</Typography>
         </Paper>
       ) : (
         <>
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Collaborators</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('collaborators.title')}</Typography>
               <Chip label={data.totalCount} size="small" />
             </Box>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Clinic</TableCell>
-                    <TableCell>Positions</TableCell>
-                    <TableCell>Contact</TableCell>
+                    <TableCell>{t('common.fields.name')}</TableCell>
+                    <TableCell>{t('collaborators.table.clinic')}</TableCell>
+                    <TableCell>{t('collaborators.positions')}</TableCell>
+                    <TableCell>{t('collaborators.table.contact')}</TableCell>
                     <TableCell align="right" />
                   </TableRow>
                 </TableHead>
@@ -229,7 +259,11 @@ export function CollaboratorsPage() {
                   {data.items.map((c) => (
                     <TableRow key={c.id} hover>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <RowLink
+                          onClick={() => openEdit(c)}
+                          aria-label={t('collaborators.viewAriaLabel', { name: `${c.firstName} ${c.lastName}` })}
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
+                        >
                           <Avatar sx={{ width: 32, height: 32, fontSize: 12, bgcolor: 'primary.main' }}>
                             {c.firstName[0]}{c.lastName[0]}
                           </Avatar>
@@ -239,7 +273,7 @@ export function CollaboratorsPage() {
                             </Typography>
                             <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{c.email}</Typography>
                           </Box>
-                        </Box>
+                        </RowLink>
                       </TableCell>
                       <TableCell sx={{ color: 'text.secondary' }}>{c.clinicName}</TableCell>
                       <TableCell>
@@ -251,13 +285,13 @@ export function CollaboratorsPage() {
                       </TableCell>
                       <TableCell sx={{ color: 'text.secondary', fontSize: 13 }}>{c.phoneNumber}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => openEdit(c)} aria-label="Edit">
+                        <Tooltip title={t('common.actions.edit')}>
+                          <IconButton size="small" onClick={() => openEdit(c)} aria-label={t('common.actions.edit')}>
                             <EditOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Deactivate">
-                          <IconButton size="small" color="error" onClick={() => setToDeactivate(c)} aria-label="Deactivate">
+                        <Tooltip title={t('common.actions.deactivate')}>
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(c)} aria-label={t('common.actions.deactivate')}>
                             <DeleteOutlineOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -272,7 +306,7 @@ export function CollaboratorsPage() {
           {data.totalPages > 1 && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                {data.totalCount} collaborators — page {data.page} of {data.totalPages}
+                {t('collaborators.pageSummary', { count: data.totalCount, page: data.page, totalPages: data.totalPages })}
               </Typography>
               <Pagination
                 count={data.totalPages}
@@ -289,16 +323,20 @@ export function CollaboratorsPage() {
       <SlideOver
         open={slideMode !== null}
         onClose={closeSlide}
-        title={slideMode === 'edit' ? `Edit — ${selected?.firstName} ${selected?.lastName}` : 'New Collaborator'}
+        title={
+          slideMode === 'edit'
+            ? t('collaborators.slideOver.editTitle', { name: `${selected?.firstName} ${selected?.lastName}` })
+            : t('collaborators.slideOver.newTitle')
+        }
         description={
           slideMode === 'edit'
-            ? "Update this collaborator's details."
-            : 'Add a new team member to the staff directory.'
+            ? t('collaborators.slideOver.editDescription')
+            : t('collaborators.slideOver.newDescription')
         }
         footer={
           <>
             <Button variant="text" color="inherit" onClick={closeSlide}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button
               type="submit"
@@ -306,7 +344,7 @@ export function CollaboratorsPage() {
               variant="contained"
               loading={slideMode === 'edit' ? updateCollaborator.isPending : createCollaborator.isPending}
             >
-              {slideMode === 'edit' ? 'Save changes' : 'Create collaborator'}
+              {slideMode === 'edit' ? t('common.actions.save') : t('collaborators.slideOver.createButton')}
             </Button>
           </>
         }
@@ -320,9 +358,9 @@ export function CollaboratorsPage() {
 
       <ConfirmDialog
         open={!!toDeactivate}
-        title="Deactivate collaborator"
-        description={`${toDeactivate?.firstName} ${toDeactivate?.lastName} will be deactivated.`}
-        confirmLabel="Deactivate"
+        title={t('collaborators.confirmDeactivate.title')}
+        description={t('collaborators.confirmDeactivate.description', { name: `${toDeactivate?.firstName} ${toDeactivate?.lastName}` })}
+        confirmLabel={t('common.actions.deactivate')}
         loading={deactivateCollaborator.isPending}
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}

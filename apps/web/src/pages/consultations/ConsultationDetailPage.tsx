@@ -1,9 +1,11 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -22,6 +24,8 @@ import {
   usePostMessage,
   useUpdateConsultationStatus,
 } from 'core/hooks/consultations/useConsultations'
+import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import { useAuthStore } from '@/store/auth.store'
 import { RichTextView } from '@/components/shared/RichTextView'
 import { RHFRichText } from '@/components/shared/form'
@@ -41,11 +45,7 @@ const STATUS_COLOR: Record<ConsultationStatus, ChipColor> = {
   Resolved: 'success',
 }
 
-const STATUS_ITEMS = [
-  { id: 'Open', label: 'Open' },
-  { id: 'UnderReview', label: 'Under Review' },
-  { id: 'Resolved', label: 'Resolved' },
-]
+const STATUS_VALUES: ConsultationStatus[] = ['Open', 'UnderReview', 'Resolved']
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -63,10 +63,13 @@ function initials(name: string) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export function ConsultationDetailPage() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const { data, isLoading } = useConsultationDetail(id!)
   const postMessage = usePostMessage(id!)
@@ -88,8 +91,23 @@ export function ConsultationDetailPage() {
   })
 
   const onSend = async (form: MessageForm) => {
-    await postMessage.mutateAsync({ body: form.body, attachmentUrl: null })
-    reset()
+    setActionError(null)
+    try {
+      await postMessage.mutateAsync({ body: form.body, attachmentUrl: null })
+      reset()
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
+  }
+
+  const handleStatusChange = (nextStatus: ConsultationStatus) => {
+    setActionError(null)
+    updateStatus.mutate(
+      { status: nextStatus },
+      {
+        onError: (err) => setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang)),
+      },
+    )
   }
 
   if (isLoading) {
@@ -103,7 +121,7 @@ export function ConsultationDetailPage() {
   if (!data) {
     return (
       <Typography sx={{ textAlign: 'center', py: 8, color: 'text.secondary', fontSize: 14 }}>
-        Consultation not found.
+        {t('consultations.detail.notFound')}
       </Typography>
     )
   }
@@ -114,14 +132,14 @@ export function ConsultationDetailPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <IconButton onClick={() => navigate('/consultations')} aria-label="Back">
+        <IconButton onClick={() => navigate('/consultations')} aria-label={t('common.actions.back')}>
           <ArrowBackOutlined />
         </IconButton>
         <Typography variant="h6" noWrap sx={{ flex: 1, fontWeight: 600 }}>
           {consultation.title}
         </Typography>
         <Chip
-          label={status === 'UnderReview' ? 'Under Review' : status}
+          label={t(`enums.consultationStatus.${status}`)}
           color={STATUS_COLOR[status] ?? 'default'}
           size="small"
         />
@@ -129,16 +147,22 @@ export function ConsultationDetailPage() {
           select
           size="small"
           value={status}
-          onChange={(e) => updateStatus.mutate({ status: e.target.value as ConsultationStatus })}
+          onChange={(e) => handleStatusChange(e.target.value as ConsultationStatus)}
           sx={{ width: 160 }}
         >
-          {STATUS_ITEMS.map((s) => (
-            <MenuItem key={s.id} value={s.id}>
-              {s.label}
+          {STATUS_VALUES.map((s) => (
+            <MenuItem key={s} value={s}>
+              {t(`enums.consultationStatus.${s}`)}
             </MenuItem>
           ))}
         </TextField>
       </Box>
+
+      {actionError && (
+        <Alert severity="error" onClose={() => setActionError(null)}>
+          {actionError}
+        </Alert>
+      )}
 
       {/* Thread */}
       <Paper variant="outlined" sx={{ flex: 1, borderRadius: 2, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -146,7 +170,7 @@ export function ConsultationDetailPage() {
         <Box sx={{ flex: 1, overflowY: 'auto', p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 'calc(100vh - 20rem)' }}>
           {messages.length === 0 ? (
             <Typography sx={{ fontSize: 14, color: 'text.secondary', textAlign: 'center', py: 4 }}>
-              No messages yet.
+              {t('consultations.messages.empty')}
             </Typography>
           ) : (
             messages.map((msg) => {
@@ -195,17 +219,17 @@ export function ConsultationDetailPage() {
             onSubmit={handleSubmit(onSend)}
             sx={{ borderTop: 1, borderColor: 'divider', p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
           >
-            <RHFRichText control={control} name="body" placeholder="Write a message…" />
+            <RHFRichText control={control} name="body" placeholder={t('consultations.messages.placeholder')} />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button type="submit" variant="contained" startIcon={<SendOutlined />} loading={isSubmitting}>
-                Send
+                {t('consultations.messages.sendButton')}
               </Button>
             </Box>
           </Box>
         ) : (
           <Box sx={{ borderTop: 1, borderColor: 'divider', px: 2.5, py: 1.5 }}>
             <Typography sx={{ fontSize: 12, textAlign: 'center', color: 'text.disabled' }}>
-              This consultation is resolved. Change status to reply.
+              {t('consultations.messages.resolvedNotice')}
             </Typography>
           </Box>
         )}

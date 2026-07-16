@@ -14,6 +14,7 @@ export const patientSchema = z.object({
   primaryAttentionType: z.enum(['Medical', 'EducationalReinforcement']),
   clinicId: z.string().uuid().nullable().or(z.literal('')).transform(v => v || null),
   workRouteId: z.string().uuid().nullable().or(z.literal('')).transform(v => v || null),
+  routeVisitTime: z.string().nullable().or(z.literal('')).transform(v => v || null),
 })
 
 export type PatientFormData = z.infer<typeof patientSchema>

@@ -3,8 +3,10 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { useMutation } from '@tanstack/react-query'
 import { useLogout } from 'core/hooks/auth/useLogout'
 import { useUnsubscribePush } from 'core/hooks/notifications/usePushSubscription'
+import { usersApi } from 'core/api/modules/users.api'
 import { useAuthStore } from '../../store/auth.store'
 import { getDeviceId } from '../../lib/deviceId'
 import { clearAllLocalData } from '../../lib/teardown'
@@ -21,9 +23,19 @@ export function MoreScreen() {
   const { t } = useTranslation()
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>()
   const user = useAuthStore((s) => s.user)
+  const updateUser = useAuthStore((s) => s.updateUser)
   const logout = useLogout()
   const unsubscribePush = useUnsubscribePush()
   const [loggingOut, setLoggingOut] = useState(false)
+
+  // Only updates the store — AuthBootstrap.tsx's effect (the single owner of
+  // `i18n.changeLanguage()`) reacts to `user.language` and does the actual switch.
+  const languageMutation = useMutation({
+    mutationFn: usersApi.updateLanguage,
+    onMutate: (language: 'En' | 'Es') => {
+      if (user) updateUser({ ...user, language })
+    },
+  })
 
   async function onLogout() {
     setLoggingOut(true)
@@ -116,6 +128,32 @@ export function MoreScreen() {
         <Text style={styles.rowText}>{t('more.notifications')}</Text>
       </Pressable>
 
+      <View style={[styles.row, styles.languageRow]}>
+        <Text style={styles.rowText}>{t('more.language')}</Text>
+        <View style={styles.languageOptions}>
+          <Pressable
+            style={[styles.languageOption, user?.language === 'En' && styles.languageOptionActive]}
+            onPress={() => languageMutation.mutate('En')}
+            accessibilityRole="button"
+            accessibilityLabel="EN"
+          >
+            <Text style={[styles.languageOptionText, user?.language === 'En' && styles.languageOptionTextActive]}>
+              EN
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.languageOption, user?.language === 'Es' && styles.languageOptionActive]}
+            onPress={() => languageMutation.mutate('Es')}
+            accessibilityRole="button"
+            accessibilityLabel="ES"
+          >
+            <Text style={[styles.languageOptionText, user?.language === 'Es' && styles.languageOptionTextActive]}>
+              ES
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
       <Pressable
         style={[styles.row, loggingOut && styles.rowDisabled]}
         onPress={confirmLogout}
@@ -163,5 +201,33 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#dc2626',
     fontWeight: '600',
+  },
+  languageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  languageOptions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  languageOption: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  languageOptionActive: {
+    backgroundColor: '#111827',
+    borderColor: '#111827',
+  },
+  languageOptionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  languageOptionTextActive: {
+    color: '#ffffff',
   },
 })

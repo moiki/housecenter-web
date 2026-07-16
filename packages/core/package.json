@@ -10,7 +10,9 @@
     "./auth/*": "./src/auth/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./schemas/*": "./src/schemas/*.ts",
-    "./lib/*": "./src/lib/*.ts"
+    "./lib/*": "./src/lib/*.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./i18n/*": "./src/i18n/*.ts"
   },
   "scripts": {
     "build": "tsc -b"

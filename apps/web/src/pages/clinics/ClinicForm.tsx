@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Box, Button } from '@mui/material'
 import { RHFTextField } from '@/components/shared/form'
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function ClinicForm({ defaultValues, onSubmit, submitLabel, formId }: Props) {
+  const { t } = useTranslation()
   const {
     control,
     handleSubmit,
@@ -33,12 +35,12 @@ export function ClinicForm({ defaultValues, onSubmit, submitLabel, formId }: Pro
       onSubmit={handleSubmit(onSubmit)}
       sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
     >
-      <RHFTextField control={control} name="name" label="Name" placeholder="e.g. Clinic Central" />
+      <RHFTextField control={control} name="name" label={t('common.fields.name')} placeholder={t('clinics.form.namePlaceholder')} />
       <RHFTextField
         control={control}
         name="address"
-        label="Address"
-        placeholder="Full address"
+        label={t('common.fields.address')}
+        placeholder={t('clinics.form.addressPlaceholder')}
         multiline
         rows={3}
       />

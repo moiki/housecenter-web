@@ -1,4 +1,4 @@
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -12,10 +12,11 @@ type Props = NativeStackScreenProps<MoreStackParamList, 'WorkRouteDetail'>
 // Read-only Ruta de trabajo detail (R5, D4): `useWorkRoute(workRouteId)` unmodified. Renders
 // `clinicName`, a plain-text recurrence summary (local pure helper — web has no equivalent
 // text-summary component to hoist from, `WorkRouteCalendar.tsx` only renders chips), and
-// `destinations[]` as a scrollable card list (name/description/picture + "Abrir en Maps" via
-// `Linking.openURL` guarded on a non-null `googleMapUrl`). NO edit/delete/create affordance and
-// NO month-calendar grid anywhere on this screen — management stays web-only (mutations already
-// require `AdministratorOrAbove` server-side).
+// `stops[]` — the patients assigned to this route (Patient.workRouteId), each with their visit
+// time. Stops used to be a free-text `destinations[]` list with no relationship to Patient at
+// all; that's gone — see WorkRouteStopDto. NO edit/delete/create affordance and NO month-calendar
+// grid anywhere on this screen — management stays web-only (mutations already require
+// `AdministratorOrAbove` server-side).
 export function WorkRouteDetailScreen({ route }: Props) {
   const { workRouteId } = route.params
   const { t } = useTranslation()
@@ -30,19 +31,18 @@ export function WorkRouteDetailScreen({ route }: Props) {
           {wr.description ? <Text style={styles.description}>{wr.description}</Text> : null}
           <Text style={styles.recurrence}>{recurrenceSummary(wr, t)}</Text>
 
-          <Text style={styles.sectionTitle}>{t('workRoutes.destinationsTitle')}</Text>
-          {wr.destinations.map((d, i) => (
-            <View key={i} style={styles.stopCard}>
-              {d.picture && <Image source={{ uri: d.picture }} style={styles.stopImage} />}
-              <Text style={styles.stopName}>{d.name}</Text>
-              {d.description ? <Text style={styles.stopDesc}>{d.description}</Text> : null}
-              {d.googleMapUrl && (
-                <Pressable style={styles.mapsButton} onPress={() => Linking.openURL(d.googleMapUrl!)}>
-                  <Text style={styles.mapsButtonText}>{t('workRoutes.openInMaps')}</Text>
-                </Pressable>
-              )}
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>{t('workRoutes.patientsTitle')}</Text>
+          {wr.stops.length === 0 ? (
+            <Text style={styles.stopDesc}>{t('workRoutes.noPatientsAssigned')}</Text>
+          ) : (
+            wr.stops.map((stop) => (
+              <View key={stop.patientId} style={styles.stopCard}>
+                <Text style={styles.stopName}>{stop.patientName}</Text>
+                <Text style={styles.stopDesc}>{stop.address}</Text>
+                <Text style={styles.stopTime}>{stop.visitTime ? stop.visitTime.slice(0, 5) : t('workRoutes.noVisitTime')}</Text>
+              </View>
+            ))
+          )}
         </ScrollView>
       )}
     </QueryBoundary>
@@ -83,15 +83,7 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 6,
   },
-  stopImage: { width: '100%', height: 140, borderRadius: 8, backgroundColor: '#e5e7eb' },
   stopName: { fontSize: 15, fontWeight: '600' },
   stopDesc: { fontSize: 13, color: '#6b7280' },
-  mapsButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#eff6ff',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  mapsButtonText: { fontSize: 13, color: '#2563eb', fontWeight: '600' },
+  stopTime: { fontSize: 13, color: '#2563eb', fontWeight: '600' },
 })

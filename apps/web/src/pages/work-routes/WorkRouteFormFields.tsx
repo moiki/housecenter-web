@@ -1,4 +1,5 @@
 import { useWatch, type Control, type FieldPath } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { Box } from '@mui/material'
 import { FormSection } from '@/components/shared/FormSection'
 import {
@@ -26,17 +27,23 @@ interface Props<T extends WorkRouteFormValues> {
 // page-local (each page already owns its own useFieldArray for that repeating
 // group) — this component only covers the fields that are common to create/update.
 export function WorkRouteFormFields<T extends WorkRouteFormValues>({ control, isCreate, clinicOptions }: Props<T>) {
+  const { t } = useTranslation()
   const isIndefinite = useWatch({ control, name: 'isRecurrenceIndefinite' as FieldPath<T> }) as unknown as boolean
 
   return (
     <>
-      <FormSection title="Route info">
-        <RHFTextField control={control} name={'routeName' as FieldPath<T>} label="Route name" placeholder="e.g. North District" />
+      <FormSection title={t('workRoutes.form.sections.routeInfo')}>
+        <RHFTextField
+          control={control}
+          name={'routeName' as FieldPath<T>}
+          label={t('workRoutes.fields.routeName')}
+          placeholder={t('workRoutes.form.routeNamePlaceholder')}
+        />
         <RHFTextField
           control={control}
           name={'description' as FieldPath<T>}
-          label="Description"
-          placeholder="Brief description of this route"
+          label={t('common.fields.description')}
+          placeholder={t('workRoutes.form.descriptionPlaceholder')}
           multiline
           rows={2}
         />
@@ -44,20 +51,30 @@ export function WorkRouteFormFields<T extends WorkRouteFormValues>({ control, is
           <RHFSelect
             control={control as unknown as Control<WorkRouteFormData>}
             name="clinicId"
-            label="Clinic"
+            label={t('workRoutes.fields.clinic')}
             options={clinicOptions}
           />
         )}
-        <RHFTextField control={control} name={'featuredImage' as FieldPath<T>} label="Featured image URL (optional)" placeholder="https://..." />
+        <RHFTextField
+          control={control}
+          name={'featuredImage' as FieldPath<T>}
+          label={t('workRoutes.fields.featuredImage')}
+          placeholder={t('workRoutes.form.featuredImagePlaceholder')}
+        />
       </FormSection>
 
-      <FormSection title="Recurrence">
-        <RHFWeekdayToggle control={control} name={'recurrenceDays' as FieldPath<T>} label="Repeats on" />
+      <FormSection title={t('workRoutes.form.sections.recurrence')}>
+        <RHFWeekdayToggle control={control} name={'recurrenceDays' as FieldPath<T>} label={t('workRoutes.fields.repeatsOn')} />
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-          <RHFDatePicker control={control} name={'recurrenceStartDate' as FieldPath<T>} label="Start date" />
-          <RHFDatePicker control={control} name={'recurrenceEndDate' as FieldPath<T>} label="End date" disabled={isIndefinite} />
+          <RHFDatePicker control={control} name={'recurrenceStartDate' as FieldPath<T>} label={t('workRoutes.fields.startDate')} />
+          <RHFDatePicker
+            control={control}
+            name={'recurrenceEndDate' as FieldPath<T>}
+            label={t('workRoutes.fields.endDate')}
+            disabled={isIndefinite}
+          />
         </Box>
-        <RHFSwitch control={control} name={'isRecurrenceIndefinite' as FieldPath<T>} label="Repeats indefinitely" />
+        <RHFSwitch control={control} name={'isRecurrenceIndefinite' as FieldPath<T>} label={t('workRoutes.fields.repeatsIndefinitely')} />
       </FormSection>
     </>
   )

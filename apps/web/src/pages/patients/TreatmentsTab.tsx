@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -63,24 +64,6 @@ type CommentForm = CommentFormData
 type ChipColor = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
 const STATUS_COLOR: Record<string, ChipColor> = { Active: 'success', Completed: 'info', Paused: 'warning' }
 
-const STATUS_ITEMS = [
-  { id: 'Active', label: 'Active' },
-  { id: 'Completed', label: 'Completed' },
-  { id: 'Paused', label: 'Paused' },
-]
-
-const TYPE_OPTIONS = [
-  { value: '', label: 'Inherit from patient' },
-  { value: 'Medical', label: 'Medical' },
-  { value: 'EducationalReinforcement', label: 'Educational Reinforcement' },
-]
-
-const COMMENT_TYPE_OPTIONS = [
-  { value: 'Simple', label: 'Simple' },
-  { value: 'Medical', label: 'Medical' },
-  { value: 'Route', label: 'Route' },
-]
-
 const COMMENT_TYPE_COLOR: Record<string, ChipColor> = { Simple: 'default', Medical: 'info', Route: 'primary' }
 
 const TREATMENT_FORM_ID = 'treatment-form'
@@ -95,6 +78,14 @@ function TreatmentFormPanel({
   defaultValues?: TreatmentResponse
   onSubmit: (d: TreatmentForm) => Promise<void>
 }) {
+  const { t } = useTranslation()
+
+  const TYPE_OPTIONS = [
+    { value: '', label: t('patients.treatments.inheritFromPatient') },
+    { value: 'Medical', label: t('enums.attentionType.Medical') },
+    { value: 'EducationalReinforcement', label: t('enums.attentionType.EducationalReinforcement') },
+  ]
+
   const { control, handleSubmit } = useForm<TreatmentForm>({
     resolver: zodResolver(treatmentSchema),
     defaultValues: defaultValues
@@ -111,11 +102,11 @@ function TreatmentFormPanel({
 
   return (
     <Box component="form" id={formId} onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <RHFTextField control={control} name="name" label="Name" placeholder="Treatment name" />
-      <RHFTextField control={control} name="description" label="Description" placeholder="Brief description" multiline minRows={2} />
+      <RHFTextField control={control} name="name" label={t('common.fields.name')} placeholder={t('patients.treatments.namePlaceholder')} />
+      <RHFTextField control={control} name="description" label={t('common.fields.description')} placeholder={t('patients.treatments.descriptionPlaceholder')} multiline minRows={2} />
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-        <RHFDatePicker control={control} name="startDate" label="Start date" />
-        <RHFDatePicker control={control} name="endDate" label="End date" />
+        <RHFDatePicker control={control} name="startDate" label={t('patients.treatments.startDateLabel')} />
+        <RHFDatePicker control={control} name="endDate" label={t('patients.treatments.endDateLabel')} />
       </Box>
       {/* Nullable enum: the '' option maps to null at the field boundary, so the schema
           stays a plain nullable enum (no transform -> no RHF input/output type divergence). */}
@@ -126,7 +117,7 @@ function TreatmentFormPanel({
           <TextField
             select
             fullWidth
-            label="Type"
+            label={t('patients.fields.type')}
             value={field.value ?? ''}
             onChange={(e) => field.onChange(e.target.value === '' ? null : e.target.value)}
             onBlur={field.onBlur}
@@ -146,7 +137,20 @@ function TreatmentFormPanel({
 }
 
 function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentResponse; patientId: string }) {
+  const { t } = useTranslation()
   const patchStatus = usePatchTreatmentStatus(patientId, treatment.id)
+
+  const STATUS_ITEMS = [
+    { id: 'Active', label: t('enums.treatmentStatus.Active') },
+    { id: 'Completed', label: t('enums.treatmentStatus.Completed') },
+    { id: 'Paused', label: t('enums.treatmentStatus.Paused') },
+  ]
+
+  const COMMENT_TYPE_OPTIONS = [
+    { value: 'Simple', label: t('enums.commentType.Simple') },
+    { value: 'Medical', label: t('enums.commentType.Medical') },
+    { value: 'Route', label: t('enums.commentType.Route') },
+  ]
   const [detailsPage, setDetailsPage] = useState(1)
   const { data: details, isLoading: detailsLoading } = useTreatmentDetails(treatment.id, detailsPage)
   const createDetail = useCreateTreatmentDetail(treatment.id, patientId)
@@ -188,7 +192,7 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
         {/* Status control */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
           <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Status
+            {t('patients.fields.status')}
           </Typography>
           <HelpTooltip topicKey="treatments.status-lifecycle" />
           <Stack direction="row" spacing={1}>
@@ -209,14 +213,14 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Details
+              {t('patients.treatments.detailsTitle')}
             </Typography>
             <Button
               size="small"
               startIcon={addingDetail ? <CloseOutlined /> : <AddOutlined />}
               onClick={() => setAddingDetail((v) => !v)}
             >
-              {addingDetail ? 'Cancel' : 'Add detail'}
+              {addingDetail ? t('common.actions.cancel') : t('patients.treatments.addDetailButton')}
             </Button>
           </Box>
 
@@ -228,12 +232,12 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
               sx={{ p: 2, mb: 1.5, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 1.5 }}
             >
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                <RHFTextField control={detailForm.control} name="name" label="Name" placeholder="Detail name" />
-                <RHFDatePicker control={detailForm.control} name="treatmentDate" label="Date" />
+                <RHFTextField control={detailForm.control} name="name" label={t('common.fields.name')} placeholder={t('patients.treatments.detailNamePlaceholder')} />
+                <RHFDatePicker control={detailForm.control} name="treatmentDate" label={t('patients.treatments.detailDateLabel')} />
               </Box>
-              <RHFRichText control={detailForm.control} name="description" label="Description" placeholder="Describe this detail…" />
+              <RHFRichText control={detailForm.control} name="description" label={t('common.fields.description')} placeholder={t('patients.treatments.detailDescriptionPlaceholder')} />
               <Button type="submit" variant="contained" fullWidth loading={detailForm.formState.isSubmitting}>
-                Save detail
+                {t('patients.treatments.saveDetailButton')}
               </Button>
             </Paper>
           )}
@@ -246,7 +250,7 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
             </Stack>
           ) : !details?.items.length ? (
             <Typography sx={{ fontSize: 13, color: 'text.disabled', fontStyle: 'italic' }}>
-              No details recorded yet.
+              {t('patients.treatments.noDetails')}
             </Typography>
           ) : (
             <Stack spacing={1}>
@@ -259,8 +263,8 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
                         {new Date(d.treatmentDate).toLocaleDateString()}
                       </Typography>
                     </Box>
-                    <Tooltip title="Delete">
-                      <IconButton size="small" color="error" onClick={() => setDetailToDelete(d)} aria-label="Delete detail">
+                    <Tooltip title={t('common.actions.delete')}>
+                      <IconButton size="small" color="error" onClick={() => setDetailToDelete(d)} aria-label={t('patients.treatments.deleteDetailTitle')}>
                         <DeleteOutlineOutlined fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -288,14 +292,14 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Comments
+              {t('patients.tabs.comments')}
             </Typography>
             <Button
               size="small"
               startIcon={addingComment ? <CloseOutlined /> : <AddOutlined />}
               onClick={() => setAddingComment((v) => !v)}
             >
-              {addingComment ? 'Cancel' : 'Add comment'}
+              {addingComment ? t('common.actions.cancel') : t('patients.comments.addButton')}
             </Button>
           </Box>
 
@@ -306,10 +310,10 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
               onSubmit={commentForm.handleSubmit(onAddComment)}
               sx={{ p: 2, borderRadius: 2, borderStyle: 'dashed', display: 'flex', flexDirection: 'column', gap: 1.5 }}
             >
-              <RHFSelect control={commentForm.control} name="type" label="Type" options={COMMENT_TYPE_OPTIONS} />
-              <RHFRichText control={commentForm.control} name="body" label="Comment" placeholder="Write your comment…" />
+              <RHFSelect control={commentForm.control} name="type" label={t('patients.fields.type')} options={COMMENT_TYPE_OPTIONS} />
+              <RHFRichText control={commentForm.control} name="body" label={t('patients.comments.bodyLabel')} placeholder={t('patients.treatments.commentBodyPlaceholder')} />
               <Button type="submit" variant="contained" fullWidth loading={commentForm.formState.isSubmitting}>
-                Post comment
+                {t('patients.comments.postButton')}
               </Button>
             </Paper>
           )}
@@ -322,16 +326,16 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
             </Stack>
           ) : !comments?.items.length ? (
             <Typography sx={{ fontSize: 13, color: 'text.disabled', fontStyle: 'italic' }}>
-              No comments yet.
+              {t('patients.comments.empty')}
             </Typography>
           ) : (
             <Stack spacing={1}>
               {comments.items.map((c) => (
                 <Paper key={c.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
-                    <Chip label={c.type} size="small" variant="outlined" color={COMMENT_TYPE_COLOR[c.type] ?? 'default'} />
-                    <Tooltip title="Delete">
-                      <IconButton size="small" color="error" onClick={() => setCommentToDelete(c)} aria-label="Delete comment">
+                    <Chip label={t(`enums.commentType.${c.type}`)} size="small" variant="outlined" color={COMMENT_TYPE_COLOR[c.type] ?? 'default'} />
+                    <Tooltip title={t('common.actions.delete')}>
+                      <IconButton size="small" color="error" onClick={() => setCommentToDelete(c)} aria-label={t('patients.comments.deleteTitle')}>
                         <DeleteOutlineOutlined fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -358,9 +362,9 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
 
       <ConfirmDialog
         open={!!detailToDelete}
-        title="Delete detail"
-        description="This treatment detail will be permanently removed."
-        confirmLabel="Delete"
+        title={t('patients.treatments.deleteDetailTitle')}
+        description={t('patients.treatments.deleteDetailDescription')}
+        confirmLabel={t('common.actions.delete')}
         loading={deleteDetail.isPending}
         onConfirm={async () => {
           if (detailToDelete) {
@@ -373,9 +377,9 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
 
       <ConfirmDialog
         open={!!commentToDelete}
-        title="Delete comment"
-        description="This comment will be permanently removed."
-        confirmLabel="Delete"
+        title={t('patients.comments.deleteTitle')}
+        description={t('patients.comments.deleteDescription')}
+        confirmLabel={t('common.actions.delete')}
         loading={deleteComment.isPending}
         onConfirm={async () => {
           if (commentToDelete) {
@@ -391,6 +395,7 @@ function ExpandedTreatment({ treatment, patientId }: { treatment: TreatmentRespo
 
 // ── Main tab ─────────────────────────────────────────────────────────────────
 export function TreatmentsTab({ patientId }: { patientId: string }) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const { data, isLoading } = useTreatments(patientId, page)
   const createTreatment = useCreateTreatment(patientId)
@@ -432,7 +437,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
             setSlideMode('create')
           }}
         >
-          New Treatment
+          {t('patients.treatments.newButton')}
         </Button>
       </Box>
 
@@ -445,14 +450,14 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <MedicalServicesOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No treatments yet. Create the first one.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('patients.treatments.empty')}</Typography>
         </Paper>
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          {data.items.map((t, i) => (
-            <Box key={t.id} sx={{ borderTop: i === 0 ? 0 : 1, borderColor: 'divider' }}>
+          {data.items.map((treatment, i) => (
+            <Box key={treatment.id} sx={{ borderTop: i === 0 ? 0 : 1, borderColor: 'divider' }}>
               <Box
-                onClick={() => setExpanded((prev) => (prev === t.id ? null : t.id))}
+                onClick={() => setExpanded((prev) => (prev === treatment.id ? null : treatment.id))}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -468,40 +473,40 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
                   sx={{
                     color: 'text.secondary',
                     transition: 'transform 0.2s',
-                    transform: expanded === t.id ? 'rotate(180deg)' : 'none',
+                    transform: expanded === treatment.id ? 'rotate(180deg)' : 'none',
                   }}
                 />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography noWrap sx={{ fontSize: 14, fontWeight: 500 }}>
-                    {t.name}
+                    {treatment.name}
                   </Typography>
                   <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>
-                    {t.description}
+                    {treatment.description}
                   </Typography>
                 </Box>
-                <Chip label={t.status} size="small" color={STATUS_COLOR[t.status] ?? 'default'} />
+                <Chip label={t(`enums.treatmentStatus.${treatment.status}`)} size="small" color={STATUS_COLOR[treatment.status] ?? 'default'} />
                 <Box sx={{ display: 'flex' }} onClick={(e) => e.stopPropagation()}>
-                  <Tooltip title="Edit">
+                  <Tooltip title={t('common.actions.edit')}>
                     <IconButton
                       size="small"
                       onClick={() => {
-                        setEditing(t)
+                        setEditing(treatment)
                         setSlideMode('edit')
                       }}
-                      aria-label="Edit treatment"
+                      aria-label={t('patients.treatments.editAriaLabel')}
                     >
                       <EditOutlined fontSize="small" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Deactivate">
-                    <IconButton size="small" color="error" onClick={() => setToDelete(t)} aria-label="Deactivate treatment">
+                  <Tooltip title={t('common.actions.deactivate')}>
+                    <IconButton size="small" color="error" onClick={() => setToDelete(treatment)} aria-label={t('patients.treatments.confirmDeactivate.title')}>
                       <DeleteOutlineOutlined fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </Box>
               </Box>
-              <Collapse in={expanded === t.id} unmountOnExit>
-                <ExpandedTreatment treatment={t} patientId={patientId} />
+              <Collapse in={expanded === treatment.id} unmountOnExit>
+                <ExpandedTreatment treatment={treatment} patientId={patientId} />
               </Collapse>
             </Box>
           ))}
@@ -517,16 +522,16 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
       <SlideOver
         open={slideMode !== null}
         onClose={closeSlide}
-        title={slideMode === 'edit' ? 'Edit Treatment' : 'New Treatment'}
+        title={slideMode === 'edit' ? t('patients.treatments.editTitle') : t('patients.treatments.newButton')}
         description={
           slideMode === 'edit'
-            ? "Update this treatment's details."
-            : 'Create a new treatment plan for this patient.'
+            ? t('patients.treatments.editDescription')
+            : t('patients.treatments.newDescription')
         }
         footer={
           <>
             <Button variant="text" color="inherit" onClick={closeSlide}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button
               type="submit"
@@ -534,7 +539,7 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
               variant="contained"
               loading={slideMode === 'edit' ? updateTreatment.isPending : createTreatment.isPending}
             >
-              {slideMode === 'edit' ? 'Save changes' : 'Create treatment'}
+              {slideMode === 'edit' ? t('common.actions.save') : t('patients.treatments.createButton')}
             </Button>
           </>
         }
@@ -548,9 +553,9 @@ export function TreatmentsTab({ patientId }: { patientId: string }) {
 
       <ConfirmDialog
         open={!!toDelete}
-        title="Deactivate treatment"
-        description={`"${toDelete?.name}" will be deactivated.`}
-        confirmLabel="Deactivate"
+        title={t('patients.treatments.confirmDeactivate.title')}
+        description={t('patients.treatments.confirmDeactivate.description', { name: toDelete?.name })}
+        confirmLabel={t('common.actions.deactivate')}
         loading={deactivateTreatment.isPending}
         onConfirm={async () => {
           if (toDelete) {

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { ActivityIndicator, View } from 'react-native'
+import i18n from 'i18next'
 import { authApi } from 'core/api/modules/auth.api'
 import { useAuthStore } from '../store/auth.store'
 import { getDeviceId, whenDeviceIdReady } from '../lib/deviceId'
@@ -18,7 +19,7 @@ interface Props {
  * `AppProviders` wrapping `NavigationContainer`'s children (`RootNavigator`).
  */
 export function AuthBootstrap({ children }: Props) {
-  const { authHydrated, accessToken, refreshToken, setAuth, logout } = useAuthStore()
+  const { authHydrated, accessToken, refreshToken, user, setAuth, logout } = useAuthStore()
   const [deviceIdReady, setDeviceIdReady] = useState(false)
   const [refreshAttempted, setRefreshAttempted] = useState(false)
 
@@ -49,6 +50,14 @@ export function AuthBootstrap({ children }: Props) {
       })
       .finally(() => setRefreshAttempted(true))
   }, [deviceIdReady, needsSilentRefresh, refreshAttempted, refreshToken, setAuth, logout])
+
+  // Single owner of `i18n.changeLanguage()` on mobile — mirrors web's AuthBootstrap.tsx.
+  // MoreScreen's language row only writes `user.language` via the store; this effect is what
+  // actually flips the active locale, so there's exactly one call site to avoid a dark-mode-style
+  // desync. Pre-auth (`user` null), i18next already has the device-locale `lng` from init.
+  useEffect(() => {
+    if (user?.language) void i18n.changeLanguage(user.language.toLowerCase())
+  }, [user?.language])
 
   if (!ready) {
     return (

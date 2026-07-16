@@ -23,4 +23,9 @@ export const usersApi = {
 
   updateTheme: (data: { isDarkMode: boolean }) =>
     getApiClient().patch<void>(`${BASE}/me/theme`, { darkMode: data.isDarkMode }).then(r => r.data),
+
+  // Own endpoint, not folded into updateTheme — dark mode and language are independent
+  // preferences (see UpdateLanguageRequest on the backend).
+  updateLanguage: (language: 'En' | 'Es') =>
+    getApiClient().patch<void>(`${BASE}/me/language`, { language }).then(r => r.data),
 }

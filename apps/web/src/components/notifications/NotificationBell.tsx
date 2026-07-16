@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Badge, Box, Button, Divider, IconButton, List, ListItemButton, Menu, Skeleton, Stack, Tooltip, Typography } from '@mui/material'
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined'
 import {
@@ -17,6 +18,7 @@ const REFERENCE_ROUTES: Record<string, (id: string) => string> = {
 }
 
 export function NotificationBell() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
@@ -38,8 +40,8 @@ export function NotificationBell() {
 
   return (
     <>
-      <Tooltip title="Notifications">
-        <IconButton size="small" aria-label="Notifications" onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <Tooltip title={t('shell.notifications.tooltip')}>
+        <IconButton size="small" aria-label={t('shell.notifications.tooltip')} onClick={(e) => setAnchorEl(e.currentTarget)}>
           <Badge color="error" variant="dot" invisible={!hasUnread}>
             <NotificationsOutlined fontSize="small" />
           </Badge>
@@ -55,10 +57,10 @@ export function NotificationBell() {
         slotProps={{ paper: { sx: { width: 340, maxHeight: 420, mt: 0.5 } } }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Notifications</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{t('shell.notifications.header')}</Typography>
           {hasUnread && (
             <Button size="small" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
-              Mark all read
+              {t('shell.notifications.markAllRead')}
             </Button>
           )}
         </Box>
@@ -72,7 +74,7 @@ export function NotificationBell() {
           </Stack>
         ) : !items.length ? (
           <Typography sx={{ fontSize: 13, color: 'text.secondary', textAlign: 'center', py: 4 }}>
-            No notifications yet.
+            {t('shell.notifications.empty')}
           </Typography>
         ) : (
           <List disablePadding sx={{ overflowY: 'auto' }}>

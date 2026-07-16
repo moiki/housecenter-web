@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -24,6 +25,7 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import BusinessOutlined from '@mui/icons-material/BusinessOutlined'
 import { useClinics, useCreateClinic, useDeactivateClinic } from 'core/hooks/clinics/useClinics'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { RowLink } from '@/components/shared/RowLink'
 import { SlideOver } from '@/components/shared/SlideOver'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { ClinicForm } from '@/pages/clinics/ClinicForm'
@@ -33,6 +35,7 @@ import type { ClinicFormData } from 'core/schemas/clinic.schema'
 const NEW_CLINIC_FORM_ID = 'new-clinic-form'
 
 export function ClinicsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const { data, isLoading } = useClinics(page)
@@ -56,11 +59,11 @@ export function ClinicsPage() {
   return (
     <Box>
       <PageHeader
-        title="Clinics"
-        description="Manage the NGO's clinic locations."
+        title={t('clinics.title')}
+        description={t('clinics.description')}
         action={
           <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setSlideOpen(true)}>
-            New Clinic
+            {t('clinics.newClinicButton')}
           </Button>
         }
       />
@@ -74,37 +77,41 @@ export function ClinicsPage() {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <BusinessOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No clinics yet. Create the first one.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('clinics.empty')}</Typography>
         </Paper>
       ) : (
         <>
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Clinics</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('clinics.title')}</Typography>
               <Chip label={data.totalCount} size="small" />
             </Box>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Address</TableCell>
+                    <TableCell>{t('common.fields.name')}</TableCell>
+                    <TableCell>{t('common.fields.address')}</TableCell>
                     <TableCell align="right" />
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.items.map((clinic) => (
                     <TableRow key={clinic.id} hover>
-                      <TableCell sx={{ fontWeight: 500 }}>{clinic.name}</TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        <RowLink onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label={`${t('common.actions.view')} ${clinic.name}`}>
+                          {clinic.name}
+                        </RowLink>
+                      </TableCell>
                       <TableCell>{clinic.address}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label="Edit">
+                        <Tooltip title={t('common.actions.edit')}>
+                          <IconButton size="small" onClick={() => navigate(`/clinics/${clinic.id}`)} aria-label={t('common.actions.edit')}>
                             <EditOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Deactivate">
-                          <IconButton size="small" color="error" onClick={() => setToDeactivate(clinic)} aria-label="Deactivate">
+                        <Tooltip title={t('common.actions.deactivate')}>
+                          <IconButton size="small" color="error" onClick={() => setToDeactivate(clinic)} aria-label={t('common.actions.deactivate')}>
                             <DeleteOutlineOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -119,7 +126,7 @@ export function ClinicsPage() {
           {data.totalPages > 1 && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                {data.totalCount} clinics — page {data.page} of {data.totalPages}
+                {t('clinics.pageSummary', { count: data.totalCount, page: data.page, totalPages: data.totalPages })}
               </Typography>
               <Pagination
                 count={data.totalPages}
@@ -136,15 +143,15 @@ export function ClinicsPage() {
       <SlideOver
         open={slideOpen}
         onClose={() => setSlideOpen(false)}
-        title="New Clinic"
-        description="Add a new clinic location to the system."
+        title={t('clinics.newClinicDialog.title')}
+        description={t('clinics.newClinicDialog.description')}
         footer={
           <>
             <Button variant="text" color="inherit" onClick={() => setSlideOpen(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" form={NEW_CLINIC_FORM_ID} variant="contained" loading={createClinic.isPending}>
-              Create clinic
+              {t('clinics.newClinicDialog.createButton')}
             </Button>
           </>
         }
@@ -154,9 +161,9 @@ export function ClinicsPage() {
 
       <ConfirmDialog
         open={!!toDeactivate}
-        title="Deactivate clinic"
-        description={`"${toDeactivate?.name}" will be deactivated. This action can be reversed by an administrator.`}
-        confirmLabel="Deactivate"
+        title={t('clinics.confirmDeactivate.title')}
+        description={t('clinics.confirmDeactivate.description', { name: toDeactivate?.name })}
+        confirmLabel={t('common.actions.deactivate')}
         loading={deactivateClinic.isPending}
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}

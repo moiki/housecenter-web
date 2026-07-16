@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
+  Alert,
   Avatar,
   Box,
   Chip,
@@ -20,6 +22,8 @@ import {
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined'
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined'
 import { useUsers, useDeactivateUser } from 'core/hooks/users/useUsers'
+import { isApiError } from 'core/types/common.types'
+import { translateErrorCode } from 'core/i18n'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import type { UserResponse } from 'core/types/user.types'
@@ -35,20 +39,34 @@ const ROLE_COLOR: Record<string, ChipColor> = {
 }
 
 export function UsersPage() {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('es') ? 'es' : 'en'
   const [page, setPage] = useState(1)
   const { data, isLoading } = useUsers(page)
   const deactivate = useDeactivateUser()
   const [toDeactivate, setToDeactivate] = useState<UserResponse | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const handleDeactivate = async () => {
     if (!toDeactivate) return
-    await deactivate.mutateAsync(toDeactivate.id)
-    setToDeactivate(null)
+    setActionError(null)
+    try {
+      await deactivate.mutateAsync(toDeactivate.id)
+      setToDeactivate(null)
+    } catch (err) {
+      setActionError(translateErrorCode(isApiError(err) ? err.code : undefined, lang))
+    }
   }
 
   return (
     <Box>
-      <PageHeader title="Users" description="All registered accounts in the system." />
+      <PageHeader title={t('management.users.title')} description={t('management.users.description')} />
+
+      {actionError && (
+        <Alert severity="error" onClose={() => setActionError(null)} sx={{ mb: 2 }}>
+          {actionError}
+        </Alert>
+      )}
 
       {isLoading ? (
         <Stack spacing={1.5}>
@@ -59,22 +77,22 @@ export function UsersPage() {
       ) : !data?.items.length ? (
         <Paper variant="outlined" sx={{ borderRadius: 2, py: 8, textAlign: 'center', color: 'text.secondary' }}>
           <AdminPanelSettingsOutlined sx={{ fontSize: 40, opacity: 0.4 }} />
-          <Typography sx={{ mt: 1, fontSize: 14 }}>No users found.</Typography>
+          <Typography sx={{ mt: 1, fontSize: 14 }}>{t('management.users.empty')}</Typography>
         </Paper>
       ) : (
         <>
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Users</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('management.users.title')}</Typography>
               <Chip label={data.totalCount} size="small" />
             </Box>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>User</TableCell>
-                    <TableCell>Roles</TableCell>
-                    <TableCell>Status</TableCell>
+                    <TableCell>{t('management.users.table.user')}</TableCell>
+                    <TableCell>{t('management.users.table.roles')}</TableCell>
+                    <TableCell>{t('management.users.table.status')}</TableCell>
                     <TableCell align="right" />
                   </TableRow>
                 </TableHead>
@@ -97,13 +115,13 @@ export function UsersPage() {
                       <TableCell>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                           {user.roles.map((r) => (
-                            <Chip key={r} label={r} size="small" color={ROLE_COLOR[r] ?? 'default'} variant="outlined" />
+                            <Chip key={r} label={t(`roles.${r}`)} size="small" color={ROLE_COLOR[r] ?? 'default'} variant="outlined" />
                           ))}
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={user.isActive ? 'Active' : 'Inactive'}
+                          label={user.isActive ? t('management.users.status.active') : t('management.users.status.inactive')}
                           size="small"
                           color={user.isActive ? 'success' : 'default'}
                           variant={user.isActive ? 'filled' : 'outlined'}
@@ -111,8 +129,8 @@ export function UsersPage() {
                       </TableCell>
                       <TableCell align="right">
                         {user.isActive && (
-                          <Tooltip title="Deactivate">
-                            <IconButton size="small" color="error" onClick={() => setToDeactivate(user)} aria-label="Deactivate">
+                          <Tooltip title={t('common.actions.deactivate')}>
+                            <IconButton size="small" color="error" onClick={() => setToDeactivate(user)} aria-label={t('common.actions.deactivate')}>
                               <DeleteOutlineOutlined fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -128,7 +146,7 @@ export function UsersPage() {
           {data.totalPages > 1 && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                {data.totalCount} users — page {data.page} of {data.totalPages}
+                {t('management.users.pageSummary', { count: data.totalCount, page: data.page, totalPages: data.totalPages })}
               </Typography>
               <Pagination
                 count={data.totalPages}
@@ -144,9 +162,9 @@ export function UsersPage() {
 
       <ConfirmDialog
         open={!!toDeactivate}
-        title="Deactivate user"
-        description={`${toDeactivate?.firstName} ${toDeactivate?.lastName} will lose access to the system.`}
-        confirmLabel="Deactivate"
+        title={t('management.users.confirmDeactivate.title')}
+        description={t('management.users.confirmDeactivate.description', { name: `${toDeactivate?.firstName} ${toDeactivate?.lastName}` })}
+        confirmLabel={t('common.actions.deactivate')}
         loading={deactivate.isPending}
         onConfirm={handleDeactivate}
         onCancel={() => setToDeactivate(null)}

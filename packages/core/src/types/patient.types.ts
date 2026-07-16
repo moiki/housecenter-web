@@ -19,6 +19,7 @@ export interface PatientResponse {
   primaryAttentionType: AttentionType
   clinicId: string | null
   workRouteId: string | null
+  routeVisitTime: string | null // 'HH:mm:ss', only meaningful when workRouteId is set
   isActive: boolean
 }
 

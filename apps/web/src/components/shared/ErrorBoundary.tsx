@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Box, Button, Divider, Paper, Typography } from '@mui/material'
 import ErrorOutlineOutlined from '@mui/icons-material/ErrorOutlineOutlined'
 import RefreshOutlined from '@mui/icons-material/RefreshOutlined'
+import i18n from '@/i18n'
 
 interface Props {
   children: ReactNode
@@ -67,11 +68,11 @@ export class ErrorBoundary extends Component<Props, State> {
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: isDev ? 'flex-start' : 'center', textAlign: isDev ? 'left' : 'center', gap: 1.25 }}>
             <ErrorOutlineOutlined color="error" sx={{ fontSize: 44 }} />
-            <Typography variant="h6">Something went wrong</Typography>
+            <Typography variant="h6">{i18n.t('shell.errorBoundary.heading')}</Typography>
             <Typography variant="body2" color="text.secondary">
               {isDev
                 ? 'An error was thrown while rendering. Details below (dev only).'
-                : 'An unexpected error occurred. Please reload the page and try again.'}
+                : i18n.t('shell.errorBoundary.prodDescription')}
             </Typography>
 
             {isDev && (
@@ -99,10 +100,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
               <Button variant="contained" startIcon={<RefreshOutlined />} onClick={() => window.location.reload()}>
-                Reload page
+                {i18n.t('shell.errorBoundary.reloadButton')}
               </Button>
               <Button variant="outlined" onClick={this.reset}>
-                Try again
+                {i18n.t('shell.errorBoundary.tryAgainButton')}
               </Button>
             </Box>
           </Box>

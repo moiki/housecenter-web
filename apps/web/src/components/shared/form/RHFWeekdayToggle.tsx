@@ -1,4 +1,5 @@
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { ToggleButton, ToggleButtonGroup, Box, Typography } from '@mui/material'
 import type { Weekday } from 'core/types/workroute.types'
 
@@ -9,19 +10,13 @@ interface Props<T extends FieldValues> {
   disabled?: boolean
 }
 
-const WEEKDAYS: { value: Weekday; label: string }[] = [
-  { value: 'Monday', label: 'Mon' },
-  { value: 'Tuesday', label: 'Tue' },
-  { value: 'Wednesday', label: 'Wed' },
-  { value: 'Thursday', label: 'Thu' },
-  { value: 'Friday', label: 'Fri' },
-  { value: 'Saturday', label: 'Sat' },
-  { value: 'Sunday', label: 'Sun' },
-]
+const WEEKDAYS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 // RHF-wired multi-select weekday toggle (value: Weekday[]). Used to build the
 // recurrence rule for a work route (weekly-by-weekday only, per design).
 export function RHFWeekdayToggle<T extends FieldValues>({ control, name, label, disabled }: Props<T>) {
+  const { t } = useTranslation()
+
   return (
     <Controller
       control={control}
@@ -38,11 +33,14 @@ export function RHFWeekdayToggle<T extends FieldValues>({ control, name, label, 
             size="small"
             sx={{ flexWrap: 'wrap', gap: 0.5, '& .MuiToggleButtonGroup-grouped': { border: 1, borderColor: 'divider', borderRadius: '8px !important', mx: 0 } }}
           >
-            {WEEKDAYS.map((d) => (
-              <ToggleButton key={d.value} value={d.value} aria-label={d.value} sx={{ px: 1.5, textTransform: 'none' }}>
-                {d.label}
-              </ToggleButton>
-            ))}
+            {WEEKDAYS.map((d) => {
+              const fullName = t(`workRoutes.weekday.${d}`)
+              return (
+                <ToggleButton key={d} value={d} aria-label={fullName} sx={{ px: 1.5, textTransform: 'none' }}>
+                  {fullName.slice(0, 3)}
+                </ToggleButton>
+              )
+            })}
           </ToggleButtonGroup>
           {fieldState.error?.message && (
             <Typography color="error" sx={{ fontSize: 12, mt: 0.5 }}>

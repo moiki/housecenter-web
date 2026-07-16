@@ -7,11 +7,13 @@ export type Weekday =
   | 'Saturday'
   | 'Sunday'
 
-export interface DestinationPointDto {
-  name: string
-  description: string
-  picture: string | null
-  googleMapUrl: string | null
+// A stop is a patient assigned to this route (Patient.workRouteId) — derived server-side,
+// not entered here, so it can never drift out of sync with who's actually assigned.
+export interface WorkRouteStopDto {
+  patientId: string
+  patientName: string
+  address: string
+  visitTime: string | null // 'HH:mm:ss'
 }
 
 export interface WorkRouteResponse {
@@ -21,7 +23,7 @@ export interface WorkRouteResponse {
   featuredImage: string | null
   clinicId: string
   clinicName: string
-  destinations: DestinationPointDto[]
+  stops: WorkRouteStopDto[]
   isActive: boolean
   recurrenceDays: Weekday[]
   recurrenceStartDate: string
@@ -34,7 +36,6 @@ export interface CreateWorkRouteRequest {
   description: string
   featuredImage: string | null
   clinicId: string
-  destinations: DestinationPointDto[]
   recurrenceDays: Weekday[]
   recurrenceStartDate: string
   recurrenceEndDate: string | null
@@ -45,9 +46,12 @@ export interface UpdateWorkRouteRequest {
   routeName: string
   description: string
   featuredImage: string | null
-  destinations: DestinationPointDto[]
   recurrenceDays: Weekday[]
   recurrenceStartDate: string
   recurrenceEndDate: string | null
   isRecurrenceIndefinite: boolean
+}
+
+export interface AssignPatientToRouteRequest {
+  visitTime: string | null // 'HH:mm:ss'
 }

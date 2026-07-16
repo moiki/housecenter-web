@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import CloseOutlined from '@mui/icons-material/CloseOutlined'
 
@@ -21,6 +22,7 @@ interface Props {
 // footer. The footer is a sibling of the body (not inside it), so a long form scrolls
 // while the actions stay reachable — pair it with `<form id>` + `<Button form={id}>`.
 export function SlideOver({ open, onClose, title, description, footer, children }: Props) {
+  const { t } = useTranslation()
   return (
     <Drawer
       anchor="right"
@@ -46,7 +48,7 @@ export function SlideOver({ open, onClose, title, description, footer, children 
             <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>{description}</Typography>
           )}
         </Box>
-        <IconButton onClick={onClose} aria-label="Close" size="small" sx={{ mt: -0.5, mr: -0.5 }}>
+        <IconButton onClick={onClose} aria-label={t('common.actions.close')} size="small" sx={{ mt: -0.5, mr: -0.5 }}>
           <CloseOutlined />
         </IconButton>
       </Box>
